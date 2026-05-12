@@ -106,7 +106,7 @@ export function AdminPortalFrame({
 
       <main className="min-w-0">
         <section className="border-b border-stone-300 bg-white px-4 py-3 sm:px-6">
-          <div className="mx-auto max-w-7xl">
+          <div className="w-full">
             <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">{eyebrow}</p>
             <div className="mt-1 flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
               <div>
@@ -127,7 +127,7 @@ export function AdminPortalFrame({
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-4 py-5 sm:px-6">{children}</section>
+        <section className="w-full px-4 py-5 sm:px-6">{children}</section>
       </main>
     </div>
   );

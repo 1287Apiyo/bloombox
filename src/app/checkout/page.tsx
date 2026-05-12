@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -73,6 +73,8 @@ export default function CheckoutPage() {
   const [mpesaPin, setMpesaPin] = useState('');
   const [receiptNumber, setReceiptNumber] = useState('');
   const [submittedTotal, setSubmittedTotal] = useState(0);
+  const [orderSubmitted, setOrderSubmitted] = useState(false);
+  const paymentSectionRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -143,6 +145,7 @@ export default function CheckoutPage() {
     setReceiptNumber('');
     setMpesaPin('');
     setSubmittedCart(null);
+    setOrderSubmitted(false);
 
     if (!user) {
       router.push('/login?next=/checkout');
@@ -180,6 +183,10 @@ export default function CheckoutPage() {
       setPaymentId(paymentResult.paymentId);
       setSubmittedTotal(orderTotal);
       setPaymentStatus('pending');
+      setOrderSubmitted(true);
+      window.setTimeout(() => {
+        paymentSectionRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 100);
     } catch (orderError) {
       setError(`Could not place order: ${getMessage(orderError)}`);
     } finally {
@@ -251,9 +258,15 @@ export default function CheckoutPage() {
               </div>
             ) : null}
 
-            {orderId ? (
-              <div className="rounded-md border border-amber-200 bg-amber-50 p-5 text-sm leading-6 text-amber-900">
-                <p className="font-semibold">Order placed. Payment is {paymentStatus === 'successful' ? 'successful' : 'pending'}.</p>
+            <div ref={paymentSectionRef} className="scroll-mt-28">
+            {orderSubmitted ? (
+              <div className="rounded-md border border-emerald-200 bg-emerald-50 p-5 text-sm leading-6 text-emerald-900">
+                <p className="text-lg font-semibold">Order submitted successfully.</p>
+                <p className="mt-1">
+                  {paymentStatus === 'successful'
+                    ? 'Payment has been confirmed and your order is now paid.'
+                    : 'Your cart has been submitted. Complete the payment step below so BloomBox can start processing it.'}
+                </p>
                 <p className="mt-1">Order ID: {orderId}</p>
                 <p className="mt-1">Payment ID: {paymentId}</p>
               </div>
@@ -263,7 +276,7 @@ export default function CheckoutPage() {
               <section className="rounded-md border border-stone-300 bg-white p-5 sm:p-6">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-rose-700">Dummy STK push</p>
                 <h2 className="mt-2 text-2xl font-semibold text-stone-950">
-                  {paymentMethod === 'mpesa' ? 'Enter M-Pesa PIN to complete payment' : 'Confirm dummy payment'}
+                  {paymentMethod === 'mpesa' ? 'Now complete payment' : 'Now confirm payment'}
                 </h2>
                 <p className="mt-3 text-sm leading-6 text-stone-600">
                   {paymentMethod === 'mpesa'
@@ -306,6 +319,7 @@ export default function CheckoutPage() {
                 </button>
               </section>
             ) : null}
+            </div>
 
             {paymentStatus === 'successful' ? (
               <section className="rounded-md border border-emerald-200 bg-emerald-50 p-5 text-sm leading-6 text-emerald-900">

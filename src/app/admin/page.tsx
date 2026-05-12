@@ -437,7 +437,7 @@ export default function AdminPage() {
 
       <main className="min-w-0">
         <section className="border-b border-stone-300 bg-white px-4 py-3 sm:px-6">
-          <div className="mx-auto max-w-7xl">
+          <div className="w-full">
             <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">Back office</p>
             <div className="mt-1 flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
               <div>
@@ -469,7 +469,7 @@ export default function AdminPage() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-4 py-5 sm:px-6">
+        <section className="w-full px-4 py-5 sm:px-6">
           {error ? <div className="mb-5 border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-800">{error}</div> : null}
           {notice ? <div className="mb-5 border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-900">{notice}</div> : null}
 

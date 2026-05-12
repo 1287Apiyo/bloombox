@@ -342,14 +342,6 @@ export default function ShopPage() {
     ];
   }, [categories, products]);
 
-  const categoryCards = useMemo(() => {
-    return categories.map((category) => ({
-      ...category,
-      count: products.filter((product) => product.categoryId === category.id).length,
-      visual: categoryVisuals[category.id],
-    }));
-  }, [categories, products]);
-
   const visibleProducts = useMemo(() => {
     const normalizedSearch = searchTerm.trim().toLowerCase();
 
@@ -390,8 +382,7 @@ export default function ShopPage() {
 
     try {
       await addProductToCart(user.uid, normalizeProductImage(product));
-      setNotice(`${product.name} added to your cart.`);
-      setIsCartOpen(true);
+      setNotice(`${product.name} added to your cart. Open the cart when you are ready to checkout.`);
     } catch (error) {
       setCatalogError(`Could not add item: ${getMessage(error)}`);
     } finally {
@@ -450,7 +441,7 @@ export default function ShopPage() {
                   <p className="mt-1 text-xs uppercase tracking-[0.16em] text-stone-500">Items</p>
                 </div>
                 <div className="border-r border-stone-300 p-4">
-                  <p className="text-2xl font-semibold text-[#ae2f34]">{categoryCards.length}</p>
+                  <p className="text-2xl font-semibold text-[#ae2f34]">{categories.length}</p>
                   <p className="mt-1 text-xs uppercase tracking-[0.16em] text-stone-500">Categories</p>
                 </div>
                 <div className="p-4">
@@ -496,64 +487,17 @@ export default function ShopPage() {
           </div>
         </section>
 
-        <section className="border-b border-stone-300 bg-white">
-          <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8">
-            <div className="mb-6 flex flex-col justify-between gap-3 md:flex-row md:items-end">
-              <div>
-                <h2 className="font-serif text-3xl font-semibold text-[#ae2f34]">Shop by need</h2>
-                <p className="mt-2 text-sm leading-6 text-stone-600">Tap a category to narrow the catalog without losing the cart flow.</p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActiveCategory('all')}
-                className="w-fit border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:border-[#ae2f34] hover:text-[#ae2f34]"
-              >
-                Show all
-              </button>
-            </div>
-            <div className="flex gap-4 overflow-x-auto pb-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-              {categoryCards.map((category) => {
-                const isActive = activeCategory === category.id;
-                const visual = category.visual ?? { image: shopImages.default, accent: 'bg-stone-800', line: category.description };
-
-                return (
-                  <button
-                    key={category.id}
-                    type="button"
-                    onClick={() => setActiveCategory(category.id)}
-                    className={`group grid min-w-[220px] grid-rows-[140px_auto] border text-left transition ${
-                      isActive ? 'border-[#ae2f34]' : 'border-stone-300 hover:border-[#ae2f34]'
-                    }`}
-                  >
-                    <span className="relative block overflow-hidden bg-stone-100">
-                      <Image src={visual.image} alt={category.name} fill sizes="220px" className="object-cover transition duration-500 group-hover:scale-[1.04]" />
-                      <span className={`absolute inset-x-0 bottom-0 h-2 ${visual.accent}`} />
-                    </span>
-                    <span className="block bg-white p-4">
-                      <span className="flex items-center justify-between gap-3">
-                        <span className="font-semibold text-stone-950">{category.name}</span>
-                        <span className="text-xs text-stone-500">{category.count}</span>
-                      </span>
-                      <span className="mt-2 block text-sm leading-5 text-stone-600">{visual.line}</span>
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-        </section>
-
-        <section className="mx-auto max-w-7xl px-5 py-12 sm:px-8">
-          <div className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end">
+        <section className="mx-auto max-w-7xl px-5 py-8 sm:px-8">
+          <div className="mb-5 flex flex-col justify-between gap-3 md:flex-row md:items-center">
             <div>
-              <h2 className="font-serif text-3xl font-semibold text-[#191c1d]">Popular ways to shop</h2>
-              <p className="mt-2 text-sm leading-6 text-stone-600">Fast starting points for essentials, comfort, and gifting.</p>
+              <h2 className="font-serif text-2xl font-semibold text-[#191c1d]">Popular ways to shop</h2>
+              <p className="mt-1 text-sm leading-6 text-stone-600">Fast starting points for essentials, comfort, and gifting.</p>
             </div>
-            <Link href="/checkout" className="w-fit border border-[#ae2f34] px-5 py-2 text-sm font-semibold text-[#ae2f34] hover:bg-[#ae2f34] hover:text-white">
+            <button type="button" onClick={() => setIsCartOpen(true)} className="w-fit border border-[#ae2f34] px-4 py-2 text-sm font-semibold text-[#ae2f34] hover:bg-[#ae2f34] hover:text-white">
               Go to checkout
-            </Link>
+            </button>
           </div>
-          <div className="grid gap-5 md:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-3">
             {shopBundles.map((bundle) => (
               <button
                 type="button"
@@ -561,12 +505,12 @@ export default function ShopPage() {
                 onClick={() => setActiveCategory(bundle.categoryId)}
                 className="group grid border border-stone-300 bg-white text-left transition hover:border-[#ae2f34]"
               >
-                <span className="relative block aspect-[4/3] overflow-hidden bg-stone-100">
+                <span className="relative block aspect-[5/2] overflow-hidden bg-stone-100">
                   <Image src={bundle.image} alt={bundle.title} fill sizes="(min-width: 768px) 33vw, 100vw" className="object-cover transition duration-500 group-hover:scale-[1.04]" />
                 </span>
-                <span className="block p-5">
-                  <span className="font-serif text-2xl font-semibold text-[#ae2f34]">{bundle.title}</span>
-                  <span className="mt-2 block text-sm leading-6 text-stone-600">{bundle.text}</span>
+                <span className="block p-4">
+                  <span className="font-serif text-xl font-semibold text-[#ae2f34]">{bundle.title}</span>
+                  <span className="mt-1 block text-sm leading-5 text-stone-600">{bundle.text}</span>
                 </span>
               </button>
             ))}
