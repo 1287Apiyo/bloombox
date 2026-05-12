@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, type FormEvent } from 'react';
 import { GoogleAuthProvider, createUserWithEmailAndPassword, signInWithPopup, updateProfile } from 'firebase/auth';
 import { getAuthErrorMessage } from '@/lib/authErrors';
@@ -24,6 +24,7 @@ function GoogleMark() {
 export default function SignupPage() {
   const { configError, isConfigured, user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -35,9 +36,11 @@ export default function SignupPage() {
 
   useEffect(() => {
     if (user) {
-      router.push('/dashboard');
+      const nextPath = searchParams.get('next');
+      const safeNextPath = nextPath?.startsWith('/') ? nextPath : null;
+      router.push(safeNextPath ?? '/dashboard');
     }
-  }, [router, user]);
+  }, [router, searchParams, user]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -67,7 +70,9 @@ export default function SignupPage() {
         await updateProfile(credential.user, { displayName: name.trim() });
       }
 
-      router.push('/dashboard');
+      const nextPath = searchParams.get('next');
+      const safeNextPath = nextPath?.startsWith('/') ? nextPath : null;
+      router.push(safeNextPath ?? '/dashboard');
     } catch (authError) {
       setError(getAuthErrorMessage(authError));
       setIsSubmitting(false);
@@ -86,7 +91,9 @@ export default function SignupPage() {
 
     try {
       await signInWithPopup(getFirebaseAuth(), new GoogleAuthProvider());
-      router.push('/dashboard');
+      const nextPath = searchParams.get('next');
+      const safeNextPath = nextPath?.startsWith('/') ? nextPath : null;
+      router.push(safeNextPath ?? '/dashboard');
     } catch (authError) {
       setError(getAuthErrorMessage(authError));
       setIsGoogleSubmitting(false);

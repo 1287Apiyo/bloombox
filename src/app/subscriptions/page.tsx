@@ -1,8 +1,10 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, type FormEvent } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { createCardSubscription, type SubscriptionPlanInput } from '@/lib/firestore';
+import { useAuth } from '../components/AuthProvider';
 import { Eyebrow, SiteFooter, SiteHeader } from '../components/BrandShell';
 
 const tiers = [
@@ -10,6 +12,7 @@ const tiers = [
     tier: 'Tier 1',
     name: 'Pads Bloom',
     price: 'KSh 300',
+    amount: 300,
     summary: 'One pack of pads with flowers and a small treat.',
     image: '/products/marvel.jpg',
     items: ['Pads - 1 pack', 'Flowers', 'Gift or treat'],
@@ -21,6 +24,7 @@ const tiers = [
     tier: 'Tier 2',
     name: 'Tampon Bloom',
     price: 'KSh 500',
+    amount: 500,
     summary: 'One pack of tampons with flowers and a small treat.',
     image: '/products/tampons.jpg',
     items: ['Tampons - 1 pack', 'Flowers', 'Gift or treat'],
@@ -32,6 +36,7 @@ const tiers = [
     tier: 'Tier 3',
     name: 'Double Pad Bloom',
     price: 'KSh 600',
+    amount: 600,
     summary: 'Two packs of pads with flowers and a small treat.',
     image: '/products/kot.jpg',
     items: ['Pads - 2 packs', 'Flowers', 'Gift or treat'],
@@ -43,6 +48,7 @@ const tiers = [
     tier: 'Tier 4',
     name: 'Double Tampon Bloom',
     price: 'KSh 700',
+    amount: 700,
     summary: 'Two packs of tampons with flowers and a small treat.',
     image: '/products/tampons.jpg',
     items: ['Tampons - 2 packs', 'Flowers', 'Gift or treat'],
@@ -54,6 +60,7 @@ const tiers = [
     tier: 'Tier 5',
     name: 'Donate a Bundle',
     price: 'Donation',
+    amount: null,
     summary: 'Sponsor a care bundle for someone who needs support.',
     image: '/mockups/bloombox-gift-flowers.png',
     items: ['Care essentials', 'Comfort item', 'Community delivery'],
@@ -65,6 +72,7 @@ const tiers = [
     tier: 'Tier 6',
     name: 'BYOB',
     price: 'Custom costing',
+    amount: null,
     summary: 'Build your own box from the catalog and price it as you go.',
     image: '/products/candle.jpg',
     items: ['Choose products', 'Add flowers or treats', 'Custom total at checkout'],
@@ -87,8 +95,88 @@ const faqs = [
   ['Can I donate instead of subscribing?', 'Yes. Tier 5 is built for donations and community support bundles.'],
 ];
 
+function getCardBrand(cardNumber: string) {
+  const digits = cardNumber.replace(/\D/g, '');
+
+  if (digits.startsWith('4')) return 'Visa';
+  if (/^5[1-5]/.test(digits) || /^2[2-7]/.test(digits)) return 'Mastercard';
+  if (/^3[47]/.test(digits)) return 'American Express';
+  return 'Card';
+}
+
 export default function SubscriptionsPage() {
+  const { user } = useAuth();
   const [openFaq, setOpenFaq] = useState(0);
+  const [selectedTierId, setSelectedTierId] = useState(tiers[0].tier);
+  const [cardholderName, setCardholderName] = useState('');
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardExpiry, setCardExpiry] = useState('');
+  const [cardCvv, setCardCvv] = useState('');
+  const [notice, setNotice] = useState('');
+  const [error, setError] = useState('');
+  const [isActivating, setIsActivating] = useState(false);
+
+  const selectedTier = tiers.find((tier) => tier.tier === selectedTierId) ?? tiers[0];
+
+  const chooseTier = (tier: (typeof tiers)[number]) => {
+    if (tier.amount === null) return;
+
+    setSelectedTierId(tier.tier);
+    setNotice('');
+    setError('');
+    document.getElementById('subscription-card')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const activateSubscription = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setNotice('');
+    setError('');
+
+    if (!user) {
+      setError('Log in before activating a subscription.');
+      return;
+    }
+
+    if (selectedTier.amount === null) {
+      setError('Choose a priced monthly tier before adding card details.');
+      return;
+    }
+
+    const digits = cardNumber.replace(/\D/g, '');
+
+    if (cardholderName.trim().length < 2 || digits.length < 12 || cardExpiry.trim().length < 4 || cardCvv.replace(/\D/g, '').length < 3) {
+      setError('Add the cardholder name, card number, expiry, and CVV.');
+      return;
+    }
+
+    const plan: SubscriptionPlanInput = {
+      planId: selectedTier.tier.toLowerCase().replace(/\s+/g, '-'),
+      planName: selectedTier.name,
+      amount: selectedTier.amount,
+      amountLabel: selectedTier.price,
+      summary: selectedTier.summary,
+    };
+
+    setIsActivating(true);
+
+    try {
+      const subscriptionId = await createCardSubscription(user, plan, {
+        holderName: cardholderName.trim(),
+        brand: getCardBrand(digits),
+        last4: digits.slice(-4),
+        expiry: cardExpiry.trim(),
+      });
+      setNotice(`${selectedTier.name} is active. Subscription ID: ${subscriptionId}`);
+      setCardholderName('');
+      setCardNumber('');
+      setCardExpiry('');
+      setCardCvv('');
+    } catch (subscriptionError) {
+      setError(subscriptionError instanceof Error ? subscriptionError.message : 'Could not activate subscription.');
+    } finally {
+      setIsActivating(false);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] text-stone-950">
@@ -172,12 +260,71 @@ export default function SubscriptionsPage() {
                     ))}
                   </ul>
 
-                  <Link href={tier.href} className="inline-flex justify-center bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#1B1F3B]">
-                    {tier.action}
-                  </Link>
+                  {tier.amount === null ? (
+                    <Link href={tier.href} className="inline-flex justify-center bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#1B1F3B]">
+                      {tier.action}
+                    </Link>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => chooseTier(tier)}
+                      className={`inline-flex justify-center px-5 py-3 text-sm font-semibold transition ${
+                        selectedTierId === tier.tier ? 'bg-[#1B1F3B] text-white' : 'bg-[#ae2f34] text-white hover:bg-[#1B1F3B]'
+                      }`}
+                    >
+                      {selectedTierId === tier.tier ? 'Selected for card setup' : 'Subscribe with card'}
+                    </button>
+                  )}
                 </div>
               </article>
             ))}
+          </div>
+        </section>
+
+        <section id="subscription-card" className="border-y border-stone-300 bg-white">
+          <div className="mx-auto grid max-w-7xl gap-8 px-5 py-14 sm:px-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
+            <div>
+              <Eyebrow>Card subscription</Eyebrow>
+              <h2 className="mt-4 font-serif text-4xl font-semibold text-[#191c1d]">Activate monthly care by card.</h2>
+              <p className="mt-4 max-w-xl text-sm leading-6 text-[#584140]">
+                This sets up a BloomBox subscription record and stores only card brand, expiry, and last four digits. Full card numbers and CVV are not saved.
+              </p>
+              <div className="mt-6 border-l-4 border-[#ae2f34] bg-[#fff5f0] px-4 py-3">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">Selected tier</p>
+                <p className="mt-2 font-serif text-3xl font-semibold">{selectedTier.name}</p>
+                <p className="mt-1 text-sm font-semibold text-[#8c1520]">{selectedTier.price} monthly</p>
+                <p className="mt-2 text-sm leading-6 text-[#584140]">{selectedTier.summary}</p>
+              </div>
+            </div>
+
+            <form onSubmit={activateSubscription} className="border border-stone-300 bg-[#fff5f0] p-5">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">Card details</p>
+              <div className="mt-4 grid gap-4">
+                <label className="grid gap-2 text-sm font-semibold text-stone-700">
+                  Cardholder name
+                  <input value={cardholderName} onChange={(event) => setCardholderName(event.target.value)} className="border border-stone-300 bg-white px-4 py-3 font-normal outline-none focus:border-[#ae2f34]" placeholder="Name on card" />
+                </label>
+                <label className="grid gap-2 text-sm font-semibold text-stone-700">
+                  Card number
+                  <input value={cardNumber} onChange={(event) => setCardNumber(event.target.value)} inputMode="numeric" className="border border-stone-300 bg-white px-4 py-3 font-normal outline-none focus:border-[#ae2f34]" placeholder="4242 4242 4242 4242" />
+                </label>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <label className="grid gap-2 text-sm font-semibold text-stone-700">
+                    Expiry
+                    <input value={cardExpiry} onChange={(event) => setCardExpiry(event.target.value)} className="border border-stone-300 bg-white px-4 py-3 font-normal outline-none focus:border-[#ae2f34]" placeholder="MM/YY" />
+                  </label>
+                  <label className="grid gap-2 text-sm font-semibold text-stone-700">
+                    CVV
+                    <input value={cardCvv} onChange={(event) => setCardCvv(event.target.value)} inputMode="numeric" className="border border-stone-300 bg-white px-4 py-3 font-normal outline-none focus:border-[#ae2f34]" placeholder="123" />
+                  </label>
+                </div>
+                {error ? <p className="border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800">{error}</p> : null}
+                {notice ? <p className="border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-900">{notice}</p> : null}
+                <button disabled={isActivating || selectedTier.amount === null} className="bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white hover:bg-[#8c1520] disabled:cursor-not-allowed disabled:opacity-60">
+                  {isActivating ? 'Activating...' : `Activate ${selectedTier.name}`}
+                </button>
+              </div>
+            </form>
           </div>
         </section>
 

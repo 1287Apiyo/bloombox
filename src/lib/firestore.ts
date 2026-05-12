@@ -21,6 +21,7 @@ import { getFirebaseDb } from './firebase';
 
 export const collectionNames = {
   admins: 'admins',
+  blogPosts: 'blogPosts',
   carts: 'carts',
   categories: 'categories',
   giftOrders: 'giftOrders',
@@ -76,6 +77,7 @@ export type PaymentDetails = {
 };
 
 export type PaymentStatus = 'pending' | 'successful' | 'failed';
+export type SubscriptionStatus = 'active' | 'paused' | 'cancelled';
 
 export type OrderStatus = 'placed' | 'pending-payment' | 'paid' | 'preparing' | 'out-for-delivery' | 'delivered' | 'cancelled';
 
@@ -98,6 +100,32 @@ export type NewsletterSubscriber = {
   source: string;
   createdAt?: unknown;
   updatedAt?: unknown;
+};
+
+export type BlogPostType = 'story' | 'product-guide' | 'discussion';
+
+export type BlogPost = {
+  id: string;
+  title: string;
+  excerpt: string;
+  body: string;
+  type: BlogPostType;
+  authorId: string;
+  authorName: string;
+  authorEmail: string | null;
+  videoUrl?: string;
+  productTags: string[];
+  status: 'published';
+  createdAt?: unknown;
+  updatedAt?: unknown;
+};
+
+export type SubscriptionPlanInput = {
+  planId: string;
+  planName: string;
+  amount: number | null;
+  amountLabel: string;
+  summary: string;
 };
 
 export type DummyPaymentResult = {
@@ -148,6 +176,7 @@ export type FirestoreCollections = {
     purpose: 'Marks app administrators who may manage catalog and order data.';
     documentId: 'Firebase Auth uid';
   };
+  [collectionNames.blogPosts]: BlogPost;
   [collectionNames.categories]: ProductCategory;
   [collectionNames.products]: CatalogProduct;
   [collectionNames.users]: {
@@ -195,7 +224,10 @@ export type FirestoreCollections = {
   [collectionNames.subscriptions]: {
     userId: string;
     planId: string;
-    status: 'active' | 'paused' | 'cancelled';
+    status: SubscriptionStatus;
+    planName?: string;
+    amount?: number | null;
+    paymentMethod?: PaymentMethod;
   };
   [collectionNames.giftOrders]: {
     userId: string;
@@ -226,6 +258,10 @@ function sortProducts(products: CatalogProduct[]) {
 
     return a.name.localeCompare(b.name);
   });
+}
+
+function sortBlogPosts(posts: BlogPost[]) {
+  return [...posts].sort((a, b) => getTimestampMillis(b.createdAt) - getTimestampMillis(a.createdAt));
 }
 
 export function calculateOrderTotals(cart: CartSummary): OrderTotals {
@@ -586,6 +622,68 @@ export async function completeDummyPayment(orderId: string, paymentId: string) {
   return receiptNumber;
 }
 
+export async function createCardSubscription(
+  user: FirebaseUser,
+  plan: SubscriptionPlanInput,
+  card: {
+    holderName: string;
+    brand: string;
+    last4: string;
+    expiry: string;
+  },
+) {
+  const db = getFirebaseDb();
+  const subscriptionRef = doc(collection(db, collectionNames.subscriptions));
+  const paymentRef = doc(collection(db, collectionNames.payments));
+  const now = new Date();
+  const nextBillingAt = new Date(now);
+  nextBillingAt.setMonth(nextBillingAt.getMonth() + 1);
+  const amount = plan.amount ?? 0;
+  const batch = writeBatch(db);
+
+  batch.set(subscriptionRef, {
+    userId: user.uid,
+    planId: plan.planId,
+    planName: plan.planName,
+    planSummary: plan.summary,
+    status: 'active',
+    amount: plan.amount,
+    amountLabel: plan.amountLabel,
+    currency: 'KES',
+    interval: 'monthly',
+    paymentMethod: 'card',
+    card: {
+      holderName: card.holderName,
+      brand: card.brand,
+      last4: card.last4,
+      expiry: card.expiry,
+    },
+    startedAt: serverTimestamp(),
+    nextBillingAt,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+
+  batch.set(paymentRef, {
+    userId: user.uid,
+    subscriptionId: subscriptionRef.id,
+    method: 'card',
+    methodLabel: paymentMethodLabels.card,
+    provider: 'card-dummy',
+    status: 'successful',
+    amount,
+    currency: 'KES',
+    receiptNumber: `SUB${Date.now().toString().slice(-8)}`,
+    paidAt: serverTimestamp(),
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+
+  await batch.commit();
+
+  return subscriptionRef.id;
+}
+
 function getTimestampMillis(value: unknown) {
   if (value && typeof value === 'object' && 'toMillis' in value && typeof value.toMillis === 'function') {
     return value.toMillis();
@@ -633,6 +731,50 @@ export function subscribeToAllOrders(
     },
     onError,
   );
+}
+
+export function subscribeToBlogPosts(
+  onPosts: (posts: BlogPost[]) => void,
+  onError?: (error: FirestoreError) => void,
+): Unsubscribe {
+  return onSnapshot(
+    collection(getFirebaseDb(), collectionNames.blogPosts),
+    (snapshot) => {
+      const posts = snapshot.docs
+        .map((postDoc) => ({
+          id: postDoc.id,
+          ...(postDoc.data() as Omit<BlogPost, 'id'>),
+        }))
+        .filter((post) => post.status === 'published');
+
+      onPosts(sortBlogPosts(posts));
+    },
+    onError,
+  );
+}
+
+export async function createBlogPost(
+  user: FirebaseUser,
+  post: {
+    title: string;
+    excerpt: string;
+    body: string;
+    type: BlogPostType;
+    productTags: string[];
+    videoUrl?: string;
+  },
+) {
+  const postRef = doc(collection(getFirebaseDb(), collectionNames.blogPosts));
+
+  await setDoc(postRef, {
+    ...post,
+    authorId: user.uid,
+    authorName: user.displayName || user.email || 'BloomBox community member',
+    authorEmail: user.email,
+    status: 'published',
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
 }
 
 export function subscribeToOrder(

@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { subscribeToNewsletter } from '@/lib/firestore';
 import { SiteFooter, SiteHeader } from '../components/BrandShell';
+import { useAuth } from '../components/AuthProvider';
 
 const mockupImages = {
   delivery: '/mockups/bloombox-delivery.png',
@@ -174,6 +175,7 @@ function CollectionCard({ collection, large = false }: { collection: (typeof col
 }
 
 export default function DashboardPage() {
+  const { loading, user } = useAuth();
   const [newsletterEmail, setNewsletterEmail] = useState('');
   const [newsletterStatus, setNewsletterStatus] = useState('');
   const [newsletterError, setNewsletterError] = useState('');
@@ -233,14 +235,25 @@ export default function DashboardPage() {
               <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-[#fed4c8]">
                 Build a box for yourself, send one to someone you love, or choose a monthly tier before the basics become urgent.
               </p>
-              <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row sm:gap-4">
-                <Link href="/shop" className="bg-[#ae2f34] px-7 py-3 text-center text-base font-semibold text-white transition hover:bg-[#8c1520] sm:px-10 sm:py-4">
-                  Shop collections
-                </Link>
-                <Link href="/gifting" className="border border-[#fed4c8] bg-transparent px-7 py-3 text-center text-base font-semibold text-[#fed4c8] transition hover:bg-[#fed4c8] hover:text-[#14090c] sm:px-10 sm:py-4">
-                  Send a gift
-                </Link>
-              </div>
+              {!loading && !user ? (
+                <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row sm:gap-4">
+                  <Link href="/signup?next=/shop" className="bg-[#ae2f34] px-7 py-3 text-center text-base font-semibold text-white transition hover:bg-[#8c1520] sm:px-10 sm:py-4">
+                    Create account
+                  </Link>
+                  <Link href="/login?next=/shop" className="border border-[#fed4c8] bg-transparent px-7 py-3 text-center text-base font-semibold text-[#fed4c8] transition hover:bg-[#fed4c8] hover:text-[#14090c] sm:px-10 sm:py-4">
+                    Log in to shop
+                  </Link>
+                </div>
+              ) : (
+                <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row sm:gap-4">
+                  <Link href="/shop" className="bg-[#ae2f34] px-7 py-3 text-center text-base font-semibold text-white transition hover:bg-[#8c1520] sm:px-10 sm:py-4">
+                    Shop collections
+                  </Link>
+                  <Link href="/gifting" className="border border-[#fed4c8] bg-transparent px-7 py-3 text-center text-base font-semibold text-[#fed4c8] transition hover:bg-[#fed4c8] hover:text-[#14090c] sm:px-10 sm:py-4">
+                    Send a gift
+                  </Link>
+                </div>
+              )}
             </div>
           </div>
         </section>

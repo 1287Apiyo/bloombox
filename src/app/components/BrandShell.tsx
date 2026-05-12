@@ -15,8 +15,13 @@ const navigation = [
   { href: '/gifting', label: 'Gifting' },
   { href: '/orders', label: 'Orders' },
   { href: '/subscriptions', label: 'Subscriptions' },
+  { href: '/blog', label: 'Blog' },
+];
+
+const publicNavigation = [
+  { href: '/', label: 'Home' },
   { href: '/about', label: 'About' },
-  { href: '/faqs', label: 'FAQs' },
+  { href: '/blog', label: 'Blog' },
 ];
 
 const footerSections = [
@@ -41,6 +46,7 @@ const footerSections = [
   {
     title: 'Support',
     links: [
+      { label: 'Blog', href: '/blog' },
       { label: 'FAQs', href: '/faqs' },
       { label: 'Track orders', href: '/orders' },
       { label: 'About', href: '/about' },
@@ -55,7 +61,7 @@ function isActiveRoute(pathname: string, href: string) {
 
 export function BrandMark({ dark = false }: { dark?: boolean }) {
   const { isAdmin, loading, user } = useAuth();
-  const href = loading || user ? (isAdmin ? '/admin' : '/dashboard') : '/login';
+  const href = loading || !user ? '/' : isAdmin ? '/admin' : '/dashboard';
 
   return (
     <Link href={href} className="flex items-center gap-3">
@@ -77,7 +83,7 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const accountHref = loading || user ? (isAdmin ? '/admin' : '/dashboard') : '/login';
   const accountLabel = loading || user ? (isAdmin ? 'Admin' : 'Dashboard') : 'Sign in';
-  const visibleNavigation = isAdmin ? [...navigation, { href: '/admin', label: 'Admin' }] : navigation;
+  const visibleNavigation = user ? (isAdmin ? [...navigation, { href: '/admin', label: 'Admin' }] : navigation) : publicNavigation;
 
   const handleLogout = async () => {
     setLogoutError('');
@@ -139,6 +145,15 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
           >
             {accountLabel}
           </Link>
+
+          {!loading && !user ? (
+            <Link
+              href="/signup"
+              className="border border-rose-700 bg-white px-3 py-2 text-xs font-semibold text-rose-700 transition hover:bg-rose-50 sm:px-4 sm:text-sm"
+            >
+              Create account
+            </Link>
+          ) : null}
 
           {user ? (
             <div className="relative">

@@ -1,5 +1,10 @@
 import SignupPage from '../components/SignupPage';
+import { Suspense } from 'react';
 
 export default function Page() {
-  return <SignupPage />;
+  return (
+    <Suspense>
+      <SignupPage />
+    </Suspense>
+  );
 }

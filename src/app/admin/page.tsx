@@ -115,6 +115,26 @@ function makeKeywords(...values: string[]) {
     .filter(Boolean);
 }
 
+function isLocalImagePath(value: string) {
+  const trimmedValue = value.trim();
+  return /^[a-zA-Z]:[\\/]/.test(trimmedValue) || trimmedValue.startsWith('file:') || trimmedValue.startsWith('\\\\');
+}
+
+function getUploadErrorMessage(error: unknown) {
+  const code = error && typeof error === 'object' && 'code' in error ? String(error.code) : '';
+  const message = error instanceof Error ? error.message : 'Could not upload this product image.';
+
+  if (code.includes('unauthorized') || message.toLowerCase().includes('unauthorized')) {
+    return 'Firebase blocked the image upload. Make sure Storage rules are deployed and this signed-in account is an admin.';
+  }
+
+  if (code.includes('bucket-not-found') || message.toLowerCase().includes('bucket')) {
+    return 'Firebase Storage bucket could not be found. Check NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET in Vercel and .env.local.';
+  }
+
+  return message;
+}
+
 function getCustomerName(order: CustomerOrder, users: UserProfile[]) {
   const user = users.find((item) => item.uid === order.userId);
   return user?.displayName || user?.email || order.deliveryDetails?.recipientName || 'Customer';
@@ -266,7 +286,13 @@ export default function AdminPage() {
   };
 
   const uploadImage = async (productId: string) => {
-    if (!imageFile) return productForm.image.trim();
+    const typedImage = productForm.image.trim();
+
+    if (!imageFile && isLocalImagePath(typedImage)) {
+      throw new Error('Local computer paths cannot be used on the website. Choose the image with Upload image so it can be saved online.');
+    }
+
+    if (!imageFile) return typedImage;
 
     if (!imageFile.type.startsWith('image/')) {
       throw new Error('Choose a valid image file for this product.');
@@ -307,7 +333,7 @@ export default function AdminPage() {
       setNotice(`${product.name} has been ${isEditingProduct ? 'updated' : 'added'} in the catalog.`);
       resetProductForm();
     } catch (productError) {
-      setError(productError instanceof Error ? productError.message : 'Could not save product.');
+      setError(getUploadErrorMessage(productError));
     } finally {
       setUpdatingId('');
     }
@@ -741,20 +767,35 @@ export default function AdminPage() {
                   </div>
 
                   <label className="grid gap-2 text-sm font-semibold text-stone-700">
-                    Image URL or local path
+                    Hosted image URL
                     <input value={productForm.image} onChange={(event) => setFormField('image', event.target.value)} placeholder="/products/item.jpg or https://..." className="border border-stone-300 px-3 py-2 font-normal outline-none focus:border-[#ae2f34] focus:ring-2 focus:ring-rose-100" />
+                    <span className="text-xs font-normal leading-5 text-stone-500">Use this only for an image already online. For a photo from your computer, use Upload image.</span>
                   </label>
 
                   <label className="grid gap-2 text-sm font-semibold text-stone-700">
-                    Upload image
-                    <input type="file" accept="image/*" onChange={(event) => setImageFile(event.target.files?.[0] ?? null)} className="border border-stone-300 bg-white px-3 py-2 text-sm font-normal" />
-                    <span className="text-xs font-normal leading-5 text-stone-500">Uploads are saved to Firebase Storage and then used by the shop.</span>
+                    Upload image from this computer
+                    <input
+                      type="file"
+                      accept="image/*"
+                      onChange={(event) => {
+                        const nextFile = event.target.files?.[0] ?? null;
+                        setImageFile(nextFile);
+                        setError('');
+                      }}
+                      className="border border-stone-300 bg-white px-3 py-2 text-sm font-normal"
+                    />
+                    <span className="text-xs font-normal leading-5 text-stone-500">Choose a JPG, PNG, or WebP under 5MB. It uploads to Firebase Storage when you save.</span>
                   </label>
 
                   {imagePreview ? (
                     <div className="overflow-hidden border border-stone-300 bg-stone-100">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={imagePreview} alt="Product preview" className="h-44 w-full object-cover" />
+                      {imageFile ? (
+                        <div className="border-t border-stone-300 bg-white px-3 py-2 text-xs text-stone-600">
+                          Selected from this computer: <span className="font-semibold text-stone-900">{imageFile.name}</span>
+                        </div>
+                      ) : null}
                     </div>
                   ) : null}
 
