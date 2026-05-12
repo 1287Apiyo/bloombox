@@ -1,7 +1,9 @@
 'use client';
 
+import { useState, type FormEvent } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
+import { subscribeToNewsletter } from '@/lib/firestore';
 import { SiteFooter, SiteHeader } from '../components/BrandShell';
 
 const mockupImages = {
@@ -172,6 +174,34 @@ function CollectionCard({ collection, large = false }: { collection: (typeof col
 }
 
 export default function DashboardPage() {
+  const [newsletterEmail, setNewsletterEmail] = useState('');
+  const [newsletterStatus, setNewsletterStatus] = useState('');
+  const [newsletterError, setNewsletterError] = useState('');
+  const [isJoiningNewsletter, setIsJoiningNewsletter] = useState(false);
+
+  const handleNewsletterSubmit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    setNewsletterError('');
+    setNewsletterStatus('');
+
+    if (!newsletterEmail.trim()) {
+      setNewsletterError('Enter an email address to join.');
+      return;
+    }
+
+    setIsJoiningNewsletter(true);
+
+    try {
+      await subscribeToNewsletter(newsletterEmail, 'dashboard-community');
+      setNewsletterStatus('You have subscribed. BloomBox updates and newsletters will arrive in your email.');
+      setNewsletterEmail('');
+    } catch (error) {
+      setNewsletterError(error instanceof Error ? error.message : 'Could not save your email. Please try again.');
+    } finally {
+      setIsJoiningNewsletter(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#f8f9fa] text-[#191c1d]">
       <SiteHeader />
@@ -240,16 +270,25 @@ export default function DashboardPage() {
                 <p className="mt-5 text-base leading-7 text-[#795950]">
                   Join the BloomBox community and receive updates on care boxes, gift edits, and new delivery drops.
                 </p>
-                <form className="mt-7 flex flex-col gap-3 sm:flex-row" onSubmit={(event) => event.preventDefault()}>
+                <form className="mt-7 flex flex-col gap-3 sm:flex-row" onSubmit={handleNewsletterSubmit}>
                   <input
+                    value={newsletterEmail}
+                    onChange={(event) => setNewsletterEmail(event.target.value)}
                     className="min-w-0 flex-1 border border-white bg-white px-6 py-3 text-sm outline-none focus:border-[#ae2f34] focus:ring-2 focus:ring-[#fed4c8]"
                     placeholder="Enter your email"
                     type="email"
+                    required
                   />
                   <button className="bg-[#ae2f34] px-8 py-3 text-sm font-semibold text-white transition hover:bg-[#8c1520]">
-                    Join us
+                    {isJoiningNewsletter ? 'Joining...' : 'Join us'}
                   </button>
                 </form>
+                {newsletterStatus ? (
+                  <p className="mt-3 border border-emerald-200 bg-emerald-50 px-4 py-2 text-sm text-emerald-900">{newsletterStatus}</p>
+                ) : null}
+                {newsletterError ? (
+                  <p className="mt-3 border border-rose-200 bg-rose-50 px-4 py-2 text-sm text-rose-800">{newsletterError}</p>
+                ) : null}
               </div>
             </div>
           </div>
@@ -302,11 +341,19 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className="bg-[#edeeef] py-12 sm:py-16">
-          <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        <section className="relative overflow-hidden bg-[#14090c] py-12 sm:py-16">
+          <Image
+            src={mockupImages.giftFlowers}
+            alt="Darkened BloomBox floral gift arrangement"
+            fill
+            sizes="100vw"
+            className="object-cover opacity-70"
+          />
+          <div className="absolute inset-0 bg-[#14090c]/78" />
+          <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mx-auto mb-14 max-w-2xl text-center">
-              <h2 className="font-serif text-4xl font-semibold text-[#ae2f34]">The BloomBox promise</h2>
-              <p className="mt-4 text-base leading-7 text-[#584140]">
+              <h2 className="font-serif text-4xl font-semibold text-white">The BloomBox promise</h2>
+              <p className="mt-4 text-base leading-7 text-[#fff5f0]">
                 We believe care packages are more than products. They are a medium for connection, relief, and ritual.
               </p>
             </div>
@@ -317,8 +364,8 @@ export default function DashboardPage() {
                   <div className="mb-6 flex h-16 w-16 items-center justify-center bg-white text-[#ae2f34]">
                     <PromiseIcon type={promise.icon} />
                   </div>
-                  <h3 className="font-serif text-2xl font-semibold">{promise.title}</h3>
-                  <p className="mt-3 text-base leading-7 text-[#584140]">{promise.text}</p>
+                  <h3 className="font-serif text-2xl font-semibold text-white">{promise.title}</h3>
+                  <p className="mt-3 text-base leading-7 text-[#fed4c8]">{promise.text}</p>
                 </div>
               ))}
             </div>

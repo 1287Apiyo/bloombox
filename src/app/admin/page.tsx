@@ -11,10 +11,12 @@ import {
   subscribeToAdminProducts,
   subscribeToAllOrders,
   subscribeToAllUsers,
+  subscribeToNewsletterSubscribers,
   updateOrderStatus,
   updateProductStatus,
   updateUserRole,
   type CustomerOrder,
+  type NewsletterSubscriber,
   type OrderStatus,
   type UserProfile,
   type UserRole,
@@ -23,8 +25,8 @@ import { getFirebaseAuth, getFirebaseStorage } from '@/lib/firebase';
 import { productCategories, type CatalogProduct, type StockStatus } from '@/data/catalog';
 import { useAuth } from '../components/AuthProvider';
 
-type AdminSection = 'overview' | 'orders' | 'products' | 'customers' | 'access';
-type IconName = 'chart' | 'orders' | 'products' | 'users' | 'shield';
+type AdminSection = 'overview' | 'orders' | 'products' | 'customers' | 'subscribers' | 'access';
+type IconName = 'chart' | 'orders' | 'products' | 'users' | 'mail' | 'shield';
 type ProductFormState = {
   id: string;
   sku: string;
@@ -191,6 +193,7 @@ function AdminIcon({ name }: { name: IconName }) {
     orders: 'M7 7h10M7 12h10M7 17h6M5 3h14v18H5z',
     products: 'M4 7l8-4 8 4-8 4-8-4Zm0 0v10l8 4 8-4V7M12 11v10',
     users: 'M16 19v-1a4 4 0 0 0-8 0v1M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8Zm6 8v-1a3 3 0 0 0-2-2.83M18 7a3 3 0 0 1 0 6',
+    mail: 'M4 6h16v12H4V6Zm0 1 8 6 8-6',
     shield: 'M12 3 5 6v5c0 5 3.5 8.5 7 10 3.5-1.5 7-5 7-10V6l-7-3Z',
   };
 
@@ -207,6 +210,7 @@ export default function AdminPage() {
   const [orders, setOrders] = useState<CustomerOrder[]>([]);
   const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
+  const [subscribers, setSubscribers] = useState<NewsletterSubscriber[]>([]);
   const [productForm, setProductForm] = useState<ProductFormState>(emptyProductForm);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [isEditingProduct, setIsEditingProduct] = useState(false);
@@ -219,6 +223,7 @@ export default function AdminPage() {
       subscribeToAllOrders(setOrders, (ordersError) => setError(`Orders could not load: ${ordersError.message}`)),
       subscribeToAdminProducts(setProducts, (productsError) => setError(`Products could not load: ${productsError.message}`)),
       subscribeToAllUsers(setUsers, (usersError) => setError(`Customers could not load: ${usersError.message}`)),
+      subscribeToNewsletterSubscribers(setSubscribers, (subscribersError) => setError(`Subscribers could not load: ${subscribersError.message}`)),
     ];
 
     return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
@@ -231,12 +236,18 @@ export default function AdminPage() {
     const activeProducts = products.filter((product) => product.isActive !== false).length;
     const admins = users.filter((profile) => profile.role === 'admin').length;
 
-    return { revenue, activeOrders, activeProducts, admins };
-  }, [orders, products, users]);
+    return { revenue, activeOrders, activeProducts, admins, subscribers: subscribers.length };
+  }, [orders, products, users, subscribers]);
 
   const recentOrders = orders.slice(0, 5);
   const draftProducts = products.filter((product) => product.isActive === false).slice(0, 5);
-  const imagePreview = imageFile ? URL.createObjectURL(imageFile) : productForm.image;
+  const imagePreview = useMemo(() => (imageFile ? URL.createObjectURL(imageFile) : productForm.image), [imageFile, productForm.image]);
+
+  useEffect(() => {
+    if (!imagePreview.startsWith('blob:')) return undefined;
+
+    return () => URL.revokeObjectURL(imagePreview);
+  }, [imagePreview]);
 
   const setFormField = (field: keyof ProductFormState, value: string | boolean) => {
     setProductForm((current) => ({ ...current, [field]: value }));
@@ -257,11 +268,19 @@ export default function AdminPage() {
   };
 
   const uploadImage = async (productId: string) => {
-    if (!imageFile) return productForm.image;
+    if (!imageFile) return productForm.image.trim();
+
+    if (!imageFile.type.startsWith('image/')) {
+      throw new Error('Choose a valid image file for this product.');
+    }
+
+    if (imageFile.size > 5 * 1024 * 1024) {
+      throw new Error('Product images must be smaller than 5MB.');
+    }
 
     const safeName = imageFile.name.replace(/[^a-zA-Z0-9._-]/g, '-');
     const storageRef = ref(getFirebaseStorage(), `product-images/${productId}-${Date.now()}-${safeName}`);
-    await uploadBytes(storageRef, imageFile);
+    await uploadBytes(storageRef, imageFile, { contentType: imageFile.type });
     return getDownloadURL(storageRef);
   };
 
@@ -355,6 +374,7 @@ export default function AdminPage() {
     { id: 'orders', label: 'Orders', detail: 'Delivery workflow', icon: 'orders' },
     { id: 'products', label: 'Products', detail: 'Catalog and images', icon: 'products' },
     { id: 'customers', label: 'Customers', detail: 'Users and roles', icon: 'users' },
+    { id: 'subscribers', label: 'Subscribers', detail: 'Community emails', icon: 'mail' },
     { id: 'access', label: 'Access', detail: 'Permissions model', icon: 'shield' },
   ];
 
@@ -384,8 +404,8 @@ export default function AdminPage() {
               >
                 <AdminIcon name={item.icon} />
                 <span className="min-w-0">
-                  <span className="block text-sm font-semibold leading-4">{item.label}</span>
-                  <span className="mt-0.5 block truncate text-[11px] text-stone-400">{item.detail}</span>
+                  <span className="block text-[15px] font-semibold leading-5">{item.label}</span>
+                  <span className="mt-0.5 block truncate text-xs text-stone-400">{item.detail}</span>
                 </span>
               </button>
             ))}
@@ -412,8 +432,8 @@ export default function AdminPage() {
             <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">Back office</p>
             <div className="mt-2 flex flex-col justify-between gap-3 lg:flex-row lg:items-end">
               <div>
-                <h1 className="font-serif text-4xl font-semibold leading-tight">Run BloomBox operations.</h1>
-                <p className="mt-2 max-w-2xl text-xs leading-5 text-[#584140]">
+                <h1 className="font-serif text-5xl font-semibold leading-tight">Run BloomBox operations.</h1>
+                <p className="mt-2 max-w-2xl text-sm leading-6 text-[#584140]">
                   Manage orders, product catalog, customer roles, and the work that keeps every parcel moving.
                 </p>
               </div>
@@ -442,7 +462,7 @@ export default function AdminPage() {
                   ['Orders', orders.length],
                   ['Active orders', metrics.activeOrders],
                   ['Live products', metrics.activeProducts],
-                  ['Admins', metrics.admins],
+                  ['Subscribers', metrics.subscribers],
                 ].map(([label, value], index) => (
                   <div key={label} className={`px-4 py-3 ${index < 3 ? 'border-b border-stone-200 sm:border-r xl:border-b-0' : ''}`}>
                     <p className="text-2xl font-semibold text-[#ae2f34]">{value}</p>
@@ -456,7 +476,7 @@ export default function AdminPage() {
                   <div className="mb-2 flex items-center justify-between gap-4 border-b border-stone-300 pb-2">
                     <div>
                       <h2 className="text-base font-semibold">Recent orders</h2>
-                      <p className="mt-0.5 text-xs text-stone-500">Fast view of what needs attention.</p>
+                      <p className="mt-0.5 text-sm text-stone-500">Fast view of what needs attention.</p>
                     </div>
                     <button type="button" onClick={() => setActiveSection('orders')} className="text-xs font-semibold text-[#ae2f34]">
                       Manage
@@ -467,8 +487,8 @@ export default function AdminPage() {
                     {recentOrders.map((order) => (
                       <div key={order.id} className="grid gap-2 py-2 md:grid-cols-[1fr_auto] md:items-center">
                         <div>
-                          <p className="text-sm font-semibold">#{order.id.slice(0, 10)} / {getCustomerName(order, users)}</p>
-                          <p className="mt-0.5 text-xs text-stone-500">{getDate(order.createdAt)} / {order.itemCount} items</p>
+                          <p className="text-[15px] font-semibold">#{order.id.slice(0, 10)} / {getCustomerName(order, users)}</p>
+                          <p className="mt-0.5 text-sm text-stone-500">{getDate(order.createdAt)} / {order.itemCount} items</p>
                         </div>
                         <span className={`w-fit border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${getStatusStyle(order.status)}`}>
                           {getOrderStatusLabel(order.status)}
@@ -497,8 +517,8 @@ export default function AdminPage() {
             <div>
               <div className="mb-3 flex items-end justify-between border-b border-stone-300 pb-2">
                 <div>
-                  <h2 className="text-base font-semibold">Orders</h2>
-                  <p className="mt-0.5 text-xs text-stone-500">{orders.length} total records</p>
+                  <h2 className="text-lg font-semibold">Orders</h2>
+                  <p className="mt-0.5 text-sm text-stone-500">{orders.length} total records</p>
                 </div>
               </div>
               {orders.length === 0 ? <div className="border-y border-stone-300 bg-white p-5 text-sm text-stone-600">No orders have been placed yet.</div> : null}
@@ -507,12 +527,12 @@ export default function AdminPage() {
                   <div className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-start">
                     <div>
                       <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-sm font-semibold">#{order.id.slice(0, 10)}</h3>
+                        <h3 className="text-[15px] font-semibold">#{order.id.slice(0, 10)}</h3>
                         <span className={`border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${getStatusStyle(order.status)}`}>
                           {getOrderStatusLabel(order.status)}
                         </span>
                       </div>
-                      <p className="mt-1 text-xs text-stone-600">
+                      <p className="mt-1 text-sm text-stone-600">
                         {getCustomerName(order, users)} / {order.deliveryDetails?.phoneNumber ?? 'No phone'} / {getDate(order.createdAt)}
                       </p>
                     </div>
@@ -543,7 +563,7 @@ export default function AdminPage() {
                               <Image src={item.image || '/bloom1.png'} alt={item.productName} fill sizes="44px" className="object-cover" />
                             </div>
                             <div>
-                              <p className="text-xs font-semibold leading-4">{item.productName}</p>
+                              <p className="text-sm font-semibold leading-5">{item.productName}</p>
                               <p className="mt-1 text-xs text-stone-500">
                                 {item.quantity} x {item.price === null ? item.priceNote ?? 'Price pending' : money(item.price)}
                               </p>
@@ -555,8 +575,8 @@ export default function AdminPage() {
 
                     <aside className="border-l-4 border-[#e0bfbd] bg-[#fff5f0] px-3 py-2">
                       <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">Delivery</p>
-                      <p className="mt-1 text-xs font-semibold">{order.deliveryDetails?.recipientName ?? 'Recipient not saved'}</p>
-                      <p className="mt-1 text-xs leading-5 text-[#584140]">
+                      <p className="mt-1 text-sm font-semibold">{order.deliveryDetails?.recipientName ?? 'Recipient not saved'}</p>
+                      <p className="mt-1 text-sm leading-5 text-[#584140]">
                         {[order.deliveryDetails?.addressLine, order.deliveryDetails?.town, order.deliveryDetails?.county].filter(Boolean).join(', ') || 'No address saved'}
                       </p>
                       <div className="mt-3 border-t border-[#e0bfbd] pt-2">
@@ -640,6 +660,7 @@ export default function AdminPage() {
                   <label className="grid gap-2 text-sm font-semibold text-stone-700">
                     Upload image
                     <input type="file" accept="image/*" onChange={(event) => setImageFile(event.target.files?.[0] ?? null)} className="border border-stone-300 bg-white px-3 py-2 text-sm font-normal" />
+                    <span className="text-xs font-normal leading-5 text-stone-500">Uploads are saved to Firebase Storage and then used by the shop.</span>
                   </label>
 
                   {imagePreview ? (
@@ -715,8 +736,8 @@ export default function AdminPage() {
             <div className="bg-white">
               <div className="mb-3 flex items-end justify-between border-b border-stone-300 pb-2">
                 <div>
-                  <h2 className="text-base font-semibold">Customers</h2>
-                  <p className="mt-0.5 text-xs text-stone-500">{users.length} users / {metrics.admins} admins</p>
+                  <h2 className="text-lg font-semibold">Customers</h2>
+                  <p className="mt-0.5 text-sm text-stone-500">{users.length} users / {metrics.admins} admins</p>
                 </div>
               </div>
               <div className="grid grid-cols-[1.2fr_0.7fr_0.7fr] border-b border-stone-300 bg-[#fff5f0] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[#584140]">
@@ -725,7 +746,7 @@ export default function AdminPage() {
                 <span>Delivery</span>
               </div>
               {users.map((profile) => (
-                <div key={profile.uid} className="grid grid-cols-[1.2fr_0.7fr_0.7fr] gap-3 border-b border-stone-200 px-3 py-2.5 text-xs last:border-b-0">
+                <div key={profile.uid} className="grid grid-cols-[1.2fr_0.7fr_0.7fr] gap-3 border-b border-stone-200 px-3 py-2.5 text-sm last:border-b-0">
                   <div>
                     <p className="font-semibold text-stone-950">{profile.displayName || profile.email || 'Unnamed user'}</p>
                     <p className="mt-1 text-xs text-stone-500">{profile.email ?? profile.uid}</p>
@@ -744,7 +765,36 @@ export default function AdminPage() {
                     </select>
                     {profile.uid === user?.uid ? <p className="mt-1 text-[10px] uppercase tracking-[0.12em] text-stone-400">Current session</p> : null}
                   </div>
-                  <p className="text-xs text-stone-600">{profile.deliveryDetails?.town ? `${profile.deliveryDetails.town}, ${profile.deliveryDetails.county}` : 'Not saved'}</p>
+                    <p className="text-sm text-stone-600">{profile.deliveryDetails?.town ? `${profile.deliveryDetails.town}, ${profile.deliveryDetails.county}` : 'Not saved'}</p>
+                </div>
+              ))}
+            </div>
+          ) : null}
+
+          {activeSection === 'subscribers' ? (
+            <div className="bg-white">
+              <div className="mb-3 flex items-end justify-between border-b border-stone-300 pb-2">
+                <div>
+                  <h2 className="text-lg font-semibold">Subscribers</h2>
+                  <p className="mt-0.5 text-sm text-stone-500">{subscribers.length} community emails</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-[1.3fr_0.8fr_0.7fr] border-b border-stone-300 bg-[#fff5f0] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[#584140]">
+                <span>Email</span>
+                <span>Source</span>
+                <span>Joined</span>
+              </div>
+              {subscribers.length === 0 ? (
+                <div className="border-b border-stone-200 px-3 py-5 text-sm text-stone-600">No newsletter subscribers yet.</div>
+              ) : null}
+              {subscribers.map((subscriber) => (
+                <div key={subscriber.email} className="grid grid-cols-[1.3fr_0.8fr_0.7fr] gap-3 border-b border-stone-200 px-3 py-2.5 text-sm last:border-b-0">
+                  <div>
+                    <p className="break-all font-semibold text-stone-950">{subscriber.email}</p>
+                    <p className="mt-1 text-xs text-stone-500">Saved to community list</p>
+                  </div>
+                  <p className="text-sm text-stone-600">{subscriber.source || 'website'}</p>
+                  <p className="text-sm text-stone-600">{getDate(subscriber.updatedAt ?? subscriber.createdAt)}</p>
                 </div>
               ))}
             </div>
@@ -754,7 +804,7 @@ export default function AdminPage() {
             <div className="grid gap-5 lg:grid-cols-[1fr_0.75fr]">
               <section className="bg-white">
                 <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">Admin actions</p>
-                <h2 className="mt-2 text-base font-semibold">What admins can do</h2>
+                <h2 className="mt-2 text-lg font-semibold">What admins can do</h2>
                 <div className="mt-4 divide-y divide-stone-200 border-y border-stone-200">
                   {[
                     'View all orders and delivery details.',
@@ -764,18 +814,18 @@ export default function AdminPage() {
                     'Promote users to admin or return them to customer access.',
                     'Review customers and saved delivery coverage.',
                   ].map((item) => (
-                    <div key={item} className="py-2.5 text-xs text-stone-700">{item}</div>
+                    <div key={item} className="py-2.5 text-sm text-stone-700">{item}</div>
                   ))}
                 </div>
               </section>
 
               <aside className="border-l-4 border-[#ae2f34] bg-[#fff5f0] px-4 py-3">
                 <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">Access model</p>
-                <h2 className="mt-2 text-sm font-semibold">Roles are backed by Firestore.</h2>
-                <p className="mt-3 text-xs leading-5 text-[#584140]">
+                <h2 className="mt-2 text-base font-semibold">Roles are backed by Firestore.</h2>
+                <p className="mt-3 text-sm leading-5 text-[#584140]">
                   The visible role lives on <span className="font-mono">users/uid.role</span>. Real admin permission is backed by <span className="font-mono">admins/uid</span>, which keeps customers from self-promoting.
                 </p>
-                <p className="mt-3 text-xs leading-5 text-[#584140]">
+                <p className="mt-3 text-sm leading-5 text-[#584140]">
                   Product image upload uses Firebase Storage. If uploads fail, check Storage rules for admin write access or paste an existing public image path into the image field.
                 </p>
               </aside>

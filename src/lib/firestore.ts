@@ -93,6 +93,13 @@ export type UserProfile = {
   updatedAt?: unknown;
 };
 
+export type NewsletterSubscriber = {
+  email: string;
+  source: string;
+  createdAt?: unknown;
+  updatedAt?: unknown;
+};
+
 export type DummyPaymentResult = {
   orderId: string;
   paymentId: string;
@@ -736,6 +743,26 @@ export async function updateUserRole(user: UserProfile, role: UserRole) {
   await batch.commit();
 }
 
+export function subscribeToNewsletterSubscribers(
+  onSubscribers: (subscribers: NewsletterSubscriber[]) => void,
+  onError?: (error: FirestoreError) => void,
+): Unsubscribe {
+  return onSnapshot(
+    collection(getFirebaseDb(), collectionNames.newsletterSubscribers),
+    (snapshot) => {
+      const subscribers = snapshot.docs
+        .map((subscriberDoc) => ({
+          email: subscriberDoc.id,
+          ...(subscriberDoc.data() as Omit<NewsletterSubscriber, 'email'>),
+        }))
+        .sort((a, b) => getTimestampMillis(b.updatedAt) - getTimestampMillis(a.updatedAt));
+
+      onSubscribers(subscribers);
+    },
+    onError,
+  );
+}
+
 export async function subscribeToNewsletter(email: string, source = 'website-footer') {
   const normalizedEmail = email.trim().toLowerCase();
 
@@ -744,6 +771,7 @@ export async function subscribeToNewsletter(email: string, source = 'website-foo
     {
       email: normalizedEmail,
       source,
+      createdAt: serverTimestamp(),
       updatedAt: serverTimestamp(),
     },
     { merge: true },

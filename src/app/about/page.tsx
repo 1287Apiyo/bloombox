@@ -2,48 +2,11 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { Eyebrow, SiteFooter, SiteHeader } from '../components/BrandShell';
 
-const careStandards = [
-  {
-    title: 'Celebrate',
-    text: 'Dignity and joy, never shame.',
-  },
-  {
-    title: 'Care',
-    text: 'Useful products with thoughtful extras.',
-  },
-  {
-    title: 'Culture',
-    text: 'Womanhood welcomed with warmth.',
-  },
-  {
-    title: 'Sustain',
-    text: 'Reusable options and recyclable packaging.',
-  },
-];
-
 const workflow = [
   ['Choose', 'Pick products, a gift direction, or a care tier.'],
   ['Personalize', 'Add flowers, treats, notes, and recipient details where needed.'],
   ['Checkout', 'Confirm location, delivery notes, and the preferred payment option.'],
   ['Track', 'Follow the order from payment to preparation, dispatch, and delivery.'],
-];
-
-const impactNotes = [
-  {
-    stat: '1',
-    label: 'Origin',
-    text: 'A first-period memory of care.',
-  },
-  {
-    stat: '6',
-    label: 'Tiers',
-    text: 'Monthly, gifts, donations, custom.',
-  },
-  {
-    stat: '10',
-    label: 'Categories',
-    text: 'Period care, comfort, flowers, gifts.',
-  },
 ];
 
 const storyMoments = [
@@ -179,30 +142,6 @@ export default function AboutPage() {
           </div>
         </section>
 
-        <section className="border-y border-stone-300 bg-white">
-          <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8">
-            <div className="mb-6 flex flex-col justify-between gap-3 md:flex-row md:items-end">
-              <div>
-                <h2 className="font-serif text-3xl font-semibold text-[#191c1d]">The BloomBox standard</h2>
-                <p className="mt-1 text-sm leading-6 text-stone-600">Useful, warm, clear.</p>
-              </div>
-              <Link href="/subscriptions" className="w-fit border border-[#ae2f34] px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#ae2f34] hover:bg-[#fff5f0]">
-                View tiers
-              </Link>
-            </div>
-
-            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              {careStandards.map((standard, index) => (
-                <article key={standard.title} className="border border-stone-300 bg-[#f8f9fa] p-4">
-                  <p className="text-[11px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">0{index + 1}</p>
-                  <h3 className="mt-2 font-serif text-xl font-semibold text-[#191c1d]">{standard.title}</h3>
-                  <p className="mt-2 text-sm leading-5 text-stone-600">{standard.text}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
         <section className="mx-auto max-w-7xl px-5 py-14 sm:px-8">
           <div className="border border-stone-300 bg-white p-6 lg:p-8">
             <Eyebrow>How it works</Eyebrow>
@@ -218,31 +157,6 @@ export default function AboutPage() {
                   <span className="inline-flex bg-[#ae2f34] px-3 py-1 text-xs font-semibold text-white">0{index + 1}</span>
                   <h3 className="mt-5 font-serif text-2xl font-semibold text-stone-950">{title}</h3>
                   <p className="mt-2 text-sm leading-6 text-stone-600">{text}</p>
-                </article>
-              ))}
-            </div>
-          </div>
-        </section>
-
-        <section className="border-y border-stone-300 bg-[#fff5f0]">
-          <div className="mx-auto max-w-7xl px-5 py-10 sm:px-8">
-            <div className="mb-6 flex flex-col justify-between gap-3 md:flex-row md:items-end">
-              <div>
-                <h2 className="font-serif text-3xl font-semibold text-[#191c1d]">Already built in</h2>
-                <p className="mt-1 text-sm leading-6 text-[#584140]">A working care-commerce flow.</p>
-              </div>
-              <Link href="/shop" className="w-fit border border-[#ae2f34] px-4 py-2 text-xs font-semibold uppercase tracking-[0.12em] text-[#ae2f34] hover:bg-white">
-                Browse shop
-              </Link>
-            </div>
-            <div className="grid gap-3 md:grid-cols-3">
-              {impactNotes.map((note) => (
-                <article key={note.label} className="grid grid-cols-[64px_1fr] gap-4 border border-[#e0bfbd] bg-white p-4">
-                  <p className="font-serif text-4xl font-semibold leading-none text-[#ae2f34]">{note.stat}</p>
-                  <div>
-                    <h3 className="text-base font-semibold text-stone-950">{note.label}</h3>
-                    <p className="mt-1 text-sm leading-5 text-stone-600">{note.text}</p>
-                  </div>
                 </article>
               ))}
             </div>

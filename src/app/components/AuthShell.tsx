@@ -27,10 +27,9 @@ export function AuthShell({
   children,
 }: AuthShellProps) {
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#fffaf7] text-[#191c1d]">
-      <div className="absolute inset-x-0 top-0 h-[42%] bg-[#fff5f0]" />
-      <div className="absolute bottom-0 left-0 h-[58%] w-full bg-[#f8f9fa]" />
-      <div className="absolute right-0 top-0 hidden h-full w-[28%] bg-[#f4dfdc] lg:block" />
+    <div className="relative min-h-screen overflow-hidden bg-[#f8f9fa] text-[#191c1d]">
+      <div className="absolute left-0 top-0 h-[58%] w-full bg-[#ae2f34] lg:h-full lg:w-[58%]" />
+      <div className="absolute bottom-0 right-0 h-[42%] w-full bg-[#fffaf7] lg:h-full lg:w-[42%]" />
 
       <main className="relative">
         <section>
@@ -40,10 +39,10 @@ export function AuthShell({
                 <span className="relative h-11 w-11 overflow-hidden rounded-full border border-stone-300 bg-white">
                   <Image src="/bloom1.png" alt="BloomBox" fill className="object-cover" priority />
                 </span>
-                <span className="text-xl font-bold tracking-tight text-stone-950">BloomBox</span>
+                <span className="text-xl font-bold tracking-tight text-white">BloomBox</span>
               </Link>
 
-              <div className="relative min-h-[340px] overflow-hidden border border-[#e0bfbd] bg-white shadow-[8px_8px_0_#f4dfdc] sm:min-h-[440px] lg:min-h-[560px]">
+              <div className="relative min-h-[340px] overflow-hidden border border-[#fed4c8] bg-white shadow-[8px_8px_0_#8c1520] sm:min-h-[440px] lg:min-h-[560px]">
                 <Image
                   src={image}
                   alt={imageAlt}
@@ -62,8 +61,8 @@ export function AuthShell({
                 </div>
               </div>
 
-              <div className="grid border border-[#e0bfbd] bg-[#fff5f0] sm:grid-cols-[1fr_1.2fr]">
-                <div className="border-b border-stone-300 p-5 sm:border-b-0 sm:border-r">
+              <div className="grid border border-[#fed4c8] bg-[#fff5f0] sm:grid-cols-[1fr_1.2fr]">
+                <div className="border-b border-[#e0bfbd] p-5 sm:border-b-0 sm:border-r">
                   <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">Account flow</p>
                   <h2 className="mt-3 font-serif text-3xl font-semibold text-[#191c1d]">{panelTitle}</h2>
                 </div>
