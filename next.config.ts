@@ -1,12 +1,21 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  reactStrictMode: true, // optional, but recommended
+  reactStrictMode: true,
   images: {
-    domains: [
-      'images.unsplash.com',  // for your Unsplash images
-      'images.pexels.com',
-      'longrowlavender.com'   // for the external image causing the error
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'images.unsplash.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'images.pexels.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'longrowlavender.com',
+      },
     ],
   },
 };

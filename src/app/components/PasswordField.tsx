@@ -11,17 +11,17 @@ export function PasswordField({ label, className = '', ...props }: PasswordField
 
   return (
     <div>
-      <label className="mb-2 block text-sm font-medium text-gray-700">{label}</label>
+      <label className="mb-2 block text-sm font-semibold text-stone-700">{label}</label>
       <div className="relative">
         <input
           {...props}
           type={showPassword ? 'text' : 'password'}
-          className={`block w-full rounded-lg border border-gray-300 bg-white px-4 py-3 pr-12 text-black transition duration-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-500 ${className}`}
+          className={`block w-full border border-stone-300 bg-white px-4 py-3 pr-12 text-stone-950 outline-none transition focus:border-[#ae2f34] focus:ring-2 focus:ring-rose-100 ${className}`}
         />
         <button
           type="button"
           onClick={() => setShowPassword((current) => !current)}
-          className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg text-gray-500 transition hover:bg-orange-50 hover:text-orange-600"
+          className="absolute right-3 top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center text-stone-500 transition hover:bg-[#fff5f0] hover:text-[#ae2f34]"
           aria-label={showPassword ? 'Hide password' : 'Show password'}
           title={showPassword ? 'Hide password' : 'Show password'}
         >
