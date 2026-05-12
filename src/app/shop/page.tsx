@@ -30,9 +30,9 @@ const emptyCart: CartSummary = {
 
 const shopImages = {
   hero: '/products/candle.jpg',
-  pads: '/products/sunny.jpg',
+  pads: '/products/kot.jpg',
   marvelPads: '/products/marvel.jpg',
-  sunnyPads: '/products/sunny.jpg',
+  sunnyPads: '/products/kot.jpg',
   menstrualCare: '/products/menscups.jpg',
   tampons: '/products/tampons.jpg',
   periodPanties: '/products/pps.jpg',
@@ -105,7 +105,7 @@ const shopBundles = [
   {
     title: 'Period essentials',
     text: 'Pads, cups, tampons, wipes, and tissues for everyday planning.',
-    image: shopImages.marvelPads,
+    image: shopImages.sunnyPads,
     categoryId: 'pads',
   },
   {

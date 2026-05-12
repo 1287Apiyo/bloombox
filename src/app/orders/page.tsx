@@ -14,7 +14,7 @@ const unpaidActiveWindowMs = 2 * 60 * 60 * 1000;
 
 const orderImageRules = [
   { prefix: 'pads-marvel-girl', image: '/products/marvel.jpg' },
-  { prefix: 'pads-sunny-girl', image: '/products/sunny.jpg' },
+  { prefix: 'pads-sunny-girl', image: '/products/kot.jpg' },
   { prefix: 'menstrual-cups', image: '/products/menscups.jpg' },
   { prefix: 'tampons', image: '/products/tampons.jpg' },
   { prefix: 'period-panties', image: '/products/pps.jpg' },

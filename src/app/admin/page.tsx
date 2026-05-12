@@ -6,13 +6,11 @@ import Link from 'next/link';
 import { signOut } from 'firebase/auth';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import {
-  paymentMethodLabels,
   saveProduct,
   subscribeToAdminProducts,
   subscribeToAllOrders,
   subscribeToAllUsers,
   subscribeToNewsletterSubscribers,
-  updateOrderStatus,
   updateProductStatus,
   updateUserRole,
   type CustomerOrder,
@@ -46,15 +44,6 @@ type ProductFormState = {
   rating: string;
   reviewCount: string;
 };
-
-const orderStatuses: OrderStatus[] = [
-  'pending-payment',
-  'paid',
-  'preparing',
-  'out-for-delivery',
-  'delivered',
-  'cancelled',
-];
 
 const emptyProductForm: ProductFormState = {
   id: '',
@@ -219,6 +208,15 @@ export default function AdminPage() {
   const [updatingId, setUpdatingId] = useState('');
 
   useEffect(() => {
+    const section = new URLSearchParams(window.location.search).get('section');
+    const validSections: AdminSection[] = ['overview', 'orders', 'products', 'customers', 'subscribers', 'access'];
+
+    if (validSections.includes(section as AdminSection)) {
+      setActiveSection(section as AdminSection);
+    }
+  }, []);
+
+  useEffect(() => {
     const unsubscribers = [
       subscribeToAllOrders(setOrders, (ordersError) => setError(`Orders could not load: ${ordersError.message}`)),
       subscribeToAdminProducts(setProducts, (productsError) => setError(`Products could not load: ${productsError.message}`)),
@@ -310,21 +308,6 @@ export default function AdminPage() {
       resetProductForm();
     } catch (productError) {
       setError(productError instanceof Error ? productError.message : 'Could not save product.');
-    } finally {
-      setUpdatingId('');
-    }
-  };
-
-  const updateStatus = async (orderId: string, status: OrderStatus) => {
-    setError('');
-    setNotice('');
-    setUpdatingId(orderId);
-
-    try {
-      await updateOrderStatus(orderId, status);
-      setNotice(`Order #${orderId.slice(0, 8)} moved to ${getOrderStatusLabel(status)}.`);
-    } catch (statusError) {
-      setError(statusError instanceof Error ? statusError.message : 'Could not update order status.');
     } finally {
       setUpdatingId('');
     }
@@ -427,26 +410,35 @@ export default function AdminPage() {
       </aside>
 
       <main className="min-w-0">
-        <section className="border-b border-stone-300 bg-white px-4 py-5 sm:px-6">
+        <section className="border-b border-stone-300 bg-white px-4 py-3 sm:px-6">
           <div className="mx-auto max-w-7xl">
             <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">Back office</p>
-            <div className="mt-2 flex flex-col justify-between gap-3 lg:flex-row lg:items-end">
+            <div className="mt-1 flex flex-col justify-between gap-3 lg:flex-row lg:items-center">
               <div>
-                <h1 className="font-serif text-5xl font-semibold leading-tight">Run BloomBox operations.</h1>
-                <p className="mt-2 max-w-2xl text-sm leading-6 text-[#584140]">
+                <h1 className="font-serif text-3xl font-semibold leading-tight">Run BloomBox operations.</h1>
+                <p className="mt-1 max-w-2xl text-sm leading-6 text-[#584140]">
                   Manage orders, product catalog, customer roles, and the work that keeps every parcel moving.
                 </p>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  resetProductForm();
-                  setActiveSection('products');
-                }}
-                className="w-fit bg-[#ae2f34] px-4 py-2 text-sm font-semibold text-white hover:bg-[#8c1520]"
-              >
-                Add product
-              </button>
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    resetProductForm();
+                    setActiveSection('products');
+                  }}
+                  className="w-fit bg-[#ae2f34] px-4 py-2 text-sm font-semibold text-white hover:bg-[#8c1520]"
+                >
+                  Add product
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="w-fit border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:border-[#ae2f34] hover:text-[#ae2f34]"
+                >
+                  Log out
+                </button>
+              </div>
             </div>
           </div>
         </section>
@@ -459,136 +451,232 @@ export default function AdminPage() {
             <div className="grid gap-5">
               <div className="grid border-y border-stone-300 bg-white sm:grid-cols-2 xl:grid-cols-4">
                 {[
-                  ['Orders', orders.length],
-                  ['Active orders', metrics.activeOrders],
-                  ['Live products', metrics.activeProducts],
-                  ['Subscribers', metrics.subscribers],
-                ].map(([label, value], index) => (
+                  ['Orders', orders.length, 'All customer orders'],
+                  ['Active orders', metrics.activeOrders, 'Still need action'],
+                  ['Live products', metrics.activeProducts, 'Visible in shop'],
+                  ['Subscribers', metrics.subscribers, 'Community emails'],
+                ].map(([label, value, detail], index) => (
                   <div key={label} className={`px-4 py-3 ${index < 3 ? 'border-b border-stone-200 sm:border-r xl:border-b-0' : ''}`}>
                     <p className="text-2xl font-semibold text-[#ae2f34]">{value}</p>
                     <p className="mt-1 text-[10px] uppercase tracking-[0.14em] text-stone-500">{label}</p>
+                    <p className="mt-1 text-xs text-stone-500">{detail}</p>
                   </div>
                 ))}
               </div>
 
-              <div className="grid gap-5 xl:grid-cols-[1fr_320px]">
-                <section className="bg-white">
-                  <div className="mb-2 flex items-center justify-between gap-4 border-b border-stone-300 pb-2">
-                    <div>
-                      <h2 className="text-base font-semibold">Recent orders</h2>
-                      <p className="mt-0.5 text-sm text-stone-500">Fast view of what needs attention.</p>
-                    </div>
-                    <button type="button" onClick={() => setActiveSection('orders')} className="text-xs font-semibold text-[#ae2f34]">
-                      Manage
-                    </button>
-                  </div>
-                  <div className="divide-y divide-stone-200 border-b border-stone-200">
-                    {recentOrders.length === 0 ? <p className="text-sm text-stone-600">No orders yet.</p> : null}
-                    {recentOrders.map((order) => (
-                      <div key={order.id} className="grid gap-2 py-2 md:grid-cols-[1fr_auto] md:items-center">
-                        <div>
-                          <p className="text-[15px] font-semibold">#{order.id.slice(0, 10)} / {getCustomerName(order, users)}</p>
-                          <p className="mt-0.5 text-sm text-stone-500">{getDate(order.createdAt)} / {order.itemCount} items</p>
-                        </div>
-                        <span className={`w-fit border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${getStatusStyle(order.status)}`}>
-                          {getOrderStatusLabel(order.status)}
-                        </span>
+              <div className="grid gap-5 xl:grid-cols-[1fr_340px]">
+                <div className="grid gap-5">
+                  <section className="bg-white">
+                    <div className="mb-3 flex items-center justify-between gap-4 border-b border-stone-300 pb-2">
+                      <div>
+                        <h2 className="text-lg font-semibold">Operations queue</h2>
+                        <p className="mt-0.5 text-sm text-stone-500">A quick scan of what needs movement.</p>
                       </div>
-                    ))}
-                  </div>
-                </section>
+                      <button type="button" onClick={() => setActiveSection('orders')} className="text-xs font-semibold text-[#ae2f34]">
+                        Open orders
+                      </button>
+                    </div>
+                    <div className="grid border-y border-stone-200 sm:grid-cols-4">
+                      {[
+                        ['Awaiting', orders.filter((order) => ['placed', 'pending-payment'].includes(order.status)).length],
+                        ['Preparing', orders.filter((order) => ['paid', 'preparing'].includes(order.status)).length],
+                        ['Out', orders.filter((order) => order.status === 'out-for-delivery').length],
+                        ['Done', orders.filter((order) => order.status === 'delivered').length],
+                      ].map(([label, value], index) => (
+                        <div key={label} className={`px-3 py-3 ${index < 3 ? 'border-b border-stone-200 sm:border-b-0 sm:border-r' : ''}`}>
+                          <p className="text-xl font-semibold text-[#ae2f34]">{value}</p>
+                          <p className="mt-1 text-[10px] font-bold uppercase tracking-[0.14em] text-stone-500">{label}</p>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
 
-                <aside className="border-l-4 border-[#ae2f34] bg-[#fff5f0] px-4 py-3">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">Paid value</p>
-                  <p className="mt-2 font-serif text-3xl font-semibold">{money(metrics.revenue)}</p>
-                  <p className="mt-2 text-xs leading-5 text-[#584140]">
-                    Revenue is calculated from paid, preparing, dispatched, and delivered orders. Pending payments stay out of this total.
-                  </p>
-                  <div className="mt-4 border-t border-[#e0bfbd] pt-3">
-                    <p className="text-xs font-semibold">Hidden products</p>
-                    <p className="mt-1 text-xs text-[#584140]">{draftProducts.length} recent draft or hidden items need review.</p>
-                  </div>
+                  <section className="bg-white">
+                    <div className="mb-2 flex items-center justify-between gap-4 border-b border-stone-300 pb-2">
+                      <div>
+                        <h2 className="text-lg font-semibold">Recent orders</h2>
+                        <p className="mt-0.5 text-sm text-stone-500">Newest orders with direct view access.</p>
+                      </div>
+                      <button type="button" onClick={() => setActiveSection('orders')} className="text-xs font-semibold text-[#ae2f34]">
+                        Manage
+                      </button>
+                    </div>
+                    <div className="divide-y divide-stone-200 border-b border-stone-200">
+                      {recentOrders.length === 0 ? <p className="py-3 text-sm text-stone-600">No orders yet.</p> : null}
+                      {recentOrders.map((order, index) => (
+                        <div key={order.id} className="grid gap-3 py-3 md:grid-cols-[40px_1fr_auto_auto] md:items-center">
+                          <p className="text-sm font-semibold text-stone-500">{index + 1}</p>
+                          <div>
+                            <p className="text-[15px] font-semibold">#{order.id.slice(0, 10)} / {getCustomerName(order, users)}</p>
+                            <p className="mt-0.5 text-sm text-stone-500">{getDate(order.createdAt)} / {order.itemCount} item{order.itemCount === 1 ? '' : 's'}</p>
+                          </div>
+                          <span className={`w-fit border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${getStatusStyle(order.status)}`}>
+                            {getOrderStatusLabel(order.status)}
+                          </span>
+                          <Link href={`/admin/orders/${order.id}`} className="w-fit bg-[#ae2f34] px-3 py-2 text-sm font-semibold text-white hover:bg-[#8c1520]">
+                            View
+                          </Link>
+                        </div>
+                      ))}
+                    </div>
+                  </section>
+                </div>
+
+                <aside className="grid gap-4">
+                  <section className="border-l-4 border-[#ae2f34] bg-[#fff5f0] px-4 py-3">
+                    <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">Paid value</p>
+                    <p className="mt-2 font-serif text-3xl font-semibold">{money(metrics.revenue)}</p>
+                    <p className="mt-2 text-xs leading-5 text-[#584140]">Revenue counts paid, preparing, dispatched, and delivered orders.</p>
+                  </section>
+
+                  <section className="bg-white">
+                    <div className="border-b border-stone-300 pb-2">
+                      <h2 className="text-base font-semibold">Catalog health</h2>
+                      <p className="mt-0.5 text-sm text-stone-500">{products.length} products tracked.</p>
+                    </div>
+                    <div className="divide-y divide-stone-200">
+                      <div className="flex justify-between py-2 text-sm">
+                        <span className="text-stone-600">Live products</span>
+                        <span className="font-semibold text-[#ae2f34]">{metrics.activeProducts}</span>
+                      </div>
+                      <div className="flex justify-between py-2 text-sm">
+                        <span className="text-stone-600">Hidden products</span>
+                        <span className="font-semibold text-[#ae2f34]">{draftProducts.length}</span>
+                      </div>
+                      <button type="button" onClick={() => setActiveSection('products')} className="py-2 text-sm font-semibold text-[#ae2f34]">
+                        Review products
+                      </button>
+                    </div>
+                  </section>
+
+                  <section className="bg-white">
+                    <div className="border-b border-stone-300 pb-2">
+                      <h2 className="text-base font-semibold">People</h2>
+                      <p className="mt-0.5 text-sm text-stone-500">Customers, admins, and newsletter audience.</p>
+                    </div>
+                    <div className="grid grid-cols-3 divide-x divide-stone-200 border-b border-stone-200">
+                      <button type="button" onClick={() => setActiveSection('customers')} className="px-2 py-3 text-left">
+                        <p className="text-lg font-semibold text-[#ae2f34]">{users.length}</p>
+                        <p className="text-[10px] uppercase tracking-[0.12em] text-stone-500">Users</p>
+                      </button>
+                      <button type="button" onClick={() => setActiveSection('customers')} className="px-2 py-3 text-left">
+                        <p className="text-lg font-semibold text-[#ae2f34]">{metrics.admins}</p>
+                        <p className="text-[10px] uppercase tracking-[0.12em] text-stone-500">Admins</p>
+                      </button>
+                      <button type="button" onClick={() => setActiveSection('subscribers')} className="px-2 py-3 text-left">
+                        <p className="text-lg font-semibold text-[#ae2f34]">{metrics.subscribers}</p>
+                        <p className="text-[10px] uppercase tracking-[0.12em] text-stone-500">Emails</p>
+                      </button>
+                    </div>
+                  </section>
                 </aside>
+              </div>
+
+              <div className="grid gap-4 md:grid-cols-3">
+                {[
+                  ['Add product', 'Create a new shop item with images, pricing, tags, and visibility.', 'products'],
+                  ['Review roles', 'Promote trusted users to admin or return them to customer access.', 'customers'],
+                  ['Open subscribers', 'See the emails collected from the BloomBox community form.', 'subscribers'],
+                ].map(([title, text, section]) => (
+                  <button
+                    key={title}
+                    type="button"
+                    onClick={() => {
+                      if (section === 'products') resetProductForm();
+                      setActiveSection(section as AdminSection);
+                    }}
+                    className="bg-white px-4 py-3 text-left hover:bg-[#fff5f0]"
+                  >
+                    <h3 className="text-base font-semibold text-stone-950">{title}</h3>
+                    <p className="mt-1 text-sm leading-5 text-stone-600">{text}</p>
+                  </button>
+                ))}
               </div>
             </div>
           ) : null}
 
           {activeSection === 'orders' ? (
-            <div>
-              <div className="mb-3 flex items-end justify-between border-b border-stone-300 pb-2">
+            <div className="grid gap-4">
+              <div className="flex items-end justify-between border-b border-stone-300 pb-2">
                 <div>
                   <h2 className="text-lg font-semibold">Orders</h2>
-                  <p className="mt-0.5 text-sm text-stone-500">{orders.length} total records</p>
+                  <p className="mt-0.5 text-sm text-stone-500">{orders.length} total records arranged for dispatch work</p>
                 </div>
               </div>
+
+              <div className="grid border-y border-stone-300 bg-white sm:grid-cols-4">
+                {[
+                  ['Awaiting', orders.filter((order) => ['placed', 'pending-payment'].includes(order.status)).length],
+                  ['Preparing', orders.filter((order) => ['paid', 'preparing'].includes(order.status)).length],
+                  ['On the road', orders.filter((order) => order.status === 'out-for-delivery').length],
+                  ['Delivered', orders.filter((order) => order.status === 'delivered').length],
+                ].map(([label, value], index) => (
+                  <div key={label} className={`px-3 py-2 ${index < 3 ? 'border-b border-stone-200 sm:border-b-0 sm:border-r' : ''}`}>
+                    <p className="text-xl font-semibold text-[#ae2f34]">{value}</p>
+                    <p className="mt-0.5 text-[10px] font-bold uppercase tracking-[0.14em] text-stone-500">{label}</p>
+                  </div>
+                ))}
+              </div>
+
               {orders.length === 0 ? <div className="border-y border-stone-300 bg-white p-5 text-sm text-stone-600">No orders have been placed yet.</div> : null}
-              {orders.map((order) => (
-                <article key={order.id} className="border-b border-stone-300 bg-white py-3">
-                  <div className="grid gap-3 lg:grid-cols-[1fr_auto] lg:items-start">
-                    <div>
-                      <div className="flex flex-wrap items-center gap-2">
-                        <h3 className="text-[15px] font-semibold">#{order.id.slice(0, 10)}</h3>
-                        <span className={`border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${getStatusStyle(order.status)}`}>
+
+              {orders.length > 0 ? (
+                <div className="border-y border-stone-300 bg-white">
+                  <div className="hidden grid-cols-[56px_150px_1fr_1fr_120px_150px_90px] gap-4 border-b border-stone-300 bg-[#fff5f0] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-[#584140] xl:grid">
+                    <span>No.</span>
+                    <span>Order</span>
+                    <span>Customer</span>
+                    <span>Delivery</span>
+                    <span>Total</span>
+                    <span>Status</span>
+                    <span>Action</span>
+                  </div>
+                  {orders.map((order, index) => (
+                    <article key={order.id} className="grid gap-3 border-b border-stone-200 px-3 py-3 last:border-b-0 xl:grid-cols-[56px_150px_1fr_1fr_120px_150px_90px] xl:items-center xl:gap-4">
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-stone-500 xl:hidden">No.</p>
+                        <p className="mt-1 text-sm font-semibold text-stone-950">{index + 1}</p>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-stone-500 xl:hidden">Order</p>
+                        <h3 className="mt-1 text-[15px] font-semibold text-stone-950">#{order.id.slice(0, 10)}</h3>
+                        <p className="mt-1 text-xs text-stone-500">{getDate(order.createdAt)}</p>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-stone-500 xl:hidden">Customer</p>
+                        <p className="mt-1 text-sm font-semibold text-stone-950">{getCustomerName(order, users)}</p>
+                        <p className="mt-1 text-sm text-stone-600">{order.deliveryDetails?.phoneNumber ?? 'No phone'}</p>
+                        <p className="mt-1 text-xs text-stone-500">{order.itemCount} item{order.itemCount === 1 ? '' : 's'}</p>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-stone-500 xl:hidden">Delivery</p>
+                        <p className="mt-1 text-sm font-semibold text-stone-950">{order.deliveryDetails?.recipientName ?? 'Recipient not saved'}</p>
+                        <p className="mt-1 line-clamp-1 text-sm leading-5 text-stone-600">{[order.deliveryDetails?.town, order.deliveryDetails?.county].filter(Boolean).join(', ') || 'No address saved'}</p>
+                      </div>
+
+                      <div>
+                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-stone-500 xl:hidden">Total</p>
+                        <p className="mt-1 text-sm font-semibold text-[#8c1520]">{money(order.total ?? 0)}</p>
+                      </div>
+
+                      <div className="flex flex-col gap-2">
+                        <span className={`w-fit border px-2 py-1 text-[10px] font-semibold uppercase tracking-[0.12em] ${getStatusStyle(order.status)}`}>
                           {getOrderStatusLabel(order.status)}
                         </span>
                       </div>
-                      <p className="mt-1 text-sm text-stone-600">
-                        {getCustomerName(order, users)} / {order.deliveryDetails?.phoneNumber ?? 'No phone'} / {getDate(order.createdAt)}
-                      </p>
-                    </div>
-                    <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-                      <select
-                        value={order.status}
-                        onChange={(event) => updateStatus(order.id, event.target.value as OrderStatus)}
-                        disabled={updatingId === order.id}
-                        className="border border-stone-300 bg-white px-3 py-1.5 text-xs text-stone-900 outline-none focus:border-[#ae2f34] focus:ring-2 focus:ring-rose-100 disabled:opacity-60"
-                      >
-                        {orderStatuses.map((status) => (
-                          <option key={status} value={status}>{getOrderStatusLabel(status)}</option>
-                        ))}
-                      </select>
-                      <span className="border border-[#e0bfbd] bg-[#fff5f0] px-3 py-1.5 text-xs font-semibold text-[#8c1520]">
-                        {money(order.total ?? 0)}
-                      </span>
-                    </div>
-                  </div>
 
-                  <div className="mt-3 grid gap-4 lg:grid-cols-[1fr_280px]">
-                    <div>
-                      <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.14em] text-stone-500">Items</p>
-                      <div className="grid gap-2 md:grid-cols-2">
-                        {(order.items ?? []).map((item) => (
-                          <div key={`${order.id}-${item.productId}`} className="grid grid-cols-[44px_1fr] gap-2">
-                            <div className="relative aspect-square overflow-hidden bg-stone-100">
-                              <Image src={item.image || '/bloom1.png'} alt={item.productName} fill sizes="44px" className="object-cover" />
-                            </div>
-                            <div>
-                              <p className="text-sm font-semibold leading-5">{item.productName}</p>
-                              <p className="mt-1 text-xs text-stone-500">
-                                {item.quantity} x {item.price === null ? item.priceNote ?? 'Price pending' : money(item.price)}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
+                      <div>
+                        <Link href={`/admin/orders/${order.id}`} className="inline-flex bg-[#ae2f34] px-4 py-2 text-sm font-semibold text-white hover:bg-[#8c1520]">
+                          View
+                        </Link>
                       </div>
-                    </div>
-
-                    <aside className="border-l-4 border-[#e0bfbd] bg-[#fff5f0] px-3 py-2">
-                      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">Delivery</p>
-                      <p className="mt-1 text-sm font-semibold">{order.deliveryDetails?.recipientName ?? 'Recipient not saved'}</p>
-                      <p className="mt-1 text-sm leading-5 text-[#584140]">
-                        {[order.deliveryDetails?.addressLine, order.deliveryDetails?.town, order.deliveryDetails?.county].filter(Boolean).join(', ') || 'No address saved'}
-                      </p>
-                      <div className="mt-3 border-t border-[#e0bfbd] pt-2">
-                        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">Payment</p>
-                        <p className="mt-1 text-xs text-[#584140]">
-                          {order.payment?.label ?? paymentMethodLabels[order.payment?.method ?? 'mpesa']} / {order.payment?.status ?? 'pending'}
-                        </p>
-                      </div>
-                    </aside>
-                  </div>
-                </article>
-              ))}
+                    </article>
+                  ))}
+                </div>
+              ) : null}
             </div>
           ) : null}
 

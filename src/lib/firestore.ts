@@ -635,6 +635,20 @@ export function subscribeToAllOrders(
   );
 }
 
+export function subscribeToOrder(
+  orderId: string,
+  onOrder: (order: CustomerOrder | null) => void,
+  onError?: (error: FirestoreError) => void,
+): Unsubscribe {
+  return onSnapshot(
+    doc(getFirebaseDb(), collectionNames.orders, orderId),
+    (snapshot) => {
+      onOrder(snapshot.exists() ? { id: snapshot.id, ...(snapshot.data() as Omit<CustomerOrder, 'id'>) } : null);
+    },
+    onError,
+  );
+}
+
 export function subscribeToAllUsers(
   onUsers: (users: UserProfile[]) => void,
   onError?: (error: FirestoreError) => void,

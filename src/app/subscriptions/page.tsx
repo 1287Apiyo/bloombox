@@ -33,7 +33,7 @@ const tiers = [
     name: 'Double Pad Bloom',
     price: 'KSh 600',
     summary: 'Two packs of pads with flowers and a small treat.',
-    image: '/products/sunny.jpg',
+    image: '/products/kot.jpg',
     items: ['Pads - 2 packs', 'Flowers', 'Gift or treat'],
     action: 'Build this box',
     href: '/shop',

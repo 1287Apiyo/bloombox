@@ -36,7 +36,7 @@ export type CatalogProduct = {
 };
 
 const productImages = {
-  pads: '/products/sunny.jpg',
+  pads: '/products/kot.jpg',
   marvelPads: '/products/marvel.jpg',
   sunnyPads: '/products/sunny.jpg',
   menstrualCare: '/products/menscups.jpg',
