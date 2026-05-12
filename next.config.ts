@@ -5,6 +5,7 @@ const nextConfig: NextConfig = {
   images: {
     domains: [
       'images.unsplash.com',  // for your Unsplash images
+      'images.pexels.com',
       'longrowlavender.com'   // for the external image causing the error
     ],
   },
