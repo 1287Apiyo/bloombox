@@ -158,7 +158,7 @@ function getCatalogImage(productId: string, categoryId: string) {
 function normalizeProductImage(product: CatalogProduct): CatalogProduct {
   return {
     ...product,
-    image: getCatalogImage(product.id, product.categoryId),
+    image: product.image || getCatalogImage(product.id, product.categoryId),
   };
 }
 
@@ -211,7 +211,7 @@ function CartDrawer({
                   <div className="grid grid-cols-[76px_1fr] gap-4">
                     <div className="relative aspect-square overflow-hidden border border-stone-200 bg-stone-100">
                       <Image
-                        src={getCatalogImage(item.productId, item.categoryId)}
+                        src={item.image || getCatalogImage(item.productId, item.categoryId)}
                         alt={item.productName}
                         fill
                         sizes="76px"
@@ -668,7 +668,7 @@ export default function ShopPage() {
                   <article key={product.id} className="group overflow-hidden border border-stone-300 bg-white transition hover:border-[#ae2f34]">
                     <div className="relative aspect-[4/3] overflow-hidden bg-stone-100">
                       <Image
-                        src={getCatalogImage(product.id, product.categoryId)}
+                        src={product.image || getCatalogImage(product.id, product.categoryId)}
                         alt={product.name}
                         fill
                         sizes="(min-width: 1280px) 300px, (min-width: 768px) 45vw, 100vw"

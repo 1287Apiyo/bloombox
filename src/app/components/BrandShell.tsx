@@ -54,8 +54,8 @@ function isActiveRoute(pathname: string, href: string) {
 }
 
 export function BrandMark({ dark = false }: { dark?: boolean }) {
-  const { loading, user } = useAuth();
-  const href = loading || user ? '/dashboard' : '/login';
+  const { isAdmin, loading, user } = useAuth();
+  const href = loading || user ? (isAdmin ? '/admin' : '/dashboard') : '/login';
 
   return (
     <Link href={href} className="flex items-center gap-3">
@@ -72,11 +72,12 @@ export function BrandMark({ dark = false }: { dark?: boolean }) {
 export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number; onCartClick?: () => void }) {
   const pathname = usePathname();
   const router = useRouter();
-  const { loading, user } = useAuth();
+  const { isAdmin, loading, user } = useAuth();
   const [logoutError, setLogoutError] = useState('');
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const accountHref = loading || user ? '/dashboard' : '/login';
-  const accountLabel = loading || user ? 'Dashboard' : 'Sign in';
+  const accountHref = loading || user ? (isAdmin ? '/admin' : '/dashboard') : '/login';
+  const accountLabel = loading || user ? (isAdmin ? 'Admin' : 'Dashboard') : 'Sign in';
+  const visibleNavigation = isAdmin ? [...navigation, { href: '/admin', label: 'Admin' }] : navigation;
 
   const handleLogout = async () => {
     setLogoutError('');
@@ -98,7 +99,7 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
         <BrandMark />
 
         <nav className="hidden items-center gap-3 lg:flex xl:gap-5" aria-label="Primary navigation">
-          {navigation.map((item) => {
+          {visibleNavigation.map((item) => {
             const isActive = isActiveRoute(pathname, item.href);
 
             return (
@@ -160,7 +161,7 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
       </div>
       <nav className="border-t border-stone-200 bg-white px-3 sm:px-8 lg:hidden" aria-label="Primary navigation">
         <div className="mx-auto flex max-w-7xl gap-2 overflow-x-auto py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {navigation.map((item) => {
+          {visibleNavigation.map((item) => {
             const isActive = isActiveRoute(pathname, item.href);
 
             return (

@@ -1,6 +1,7 @@
 import { getApp, getApps, initializeApp, type FirebaseApp, type FirebaseOptions } from 'firebase/app';
 import { getAuth, type Auth } from 'firebase/auth';
 import { getFirestore, type Firestore } from 'firebase/firestore';
+import { getStorage, type FirebaseStorage } from 'firebase/storage';
 
 const cleanEnv = (value: string | undefined) => {
   return value && value.trim().length > 0 ? value : undefined;
@@ -34,6 +35,7 @@ export const isFirebaseConfigured = missingFirebaseConfig.length === 0;
 let app: FirebaseApp | null = null;
 let auth: Auth | null = null;
 let db: Firestore | null = null;
+let storage: FirebaseStorage | null = null;
 
 export function getFirebaseApp() {
   if (!isFirebaseConfigured) {
@@ -61,4 +63,12 @@ export function getFirebaseDb() {
   }
 
   return db;
+}
+
+export function getFirebaseStorage() {
+  if (!storage) {
+    storage = getStorage(getFirebaseApp());
+  }
+
+  return storage;
 }

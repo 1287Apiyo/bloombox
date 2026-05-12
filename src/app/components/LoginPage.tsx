@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { useEffect, useState, type FormEvent } from 'react';
 import {
   GoogleAuthProvider,
@@ -13,6 +13,7 @@ import {
   signInWithPopup,
 } from 'firebase/auth';
 import { getAuthErrorMessage } from '@/lib/authErrors';
+import { isUserAdmin } from '@/lib/firestore';
 import { getFirebaseAuth } from '@/lib/firebase';
 import { AuthShell } from './AuthShell';
 import { useAuth } from './AuthProvider';
@@ -30,8 +31,9 @@ function GoogleMark() {
 }
 
 export default function LoginPage() {
-  const { configError, isConfigured, user } = useAuth();
+  const { configError, isAdmin, isConfigured, user } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [rememberMe, setRememberMe] = useState(false);
@@ -42,9 +44,11 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (user) {
-      router.push('/dashboard');
+      const nextPath = searchParams.get('next');
+      const safeNextPath = nextPath?.startsWith('/') ? nextPath : null;
+      router.push(isAdmin ? '/admin' : safeNextPath ?? '/dashboard');
     }
-  }, [router, user]);
+  }, [isAdmin, router, searchParams, user]);
 
   const handleSubmit = async (event: FormEvent) => {
     event.preventDefault();
@@ -61,8 +65,11 @@ export default function LoginPage() {
     try {
       const auth = getFirebaseAuth();
       await setPersistence(auth, rememberMe ? browserLocalPersistence : browserSessionPersistence);
-      await signInWithEmailAndPassword(auth, email, password);
-      router.push('/dashboard');
+      const credential = await signInWithEmailAndPassword(auth, email, password);
+      const admin = await isUserAdmin(credential.user.uid);
+      const nextPath = searchParams.get('next');
+      const safeNextPath = nextPath?.startsWith('/') ? nextPath : null;
+      router.push(admin ? '/admin' : safeNextPath ?? '/dashboard');
     } catch (authError) {
       setError(getAuthErrorMessage(authError));
       setIsSubmitting(false);
@@ -82,8 +89,11 @@ export default function LoginPage() {
 
     try {
       await setPersistence(getFirebaseAuth(), rememberMe ? browserLocalPersistence : browserSessionPersistence);
-      await signInWithPopup(getFirebaseAuth(), new GoogleAuthProvider());
-      router.push('/dashboard');
+      const credential = await signInWithPopup(getFirebaseAuth(), new GoogleAuthProvider());
+      const admin = await isUserAdmin(credential.user.uid);
+      const nextPath = searchParams.get('next');
+      const safeNextPath = nextPath?.startsWith('/') ? nextPath : null;
+      router.push(admin ? '/admin' : safeNextPath ?? '/dashboard');
     } catch (authError) {
       setError(getAuthErrorMessage(authError));
       setIsGoogleSubmitting(false);

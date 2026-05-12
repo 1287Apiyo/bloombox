@@ -80,6 +80,18 @@ export type PaymentStatus = 'pending' | 'successful' | 'failed';
 export type OrderStatus = 'placed' | 'pending-payment' | 'paid' | 'preparing' | 'out-for-delivery' | 'delivered' | 'cancelled';
 
 export type DeliveryStatus = 'pending-dispatch' | 'preparing' | 'out-for-delivery' | 'delivered';
+export type UserRole = 'customer' | 'admin';
+
+export type UserProfile = {
+  uid: string;
+  email: string | null;
+  displayName: string | null;
+  photoURL: string | null;
+  role: UserRole;
+  deliveryDetails?: DeliveryDetails;
+  createdAt?: unknown;
+  updatedAt?: unknown;
+};
 
 export type DummyPaymentResult = {
   orderId: string;
@@ -136,7 +148,7 @@ export type FirestoreCollections = {
     email: string | null;
     displayName: string | null;
     photoURL: string | null;
-    role: 'customer' | 'admin';
+    role: UserRole;
     deliveryDetails?: DeliveryDetails;
   };
   [collectionNames.carts]: {
@@ -293,7 +305,28 @@ export function subscribeToCategories(
   );
 }
 
-export async function upsertUserProfile(user: FirebaseUser) {
+export async function isUserAdmin(userId: string) {
+  const snapshot = await getDoc(doc(getFirebaseDb(), collectionNames.admins, userId));
+  return snapshot.exists();
+}
+
+export async function fetchUserProfile(userId: string) {
+  const snapshot = await getDoc(doc(getFirebaseDb(), collectionNames.users, userId));
+
+  if (!snapshot.exists()) {
+    return null;
+  }
+
+  return {
+    uid: userId,
+    ...(snapshot.data() as Omit<UserProfile, 'uid'>),
+  };
+}
+
+export async function upsertUserProfile(user: FirebaseUser, role: UserRole = 'customer') {
+  const existingProfile = await fetchUserProfile(user.uid);
+  const nextRole: UserRole = role === 'admin' || existingProfile?.role === 'admin' ? 'admin' : 'customer';
+
   await setDoc(
     doc(getFirebaseDb(), collectionNames.users, user.uid),
     {
@@ -301,7 +334,8 @@ export async function upsertUserProfile(user: FirebaseUser) {
       email: user.email,
       displayName: user.displayName,
       photoURL: user.photoURL,
-      role: 'customer',
+      role: nextRole,
+      createdAt: existingProfile?.createdAt ?? serverTimestamp(),
       updatedAt: serverTimestamp(),
     },
     { merge: true },
@@ -572,6 +606,134 @@ export function subscribeToUserOrders(
     },
     onError,
   );
+}
+
+export function subscribeToAllOrders(
+  onOrders: (orders: CustomerOrder[]) => void,
+  onError?: (error: FirestoreError) => void,
+): Unsubscribe {
+  return onSnapshot(
+    collection(getFirebaseDb(), collectionNames.orders),
+    (snapshot) => {
+      const orders = snapshot.docs
+        .map((orderDoc) => ({
+          id: orderDoc.id,
+          ...(orderDoc.data() as Omit<CustomerOrder, 'id'>),
+        }))
+        .sort((a, b) => getTimestampMillis(b.createdAt) - getTimestampMillis(a.createdAt));
+
+      onOrders(orders);
+    },
+    onError,
+  );
+}
+
+export function subscribeToAllUsers(
+  onUsers: (users: UserProfile[]) => void,
+  onError?: (error: FirestoreError) => void,
+): Unsubscribe {
+  return onSnapshot(
+    collection(getFirebaseDb(), collectionNames.users),
+    (snapshot) => {
+      const users = snapshot.docs
+        .map((userDoc) => ({
+          uid: userDoc.id,
+          ...(userDoc.data() as Omit<UserProfile, 'uid'>),
+        }))
+        .sort((a, b) => {
+          if (a.role !== b.role) return a.role === 'admin' ? -1 : 1;
+          return (a.email ?? '').localeCompare(b.email ?? '');
+        });
+
+      onUsers(users);
+    },
+    onError,
+  );
+}
+
+export function subscribeToAdminProducts(
+  onProducts: (products: CatalogProduct[]) => void,
+  onError?: (error: FirestoreError) => void,
+): Unsubscribe {
+  return onSnapshot(
+    collection(getFirebaseDb(), collectionNames.products),
+    (snapshot) => {
+      const products = snapshot.docs.map((productDoc) => productDoc.data() as CatalogProduct);
+      onProducts(products.length > 0 ? sortProducts(products) : catalogProducts);
+    },
+    onError,
+  );
+}
+
+export async function updateOrderStatus(orderId: string, status: OrderStatus) {
+  const deliveryStatusByOrderStatus: Partial<Record<OrderStatus, DeliveryStatus>> = {
+    preparing: 'preparing',
+    'out-for-delivery': 'out-for-delivery',
+    delivered: 'delivered',
+  };
+  const deliveryStatus = deliveryStatusByOrderStatus[status];
+  const updates: Record<string, unknown> = {
+    status,
+    updatedAt: serverTimestamp(),
+  };
+
+  if (deliveryStatus) {
+    updates.deliveryStatus = deliveryStatus;
+  }
+
+  await updateDoc(doc(getFirebaseDb(), collectionNames.orders, orderId), updates);
+}
+
+export async function updateProductStatus(productId: string, isActive: boolean) {
+  await updateDoc(doc(getFirebaseDb(), collectionNames.products, productId), {
+    isActive,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function saveProduct(product: CatalogProduct) {
+  await setDoc(
+    doc(getFirebaseDb(), collectionNames.products, product.id),
+    {
+      ...product,
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
+}
+
+export async function updateUserRole(user: UserProfile, role: UserRole) {
+  const db = getFirebaseDb();
+  const userRef = doc(db, collectionNames.users, user.uid);
+  const adminRef = doc(db, collectionNames.admins, user.uid);
+  const batch = writeBatch(db);
+
+  batch.set(
+    userRef,
+    {
+      role,
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
+
+  if (role === 'admin') {
+    batch.set(
+      adminRef,
+      {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        role: 'admin',
+        updatedAt: serverTimestamp(),
+      },
+      { merge: true },
+    );
+  } else {
+    batch.delete(adminRef);
+  }
+
+  await batch.commit();
 }
 
 export async function subscribeToNewsletter(email: string, source = 'website-footer') {
