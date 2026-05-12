@@ -201,32 +201,66 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-stone-200 bg-stone-950 text-white">
-      <div className="mx-auto grid max-w-7xl gap-8 px-5 py-10 sm:grid-cols-2 sm:px-8 lg:grid-cols-[1.5fr_1fr_1fr_1fr] lg:gap-10 lg:py-12">
-        <div>
-          <BrandMark dark />
-          <p className="mt-4 max-w-sm text-sm leading-6 text-stone-300">
-            Period care, comfort essentials, and thoughtful gifts for women and girls across every stage of the cycle.
-          </p>
+    <footer className="border-t border-stone-200 bg-[#14090c] text-white">
+      <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:py-14">
+        <div className="grid gap-8 border-b border-white/10 pb-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
+          <div>
+            <BrandMark dark />
+            <h2 className="mt-6 max-w-2xl font-serif text-4xl font-semibold leading-tight text-white">
+              Care that arrives with softness, usefulness, and a little ceremony.
+            </h2>
+            <p className="mt-4 max-w-xl text-sm leading-6 text-[#fed4c8]">
+              Period care, comfort essentials, thoughtful gifts, subscriptions, and community stories for women and girls across every stage of the cycle.
+            </p>
+          </div>
+
+          <div className="grid gap-3 sm:grid-cols-2">
+            <Link href="/signup" className="bg-[#ae2f34] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520]">
+              Create account
+            </Link>
+            <Link href="/blog" className="border border-[#fed4c8] px-5 py-3 text-center text-sm font-semibold text-[#fed4c8] transition hover:bg-[#fed4c8] hover:text-[#14090c]">
+              Read the blog
+            </Link>
+          </div>
         </div>
 
-        {footerSections.map((section) => (
-          <div key={section.title}>
-            <h3 className="text-sm font-semibold text-white">{section.title}</h3>
-            <ul className="mt-4 space-y-3">
-              {section.links.map((link) => (
-                <li key={link.label}>
-                  <Link href={link.href} className="text-sm text-stone-400 transition hover:text-white">
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+        <div className="grid gap-8 py-10 sm:grid-cols-2 lg:grid-cols-[1.1fr_1fr_1fr_1.15fr] lg:gap-10">
+          {footerSections.map((section) => (
+            <div key={section.title}>
+              <h3 className="border-l-4 border-[#ae2f34] pl-3 text-xs font-bold uppercase tracking-[0.16em] text-[#fed4c8]">{section.title}</h3>
+              <ul className="mt-5 grid gap-3">
+                {section.links.map((link) => (
+                  <li key={link.label}>
+                    <Link href={link.href} className="text-sm font-medium text-stone-300 transition hover:text-white">
+                      {link.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ))}
+
+          <div className="border border-white/10 bg-white/5 p-5">
+            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#fed4c8]">Community</p>
+            <h3 className="mt-3 font-serif text-2xl font-semibold text-white">Stories make care easier to talk about.</h3>
+            <p className="mt-3 text-sm leading-6 text-stone-300">
+              Explore product guides, first-period stories, menstrual cup notes, and comfort rituals from the BloomBox community.
+            </p>
+            <Link href="/blog" className="mt-5 inline-flex border border-[#fed4c8] px-4 py-2 text-sm font-semibold text-[#fed4c8] transition hover:bg-[#fed4c8] hover:text-[#14090c]">
+              Open blog
+            </Link>
           </div>
-        ))}
-      </div>
-      <div className="border-t border-white/10 px-5 py-5 text-center text-xs text-stone-500">
-        BloomBox by Delilah. Made with care for women everywhere.
+        </div>
+
+        <div className="grid gap-4 border-t border-white/10 pt-6 text-xs text-stone-400 md:grid-cols-[1fr_auto] md:items-center">
+          <p>BloomBox by Delilah. Made with care for women everywhere.</p>
+          <div className="flex flex-wrap gap-x-5 gap-y-2">
+            <Link href="/about" className="hover:text-white">About</Link>
+            <Link href="/faqs" className="hover:text-white">FAQs</Link>
+            <Link href="/login" className="hover:text-white">Log in</Link>
+            <Link href="/orders" className="hover:text-white">Track orders</Link>
+          </div>
+        </div>
       </div>
     </footer>
   );
