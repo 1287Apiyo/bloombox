@@ -425,18 +425,18 @@ export default function ShopPage() {
       />
 
       <main>
-        <section className="relative overflow-hidden border-b border-stone-300 bg-[#f8f9fa]">
+        <section className="relative overflow-hidden border-b border-stone-300 bg-[#14090c]">
           <Image
             src={shopImages.hero}
             alt="BloomBox care package with flowers and candles"
             fill
             sizes="100vw"
             priority
-            className="object-cover"
+            className="object-cover opacity-75"
           />
-          <div className="absolute inset-0 bg-[#f8f9fa]/80" />
+          <div className="absolute inset-0 bg-[#14090c]/78" />
           <div className="relative mx-auto grid max-w-7xl gap-10 px-5 py-14 sm:px-8 lg:grid-cols-[0.85fr_1fr] lg:py-20">
-            <div className="self-end border-l-8 border-[#ae2f34] bg-[#f8f9fa] p-6 sm:p-8">
+            <div className="self-end border-l-8 border-[#ae2f34] bg-[#fff5f0] p-6 sm:p-8">
               <Eyebrow>Shop BloomBox</Eyebrow>
               <h1 className="mt-5 max-w-xl font-serif text-5xl font-semibold leading-none text-[#191c1d] sm:text-6xl">
                 Build a care box that feels considered.

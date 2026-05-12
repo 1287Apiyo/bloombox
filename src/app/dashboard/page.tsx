@@ -151,7 +151,7 @@ function CollectionCard({ collection, large = false }: { collection: (typeof col
   return (
     <Link
       href={collection.href}
-      className={`group relative block overflow-hidden border border-[#e0bfbd] bg-white ${large ? 'min-h-[500px] md:col-span-8' : 'min-h-[360px] md:col-span-4'}`}
+      className={`group relative block overflow-hidden border border-[#e0bfbd] bg-white ${large ? 'min-h-[340px] sm:min-h-[420px] md:col-span-8 lg:min-h-[500px]' : 'min-h-[320px] md:col-span-4 lg:min-h-[360px]'}`}
     >
       <Image
         src={collection.image}
@@ -177,7 +177,7 @@ export default function DashboardPage() {
       <SiteHeader />
 
       <main>
-        <section className="relative flex min-h-[760px] items-center overflow-hidden bg-[#14090c]">
+        <section className="relative flex min-h-[calc(100svh-116px)] items-center overflow-hidden bg-[#14090c] sm:min-h-[680px] lg:min-h-[760px]">
           <Image
             src={mockupImages.giftFlowers}
             alt="BloomBox floral gift box"
@@ -189,7 +189,7 @@ export default function DashboardPage() {
           <div className="absolute inset-0 bg-[#14090c]/78" />
           <div className="absolute inset-x-0 bottom-0 h-24 bg-[#14090c]" />
 
-          <div className="relative z-10 mx-auto flex w-full max-w-7xl justify-center px-4 py-20 text-center sm:px-6 lg:px-8">
+          <div className="relative z-10 mx-auto flex w-full max-w-7xl justify-center px-4 py-14 text-center sm:px-6 sm:py-20 lg:px-8">
             <div className="mx-auto max-w-4xl">
               <p className="mx-auto mb-5 w-fit border border-white/40 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#fed4c8]">
                 BloomBox care delivery
@@ -203,11 +203,11 @@ export default function DashboardPage() {
               <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-[#fed4c8]">
                 Build a box for yourself, send one to someone you love, or choose a monthly tier before the basics become urgent.
               </p>
-              <div className="mt-10 flex flex-col justify-center gap-4 sm:flex-row">
-                <Link href="/shop" className="bg-[#ae2f34] px-10 py-4 text-center text-base font-semibold text-white transition hover:bg-[#8c1520]">
+              <div className="mt-10 flex flex-col justify-center gap-3 sm:flex-row sm:gap-4">
+                <Link href="/shop" className="bg-[#ae2f34] px-7 py-3 text-center text-base font-semibold text-white transition hover:bg-[#8c1520] sm:px-10 sm:py-4">
                   Shop collections
                 </Link>
-                <Link href="/gifting" className="border border-[#fed4c8] bg-transparent px-10 py-4 text-center text-base font-semibold text-[#fed4c8] transition hover:bg-[#fed4c8] hover:text-[#14090c]">
+                <Link href="/gifting" className="border border-[#fed4c8] bg-transparent px-7 py-3 text-center text-base font-semibold text-[#fed4c8] transition hover:bg-[#fed4c8] hover:text-[#14090c] sm:px-10 sm:py-4">
                   Send a gift
                 </Link>
               </div>
@@ -215,7 +215,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
           <div className="mb-12 flex flex-col justify-between gap-4 md:flex-row md:items-end">
             <div>
               <h2 className="font-serif text-4xl font-semibold text-[#ae2f34]">Curated collections</h2>
@@ -232,7 +232,7 @@ export default function DashboardPage() {
             <CollectionCard collection={collections[1]} />
             <CollectionCard collection={collections[2]} />
 
-            <div className="bg-[#fed4c8] p-8 md:col-span-8 md:min-h-[360px] md:p-12">
+            <div className="bg-[#fed4c8] p-6 sm:p-8 md:col-span-8 md:min-h-[360px] md:p-12">
               <div className="max-w-xl">
                 <h3 className="font-serif text-4xl font-semibold italic text-[#76574e]">
                   &quot;Every flower is a small memory in motion.&quot;
@@ -255,7 +255,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-4 pb-16 sm:px-6 lg:px-8">
+        <section className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 sm:pb-16 lg:px-8">
           <div className="mb-10 flex flex-col justify-between gap-4 md:flex-row md:items-end">
             <div>
               <h2 className="font-serif text-4xl font-semibold text-[#ae2f34]">BloomBox packages</h2>
@@ -302,7 +302,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className="bg-[#edeeef] py-16">
+        <section className="bg-[#edeeef] py-12 sm:py-16">
           <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <div className="mx-auto mb-14 max-w-2xl text-center">
               <h2 className="font-serif text-4xl font-semibold text-[#ae2f34]">The BloomBox promise</h2>
@@ -325,7 +325,7 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8">
+        <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
           <div className="grid gap-14 lg:grid-cols-2 lg:items-center">
             <div className="relative">
               <div className="aspect-square overflow-hidden border border-[#e0bfbd] bg-[#edeeef]">

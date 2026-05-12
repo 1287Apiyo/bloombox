@@ -94,7 +94,7 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
   return (
     <>
     <header data-site-header className="fixed left-0 right-0 top-0 z-[1000] translate-y-0 transform-gpu border-b border-stone-300 bg-white shadow-sm">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-5 py-4 sm:px-8">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-8 sm:py-4">
         <BrandMark />
 
         <nav className="hidden items-center gap-3 lg:flex xl:gap-5" aria-label="Primary navigation">
@@ -115,7 +115,7 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
           })}
         </nav>
 
-        <div className="flex shrink-0 items-center gap-2">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
           {onCartClick ? (
             <button
               type="button"
@@ -134,7 +134,7 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
 
           <Link
             href={accountHref}
-            className="bg-rose-700 px-4 py-2 text-sm font-semibold text-white transition hover:bg-stone-950"
+            className="bg-rose-700 px-3 py-2 text-xs font-semibold text-white transition hover:bg-stone-950 sm:px-4 sm:text-sm"
           >
             {accountLabel}
           </Link>
@@ -145,7 +145,7 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
                 type="button"
                 onClick={handleLogout}
                 disabled={isLoggingOut}
-                className="border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-800 transition hover:border-rose-700 hover:text-rose-700 disabled:cursor-not-allowed disabled:opacity-60"
+                className="border border-stone-300 bg-white px-3 py-2 text-xs font-semibold text-stone-800 transition hover:border-rose-700 hover:text-rose-700 disabled:cursor-not-allowed disabled:opacity-60 sm:px-4 sm:text-sm"
               >
                 {isLoggingOut ? 'Logging out...' : 'Logout'}
               </button>
@@ -158,7 +158,7 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
           ) : null}
         </div>
       </div>
-      <nav className="border-t border-stone-200 bg-white px-5 sm:px-8 lg:hidden" aria-label="Primary navigation">
+      <nav className="border-t border-stone-200 bg-white px-3 sm:px-8 lg:hidden" aria-label="Primary navigation">
         <div className="mx-auto flex max-w-7xl gap-2 overflow-x-auto py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {navigation.map((item) => {
             const isActive = isActiveRoute(pathname, item.href);
@@ -178,7 +178,7 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
         </div>
       </nav>
     </header>
-    <div className="h-[130px] lg:h-[77px]" aria-hidden="true" />
+    <div className="h-[116px] sm:h-[130px] lg:h-[77px]" aria-hidden="true" />
     </>
   );
 }
@@ -186,7 +186,7 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
 export function SiteFooter() {
   return (
     <footer className="border-t border-stone-200 bg-stone-950 text-white">
-      <div className="mx-auto grid max-w-7xl gap-10 px-5 py-12 sm:px-8 lg:grid-cols-[1.5fr_1fr_1fr_1fr]">
+      <div className="mx-auto grid max-w-7xl gap-8 px-5 py-10 sm:grid-cols-2 sm:px-8 lg:grid-cols-[1.5fr_1fr_1fr_1fr] lg:gap-10 lg:py-12">
         <div>
           <BrandMark dark />
           <p className="mt-4 max-w-sm text-sm leading-6 text-stone-300">
