@@ -20,6 +20,7 @@
     "clsx": "^2.1.1",
     "cookie": "^1.0.2",
     "firebase": "^12.13.0",
+    "framer-motion": "^12.40.0",
     "jsonwebtoken": "^9.0.2",
     "next": "^16.2.6",
     "prisma": "^6.16.2",

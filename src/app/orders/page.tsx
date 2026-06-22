@@ -4,10 +4,26 @@ import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { subscribeToUserOrders, type CustomerOrder, type DeliveryDetails, type OrderItem, type OrderStatus } from '@/lib/firestore';
+import { motion } from 'framer-motion';
+import {
+  subscribeToUserOrders,
+  type CustomerOrder,
+  type DeliveryDetails,
+  type OrderItem,
+  type OrderStatus,
+} from '@/lib/firestore';
 import { useAuth } from '../components/AuthProvider';
 import { Eyebrow, SiteFooter, SiteHeader } from '../components/BrandShell';
 
+// ---------- Animation presets ----------
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  visible: { opacity: 1, y: 0 },
+};
+
+const viewportSettings = { once: true, amount: 0.05 };
+
+// ---------- Constants ----------
 const paidStatuses: OrderStatus[] = ['paid', 'preparing', 'out-for-delivery', 'delivered'];
 const finalStatuses: OrderStatus[] = ['delivered', 'cancelled'];
 const unpaidActiveWindowMs = 2 * 60 * 60 * 1000;
@@ -30,6 +46,7 @@ const orderImageRules = [
   { prefix: 'flowers', image: '/mockups/bloombox-gift-flowers.png' },
 ] as const;
 
+// ---------- Helper functions ----------
 function money(value: number) {
   return new Intl.NumberFormat('en-KE', {
     style: 'currency',
@@ -45,7 +62,6 @@ function formatDate(value: unknown) {
       timeStyle: 'short',
     });
   }
-
   return 'Just now';
 }
 
@@ -53,28 +69,25 @@ function getTimestampMs(value: unknown) {
   if (value && typeof value === 'object' && 'toDate' in value && typeof value.toDate === 'function') {
     return value.toDate().getTime();
   }
-
   return null;
 }
 
 function isPaymentConfirmed(order: CustomerOrder) {
-  return order.payment?.status === 'successful' || order.paymentStatus === 'successful' || paidStatuses.includes(order.status);
+  return (
+    order.payment?.status === 'successful' ||
+    order.paymentStatus === 'successful' ||
+    paidStatuses.includes(order.status)
+  );
 }
 
 function isUnpaidOrderExpired(order: CustomerOrder, now: number | null) {
-  if (!now || isPaymentConfirmed(order) || !['placed', 'pending-payment'].includes(order.status)) {
-    return false;
-  }
-
+  if (!now || isPaymentConfirmed(order) || !['placed', 'pending-payment'].includes(order.status)) return false;
   const createdAtMs = getTimestampMs(order.createdAt);
   return createdAtMs !== null && now - createdAtMs > unpaidActiveWindowMs;
 }
 
 function isActiveOrder(order: CustomerOrder, now: number | null) {
-  if (finalStatuses.includes(order.status)) {
-    return false;
-  }
-
+  if (finalStatuses.includes(order.status)) return false;
   return !isUnpaidOrderExpired(order, now);
 }
 
@@ -89,24 +102,42 @@ function getStatusLabel(order: CustomerOrder) {
 }
 
 function getStatusStyle(order: CustomerOrder) {
-  if (order.status === 'delivered') return 'border-emerald-700 bg-emerald-50 text-emerald-800';
-  if (order.status === 'out-for-delivery') return 'border-[#006a65] bg-[#e7fbf8] text-[#00504c]';
-  if (order.status === 'preparing' || order.status === 'paid') return 'border-[#FFC857] bg-[#fff8df] text-[#76574e]';
-  if (order.status === 'cancelled') return 'border-stone-400 bg-stone-100 text-stone-700';
-  return 'border-[#e0bfbd] bg-[#fff5f0] text-[#8c1520]';
+  if (order.status === 'paid') return 'bg-emerald-600 text-white';
+  if (order.status === 'delivered') return 'bg-emerald-800 text-white';
+  if (order.status === 'pending-payment' || order.status === 'placed') return 'bg-[#FFC857] text-[#3d2a00]';
+  if (order.status === 'preparing') return 'bg-[#1B1F3B] text-white';
+  if (order.status === 'out-for-delivery') return 'bg-[#006a65] text-white';
+  if (order.status === 'cancelled') return 'bg-stone-600 text-white';
+  return 'bg-[#ae2f34] text-white';
 }
 
 function getTrackingSteps(order: CustomerOrder) {
   const paymentSuccessful = isPaymentConfirmed(order);
-  const preparing = ['preparing', 'out-for-delivery', 'delivered'].includes(order.status) || ['preparing', 'out-for-delivery', 'delivered'].includes(order.deliveryStatus);
-  const outForDelivery = ['out-for-delivery', 'delivered'].includes(order.status) || ['out-for-delivery', 'delivered'].includes(order.deliveryStatus);
+  const preparing =
+    ['preparing', 'out-for-delivery', 'delivered'].includes(order.status) ||
+    ['preparing', 'out-for-delivery', 'delivered'].includes(order.deliveryStatus);
+  const outForDelivery =
+    ['out-for-delivery', 'delivered'].includes(order.status) ||
+    ['out-for-delivery', 'delivered'].includes(order.deliveryStatus);
   const delivered = order.status === 'delivered' || order.deliveryStatus === 'delivered';
 
   return [
     { label: 'Order placed', detail: 'We received the order and saved the parcel details.', complete: true },
-    { label: 'Payment successful', detail: paymentSuccessful ? 'Payment is confirmed.' : 'Waiting for payment confirmation.', complete: paymentSuccessful },
-    { label: 'Preparing parcel', detail: preparing ? 'The BloomBox is being packed.' : 'Packing starts after payment.', complete: preparing },
-    { label: 'Out for delivery', detail: outForDelivery ? 'Courier is on the way.' : 'Courier has not been assigned yet.', complete: outForDelivery },
+    {
+      label: 'Payment successful',
+      detail: paymentSuccessful ? 'Payment is confirmed.' : 'Waiting for payment confirmation.',
+      complete: paymentSuccessful,
+    },
+    {
+      label: 'Preparing parcel',
+      detail: preparing ? 'The BloomBox is being packed.' : 'Packing starts after payment.',
+      complete: preparing,
+    },
+    {
+      label: 'Out for delivery',
+      detail: outForDelivery ? 'Courier is on the way.' : 'Courier has not been assigned yet.',
+      complete: outForDelivery,
+    },
     { label: 'Delivered', detail: delivered ? 'Parcel delivered.' : 'Not delivered yet.', complete: delivered },
   ];
 }
@@ -124,6 +155,7 @@ function getOrderImage(item: OrderItem) {
   return match?.image ?? item.image ?? '/bloom1.png';
 }
 
+// ---------- Order Card Component ----------
 function OrderCard({
   order,
   index,
@@ -142,26 +174,35 @@ function OrderCard({
   const orderItems = getOrderItems(order);
 
   return (
-    <article className="border border-stone-300 bg-white">
+    <motion.article
+      variants={fadeUp}
+      initial="hidden"
+      whileInView="visible"
+      viewport={viewportSettings}
+      transition={{ duration: 0.4 }}
+      className="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm"
+    >
       <button
         type="button"
         onClick={() => onToggle(toggleKey)}
-        className="grid w-full gap-3 p-3 text-left transition hover:bg-[#fff5f0] md:grid-cols-[40px_1fr_auto_32px]"
+        className="grid w-full gap-3 p-4 text-left transition hover:bg-[#fff5f0] md:grid-cols-[40px_minmax(0,1fr)_152px_150px_32px] md:items-center"
         aria-expanded={isOpen}
       >
-        <span className="flex h-8 w-8 items-center justify-center bg-[#191c1d] text-xs font-semibold text-white">
+        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#191c1d] text-xs font-semibold text-white">
           {index + 1}
         </span>
         <div>
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-stone-400">
-              Order ID <span className="text-stone-700">#{order.id.slice(0, 8)}</span>
-            </p>
-            <span className={`border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-[0.12em] ${getStatusStyle(order)}`}>
-              {getStatusLabel(order)}
-            </span>
-          </div>
+          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-stone-400">Order ID</p>
+          <p className="mt-1 text-sm font-semibold text-stone-950">#{order.id.slice(0, 8)}</p>
           <p className="mt-1 text-xs text-stone-500">Placed {formatDate(order.createdAt)}</p>
+        </div>
+        <div className="md:justify-self-start">
+          <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-stone-400">Status</p>
+          <span
+            className={`inline-flex h-9 w-36 items-center justify-center rounded-md px-3 text-center text-[10px] font-bold uppercase tracking-[0.1em] shadow-sm ${getStatusStyle(order)}`}
+          >
+            {getStatusLabel(order)}
+          </span>
         </div>
         <div className="text-left md:text-right">
           <p className="text-xs text-stone-500">Total</p>
@@ -170,21 +211,32 @@ function OrderCard({
             {order.payment?.label ?? 'Payment'}: {order.payment?.status ?? 'pending'}
           </p>
         </div>
-        <span className="flex h-8 w-8 items-center justify-center border border-stone-300 text-base font-semibold text-stone-700">
-          {isOpen ? '-' : '+'}
+        <span className="flex h-8 w-8 items-center justify-center rounded border border-stone-200 text-base font-semibold text-stone-600 transition hover:border-[#ae2f34] hover:text-[#ae2f34]">
+          {isOpen ? '−' : '+'}
         </span>
       </button>
 
-      {isOpen ? (
-        <div className="grid gap-4 border-t border-stone-300 p-3 lg:grid-cols-[1fr_280px]">
+      {isOpen && (
+        <div className="grid gap-4 border-t border-stone-200 p-4 lg:grid-cols-[1fr_280px]">
           <div>
             <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Tracking</h3>
-            <div className="mt-3 border border-stone-200">
+            <div className="mt-3 overflow-hidden rounded border border-stone-200">
               {steps.map((step, stepIndex) => (
-                <div key={step.label} className={`grid grid-cols-[22px_1fr] gap-2 p-3 ${stepIndex === steps.length - 1 ? '' : 'border-b border-stone-200'}`}>
-                  <span className={`mt-1 h-3 w-3 border ${step.complete ? 'border-[#006a65] bg-[#006a65]' : 'border-stone-300 bg-white'}`} />
+                <div
+                  key={step.label}
+                  className={`grid grid-cols-[22px_1fr] gap-3 p-3 ${
+                    stepIndex === steps.length - 1 ? '' : 'border-b border-stone-200'
+                  }`}
+                >
+                  <span
+                    className={`mt-1 h-3 w-3 rounded-sm border ${
+                      step.complete ? 'border-[#006a65] bg-[#006a65]' : 'border-stone-300 bg-white'
+                    }`}
+                  />
                   <div>
-                    <p className={`text-sm font-semibold ${step.complete ? 'text-stone-950' : 'text-stone-500'}`}>{step.label}</p>
+                    <p className={`text-sm font-semibold ${step.complete ? 'text-stone-950' : 'text-stone-500'}`}>
+                      {step.label}
+                    </p>
                     <p className="mt-0.5 text-xs leading-5 text-stone-600">{step.detail}</p>
                   </div>
                 </div>
@@ -194,22 +246,33 @@ function OrderCard({
             <div className="mt-5">
               <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Items</h3>
               <div className="mt-3 grid gap-2 md:grid-cols-2">
-                {orderItems.length === 0 ? (
-                  <p className="border border-stone-200 p-3 text-xs text-stone-600">
+                {orderItems.length === 0 && (
+                  <p className="rounded border border-stone-200 p-3 text-xs text-stone-600">
                     This older order does not have item details saved.
                   </p>
-                ) : null}
-
+                )}
                 {orderItems.map((item) => (
-                  <div key={item.productId} className="grid grid-cols-[52px_1fr] gap-2 border border-stone-200 p-2">
-                    <div className="relative h-[52px] overflow-hidden bg-stone-100">
-                      <Image src={getOrderImage(item)} alt={item.productName} fill sizes="52px" className="object-cover" />
+                  <div
+                    key={item.productId}
+                    className="grid grid-cols-[52px_1fr] gap-2 rounded border border-stone-200 p-2"
+                  >
+                    <div className="relative h-[52px] overflow-hidden rounded bg-stone-100">
+                      <Image
+                        src={getOrderImage(item)}
+                        alt={item.productName}
+                        fill
+                        sizes="52px"
+                        className="object-cover"
+                      />
                     </div>
                     <div>
-                      <p className="text-xs font-semibold leading-4 text-stone-950">{item.productName ?? 'BloomBox item'}</p>
+                      <p className="text-xs font-semibold leading-4 text-stone-950">
+                        {item.productName ?? 'BloomBox item'}
+                      </p>
                       <p className="mt-1 text-xs text-stone-500">Qty {item.quantity}</p>
                       <p className="mt-1 text-xs font-semibold text-[#ae2f34]">
-                        {item.priceNote ?? (item.price === null ? 'Price pending' : money(item.price ?? 0))}
+                        {item.priceNote ??
+                          (item.price === null ? 'Price pending' : money(item.price ?? 0))}
                       </p>
                     </div>
                   </div>
@@ -218,35 +281,52 @@ function OrderCard({
             </div>
           </div>
 
-          <aside className="border border-stone-300 bg-[#fff5f0] p-4">
+          <aside className="rounded border border-stone-200 bg-[#fff5f0] p-4">
             <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Delivery address</h3>
             {deliveryDetails ? (
               <>
-                <p className="mt-3 text-sm font-semibold text-stone-950">{deliveryDetails.recipientName || 'Recipient not saved'}</p>
-                <p className="mt-1 text-xs leading-5 text-stone-700">{deliveryDetails.phoneNumber || 'Phone not saved'}</p>
-                <p className="mt-1 text-xs leading-5 text-stone-700">
-                  {[deliveryDetails.addressLine, deliveryDetails.town, deliveryDetails.county].filter(Boolean).join(', ') || 'Address not saved'}
+                <p className="mt-3 text-sm font-semibold text-stone-950">
+                  {deliveryDetails.recipientName || 'Recipient not saved'}
                 </p>
-                {deliveryDetails.landmark ? <p className="mt-1 text-xs leading-5 text-stone-700">Landmark: {deliveryDetails.landmark}</p> : null}
-                {deliveryDetails.deliveryNotes ? <p className="mt-1 text-xs leading-5 text-stone-700">Note: {deliveryDetails.deliveryNotes}</p> : null}
+                <p className="mt-1 text-xs leading-5 text-stone-700">
+                  {deliveryDetails.phoneNumber || 'Phone not saved'}
+                </p>
+                <p className="mt-1 text-xs leading-5 text-stone-700">
+                  {[deliveryDetails.addressLine, deliveryDetails.town, deliveryDetails.county]
+                    .filter(Boolean)
+                    .join(', ') || 'Address not saved'}
+                </p>
+                {deliveryDetails.landmark && (
+                  <p className="mt-1 text-xs leading-5 text-stone-700">
+                    Landmark: {deliveryDetails.landmark}
+                  </p>
+                )}
+                {deliveryDetails.deliveryNotes && (
+                  <p className="mt-1 text-xs leading-5 text-stone-700">
+                    Note: {deliveryDetails.deliveryNotes}
+                  </p>
+                )}
               </>
             ) : (
               <p className="mt-3 text-xs leading-5 text-stone-700">
-                This older order was created before delivery details were added. New checkout orders will show the full address here.
+                This older order was created before delivery details were added.
               </p>
             )}
 
             <div className="mt-4 border-t border-stone-300 pt-4">
               <p className="text-xs text-stone-500">Receipt</p>
-              <p className="mt-1 text-sm font-semibold text-stone-950">{order.payment?.receiptNumber ?? 'Pending payment'}</p>
+              <p className="mt-1 text-sm font-semibold text-stone-950">
+                {order.payment?.receiptNumber ?? 'Pending payment'}
+              </p>
             </div>
           </aside>
         </div>
-      ) : null}
-    </article>
+      )}
+    </motion.article>
   );
 }
 
+// ---------- Main Page ----------
 export default function OrdersPage() {
   const router = useRouter();
   const { loading, user } = useAuth();
@@ -264,7 +344,6 @@ export default function OrdersPage() {
 
   useEffect(() => {
     if (!user) return;
-
     return subscribeToUserOrders(
       user.uid,
       setOrders,
@@ -275,7 +354,6 @@ export default function OrdersPage() {
   useEffect(() => {
     setNow(Date.now());
     const timer = window.setInterval(() => setNow(Date.now()), 60 * 1000);
-
     return () => window.clearInterval(timer);
   }, []);
 
@@ -286,21 +364,30 @@ export default function OrdersPage() {
   const orderStats = useMemo(() => {
     const deliveredOrders = orders.filter((order) => order.status === 'delivered').length;
     const totalSpend = orders.reduce((sum, order) => sum + (order.total ?? 0), 0);
-
     return { activeOrders: activeOrders.length, deliveredOrders, totalSpend };
   }, [activeOrders.length, orders]);
 
   const toggleOrder = (orderId: string) => {
-    setOpenOrderIds((current) => (current.includes(orderId) ? current.filter((id) => id !== orderId) : [...current, orderId]));
+    setOpenOrderIds((current) =>
+      current.includes(orderId) ? current.filter((id) => id !== orderId) : [...current, orderId],
+    );
   };
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] text-stone-950">
       <SiteHeader />
 
-      <main>
-        <section className="border-b border-stone-300 bg-white">
-          <div className="mx-auto grid max-w-7xl gap-6 px-5 py-9 sm:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-end lg:py-12">
+      <main className="pb-16">
+        {/* ---------- HERO SECTION ---------- */}
+        <section className="border-b border-stone-200 bg-white">
+          <motion.div
+            variants={fadeUp}
+            initial="hidden"
+            whileInView="visible"
+            viewport={viewportSettings}
+            transition={{ duration: 0.6 }}
+            className="mx-auto grid max-w-7xl gap-6 px-5 py-9 sm:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-end lg:py-12"
+          >
             <div>
               <Eyebrow>Orders</Eyebrow>
               <h1 className="mt-4 font-serif text-4xl font-semibold leading-none text-[#191c1d] sm:text-5xl">
@@ -310,75 +397,116 @@ export default function OrdersPage() {
                 Follow payment status, packing progress, delivery details, and what went into each parcel.
               </p>
               <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <Link href="/shop" className="bg-[#ae2f34] px-5 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520]">
+                <Link
+                  href="/shop"
+                  className="rounded bg-[#ae2f34] px-5 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520]"
+                >
                   Continue shopping
                 </Link>
-                <Link href="/checkout" className="border border-[#ae2f34] px-5 py-2.5 text-center text-sm font-semibold text-[#ae2f34] transition hover:bg-[#fff5f0]">
+                <Link
+                  href="/checkout"
+                  className="rounded border border-[#ae2f34] px-5 py-2.5 text-center text-sm font-semibold text-[#ae2f34] transition hover:bg-[#fff5f0]"
+                >
                   Go to checkout
                 </Link>
               </div>
             </div>
 
-            <div className="grid border border-stone-300 bg-[#fff5f0] md:grid-cols-[1fr_1fr]">
-              <div className="border-b border-stone-300 p-4 md:border-b-0 md:border-r">
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">Latest order</p>
-                <p className="mt-2 font-serif text-2xl font-semibold text-[#191c1d]">{latestOrder ? getStatusLabel(latestOrder) : 'No orders yet'}</p>
-                <p className="mt-2 text-xs leading-5 text-[#584140]">{latestOrder ? `#${latestOrder.id.slice(0, 10)}` : 'Checkout will create your first order.'}</p>
-              </div>
-              <div className="grid grid-cols-2">
-                <div className="border-b border-r border-stone-300 p-4">
-                  <p className="text-xl font-semibold text-[#ae2f34]">{orders.length}</p>
-                  <p className="mt-1 text-xs uppercase tracking-[0.16em] text-stone-500">Orders</p>
+            <div className="overflow-hidden rounded-lg border border-stone-200 bg-[#fff5f0] shadow-sm">
+              <div className="grid md:grid-cols-[1fr_1fr]">
+                <div className="border-b border-stone-200 p-4 md:border-b-0 md:border-r">
+                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">Latest order</p>
+                  <p className="mt-2 font-serif text-2xl font-semibold text-[#191c1d]">
+                    {latestOrder ? getStatusLabel(latestOrder) : 'No orders yet'}
+                  </p>
+                  <p className="mt-2 text-xs leading-5 text-[#584140]">
+                    {latestOrder
+                      ? `#${latestOrder.id.slice(0, 10)}`
+                      : 'Checkout will create your first order.'}
+                  </p>
                 </div>
-                <div className="border-b border-stone-300 p-4">
-                  <p className="text-xl font-semibold text-[#ae2f34]">{orderStats.activeOrders}</p>
-                  <p className="mt-1 text-xs uppercase tracking-[0.16em] text-stone-500">Active</p>
-                </div>
-                <div className="border-r border-stone-300 p-4">
-                  <p className="text-xl font-semibold text-[#ae2f34]">{orderStats.deliveredOrders}</p>
-                  <p className="mt-1 text-xs uppercase tracking-[0.16em] text-stone-500">Delivered</p>
-                </div>
-                <div className="p-4">
-                  <p className="text-xl font-semibold text-[#ae2f34]">{money(orderStats.totalSpend)}</p>
-                  <p className="mt-1 text-xs uppercase tracking-[0.16em] text-stone-500">Total</p>
+                <div className="grid grid-cols-2">
+                  <div className="border-b border-r border-stone-200 p-4">
+                    <p className="text-xl font-semibold text-[#ae2f34]">{orders.length}</p>
+                    <p className="mt-1 text-xs uppercase tracking-[0.16em] text-stone-500">Orders</p>
+                  </div>
+                  <div className="border-b border-stone-200 p-4">
+                    <p className="text-xl font-semibold text-[#ae2f34]">{orderStats.activeOrders}</p>
+                    <p className="mt-1 text-xs uppercase tracking-[0.16em] text-stone-500">Active</p>
+                  </div>
+                  <div className="border-r border-stone-200 p-4">
+                    <p className="text-xl font-semibold text-[#ae2f34]">{orderStats.deliveredOrders}</p>
+                    <p className="mt-1 text-xs uppercase tracking-[0.16em] text-stone-500">Delivered</p>
+                  </div>
+                  <div className="p-4">
+                    <p className="text-xl font-semibold text-[#ae2f34]">{money(orderStats.totalSpend)}</p>
+                    <p className="mt-1 text-xs uppercase tracking-[0.16em] text-stone-500">Total</p>
+                  </div>
                 </div>
               </div>
             </div>
-          </div>
+          </motion.div>
         </section>
 
+        {/* ---------- CONTENT ---------- */}
         <section className="mx-auto max-w-7xl px-5 py-8 sm:px-8">
-          {error ? (
-            <div className="mb-6 border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-800">
+          {error && (
+            <motion.div
+              variants={fadeUp}
+              initial="hidden"
+              animate="visible"
+              className="mb-6 rounded border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-800"
+            >
               {error}
+            </motion.div>
+          )}
+
+          {loading && (
+            <div className="rounded border border-stone-200 bg-white p-8 text-sm text-stone-600">
+              Loading your order history...
             </div>
-          ) : null}
+          )}
 
-          {loading ? (
-            <div className="border border-stone-300 bg-white p-8 text-sm text-stone-600">Loading your order history...</div>
-          ) : null}
-
-          {!loading && orders.length === 0 ? (
-            <div className="grid overflow-hidden border border-stone-300 bg-white lg:grid-cols-[0.8fr_1.2fr]">
+          {!loading && orders.length === 0 && (
+            <motion.div
+              variants={fadeUp}
+              initial="hidden"
+              whileInView="visible"
+              viewport={viewportSettings}
+              transition={{ duration: 0.5 }}
+              className="grid overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm lg:grid-cols-[0.8fr_1.2fr]"
+            >
               <div className="relative min-h-[320px] bg-stone-100">
-                <Image src="/mockups/bloombox-open-box.png" alt="BloomBox package" fill sizes="(min-width: 1024px) 480px, 100vw" className="object-cover" />
+                <Image
+                  src="/mockups/bloombox-open-box.png"
+                  alt="BloomBox package"
+                  fill
+                  sizes="(min-width: 1024px) 480px, 100vw"
+                  className="object-cover"
+                />
               </div>
               <div className="p-8 lg:p-10">
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">No orders yet</p>
-                <h2 className="mt-4 font-serif text-4xl font-semibold text-stone-950">Your first parcel will appear here.</h2>
+                <h2 className="mt-4 font-serif text-4xl font-semibold text-stone-950">
+                  Your first parcel will appear here.
+                </h2>
                 <p className="mt-3 max-w-xl text-sm leading-6 text-stone-600">
                   Once you place and pay for an order, this page becomes your delivery timeline.
                 </p>
-                <Link href="/shop" className="mt-7 inline-flex bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white">
+                <Link
+                  href="/shop"
+                  className="mt-7 inline-flex rounded bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8c1520]"
+                >
                   Shop catalog
                 </Link>
               </div>
-            </div>
-          ) : null}
+            </motion.div>
+          )}
 
-          {orders.length > 0 ? (
+          {orders.length > 0 && (
             <div>
-              <div className="mb-5 grid border border-stone-300 bg-white p-1 sm:w-fit sm:grid-cols-2">
+              {/* ---------- Tabs ---------- */}
+              <div className="mb-5 inline-flex overflow-hidden rounded border border-stone-200 bg-white p-1 shadow-sm">
                 {[
                   { id: 'active' as const, label: 'Active', count: activeOrders.length },
                   { id: 'past' as const, label: 'Past orders', count: pastOrders.length },
@@ -388,7 +516,9 @@ export default function OrdersPage() {
                     type="button"
                     onClick={() => setSelectedTab(tab.id)}
                     className={`px-5 py-2 text-sm font-semibold transition ${
-                      selectedTab === tab.id ? 'bg-[#ae2f34] text-white' : 'text-stone-700 hover:bg-[#fff5f0] hover:text-[#ae2f34]'
+                      selectedTab === tab.id
+                        ? 'bg-[#ae2f34] text-white'
+                        : 'text-stone-700 hover:bg-[#fff5f0] hover:text-[#ae2f34]'
                     }`}
                   >
                     {tab.label}
@@ -397,24 +527,51 @@ export default function OrdersPage() {
                 ))}
               </div>
 
+              {/* ---------- Grid: key + list ---------- */}
               <div className="grid gap-6 lg:grid-cols-[230px_1fr]">
+                {/* Delivery key */}
                 <aside className="lg:sticky lg:top-28 lg:self-start">
-                  <div className="border border-stone-300 bg-white p-4">
+                  <motion.div
+                    variants={fadeUp}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={viewportSettings}
+                    transition={{ duration: 0.4 }}
+                    className="rounded-lg border border-stone-200 bg-white p-4 shadow-sm"
+                  >
                     <h2 className="font-serif text-xl font-semibold text-[#191c1d]">Delivery key</h2>
-                    <div className="mt-4 space-y-2 text-xs leading-5 text-stone-600">
-                      <p><span className="font-semibold text-stone-950">Awaiting:</span> payment not confirmed.</p>
-                      <p><span className="font-semibold text-stone-950">Active:</span> unpaid orders leave after 2 hours.</p>
-                      <p><span className="font-semibold text-stone-950">Preparing:</span> parcel is being assembled.</p>
-                      <p><span className="font-semibold text-stone-950">Delivery:</span> courier has left for the address.</p>
+                    <div className="mt-4 grid gap-2 text-xs leading-5 text-stone-600">
+                      {[
+                        ['Awaiting', 'Payment not confirmed.', 'bg-[#FFC857] text-[#3d2a00]'],
+                        ['Paid', 'Payment confirmed.', 'bg-emerald-600 text-white'],
+                        ['Preparing', 'Parcel is being assembled.', 'bg-[#1B1F3B] text-white'],
+                        ['Delivery', 'Courier has left for the address.', 'bg-[#006a65] text-white'],
+                      ].map(([label, detail, style]) => (
+                        <div key={label} className="grid grid-cols-[112px_1fr] items-center gap-3">
+                          <span
+                            className={`inline-flex h-8 w-28 items-center justify-center rounded-md px-2 text-center text-[10px] font-bold uppercase tracking-[0.1em] ${style}`}
+                          >
+                            {label}
+                          </span>
+                          <span>{detail}</span>
+                        </div>
+                      ))}
+                      <p className="pt-2 text-[11px] leading-5 text-stone-500">
+                        Unpaid active orders leave this tab after 2 hours.
+                      </p>
                     </div>
-                    <Link href="/shop" className="mt-5 inline-flex w-full justify-center border border-[#ae2f34] px-3 py-2 text-sm font-semibold text-[#ae2f34] hover:bg-[#fff5f0]">
+                    <Link
+                      href="/shop"
+                      className="mt-5 inline-flex w-full justify-center rounded border border-[#ae2f34] px-3 py-2 text-sm font-semibold text-[#ae2f34] transition hover:bg-[#fff5f0]"
+                    >
                       Add items
                     </Link>
-                  </div>
+                  </motion.div>
                 </aside>
 
+                {/* Order list */}
                 <section>
-                  <div className="mb-4 flex flex-col justify-between gap-2 border-b border-stone-300 pb-3 sm:flex-row sm:items-end">
+                  <div className="mb-4 flex flex-col justify-between gap-2 border-b border-stone-200 pb-3 sm:flex-row sm:items-end">
                     <div>
                       <h2 className="font-serif text-2xl font-semibold text-[#191c1d]">
                         {selectedTab === 'active' ? 'Active orders' : 'Past orders'}
@@ -425,14 +582,16 @@ export default function OrdersPage() {
                           : 'Full order history, including active, delivered, cancelled, and unpaid orders.'}
                       </p>
                     </div>
-                    <span className="w-fit border border-stone-300 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700">
+                    <span className="w-fit rounded border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 shadow-sm">
                       {visibleOrders.length} shown
                     </span>
                   </div>
 
                   {visibleOrders.length === 0 ? (
-                    <div className="border border-stone-300 bg-white p-5">
-                      <h3 className="font-serif text-xl font-semibold text-stone-950">No active orders right now.</h3>
+                    <div className="rounded-lg border border-stone-200 bg-white p-5 shadow-sm">
+                      <h3 className="font-serif text-xl font-semibold text-stone-950">
+                        No active orders right now.
+                      </h3>
                       <p className="mt-2 text-xs leading-5 text-stone-600">
                         Paid and delivered orders stay in Past Orders. Unpaid orders leave Active after 2 hours.
                       </p>
@@ -454,7 +613,7 @@ export default function OrdersPage() {
                 </section>
               </div>
             </div>
-          ) : null}
+          )}
         </section>
       </main>
 

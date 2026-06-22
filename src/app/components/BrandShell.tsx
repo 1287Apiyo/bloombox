@@ -10,37 +10,40 @@ import { getAuthErrorMessage } from '@/lib/authErrors';
 import { getFirebaseAuth } from '@/lib/firebase';
 import { useAuth } from './AuthProvider';
 
-const navigation = [
-  { href: '/shop', label: 'Shop' },
-  { href: '/gifting', label: 'Gifting' },
-  { href: '/orders', label: 'Orders' },
+const accountNavigation = [
   { href: '/subscriptions', label: 'Subscriptions' },
+  { href: '/shop', label: 'Shop' },
+  { href: '/orders', label: 'Orders' },
   { href: '/blog', label: 'Blog' },
 ];
 
 const publicNavigation = [
   { href: '/', label: 'Home' },
+  { href: '/subscriptions', label: 'Subscriptions' },
+  { href: '/shop', label: 'Shop' },
+  { href: '/partner', label: 'Partner' },
   { href: '/about', label: 'About' },
   { href: '/blog', label: 'Blog' },
 ];
 
 const footerSections = [
   {
-    title: 'Shop',
+    title: 'Subscriptions',
+    links: [
+      { label: 'Monthly tiers', href: '/subscriptions' },
+      { label: 'Custom monthly plan', href: '/subscriptions#custom-plan' },
+      { label: 'Card setup', href: '/subscriptions#subscription-card' },
+      { label: 'Cycle tracking', href: '/cycle' },
+    ],
+  },
+  {
+    title: 'Care add-ons',
     links: [
       { label: 'Pads', href: '/shop' },
       { label: 'Menstrual cups', href: '/shop' },
       { label: 'Self-care', href: '/shop' },
-      { label: 'Gifts', href: '/gifting' },
-    ],
-  },
-  {
-    title: 'Care',
-    links: [
-      { label: 'Subscriptions', href: '/subscriptions' },
       { label: 'First period kits', href: '/gifting' },
       { label: 'On-demand flowers', href: '/gifting' },
-      { label: 'Comfort bundles', href: '/shop' },
     ],
   },
   {
@@ -49,14 +52,33 @@ const footerSections = [
       { label: 'Blog', href: '/blog' },
       { label: 'FAQs', href: '/faqs' },
       { label: 'Track orders', href: '/orders' },
+      { label: 'Donate', href: '/donate' },
+      { label: 'Partner with us', href: '/partner' },
       { label: 'About', href: '/about' },
-      { label: 'Contact', href: '/gifting' },
+      { label: 'Privacy policy', href: '/privacy' },
+      { label: 'Terms', href: '/terms' },
     ],
   },
 ];
 
 function isActiveRoute(pathname: string, href: string) {
   return pathname === href || pathname.startsWith(`${href}/`);
+}
+
+function CycleTrackerIcon() {
+  return (
+    <svg className="h-6 w-6" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+      <path d="M22.8 8.6A9.8 9.8 0 0 0 7 12.9" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+      <path d="M8.2 23.4A9.8 9.8 0 0 0 25 18.8" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+      <path d="M21.8 5.4 24 9.3l-4.3.7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      <path d="m10.2 26.6-2.2-3.9 4.3-.7" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="16" cy="7.4" r="2.3" fill="#FFC857" />
+      <circle cx="24.6" cy="16" r="2.2" fill="currentColor" />
+      <circle cx="16" cy="24.6" r="2.3" fill="#fed4c8" />
+      <circle cx="7.4" cy="16" r="2.2" fill="currentColor" opacity="0.45" />
+      <circle cx="16" cy="16" r="3.2" fill="currentColor" opacity="0.18" />
+    </svg>
+  );
 }
 
 export function BrandMark({ dark = false }: { dark?: boolean }) {
@@ -81,9 +103,10 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
   const { isAdmin, loading, user } = useAuth();
   const [logoutError, setLogoutError] = useState('');
   const [isLoggingOut, setIsLoggingOut] = useState(false);
-  const accountHref = loading || user ? (isAdmin ? '/admin' : '/dashboard') : '/login';
-  const accountLabel = loading || user ? (isAdmin ? 'Admin' : 'Dashboard') : 'Sign in';
-  const visibleNavigation = user ? (isAdmin ? [...navigation, { href: '/admin', label: 'Admin' }] : navigation) : publicNavigation;
+  const accountHref = user ? (isAdmin ? '/admin' : '/partner') : '/login';
+  const accountLabel = user ? (isAdmin ? 'Admin' : 'Partner') : 'Sign in';
+  const visibleNavigation = user ? (isAdmin ? [...accountNavigation, { href: '/admin', label: 'Admin' }] : accountNavigation) : publicNavigation;
+  const mobileNavigation = visibleNavigation;
 
   const handleLogout = async () => {
     setLogoutError('');
@@ -104,16 +127,21 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
       <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-3 sm:gap-4 sm:px-8 sm:py-4">
         <BrandMark />
 
-        <nav className="hidden items-center gap-3 lg:flex xl:gap-5" aria-label="Primary navigation">
+        <nav className="hidden min-w-0 flex-1 items-center justify-center gap-2 overflow-x-auto px-2 [scrollbar-width:none] lg:flex xl:gap-3 [&::-webkit-scrollbar]:hidden" aria-label="Primary navigation">
           {visibleNavigation.map((item) => {
             const isActive = isActiveRoute(pathname, item.href);
+            const isSubscriptionLink = item.href === '/subscriptions';
 
             return (
               <Link
                 key={item.href}
                 href={item.href}
-                className={`border-b-2 py-2 text-sm font-semibold transition ${
-                  isActive ? 'border-rose-700 text-rose-700' : 'border-transparent text-stone-600 hover:border-stone-300 hover:text-stone-950'
+                className={`shrink-0 border-b-2 py-2 text-xs font-semibold transition xl:text-sm ${
+                  isActive
+                    ? 'border-rose-700 text-rose-700'
+                    : isSubscriptionLink
+                      ? 'border-[#ae2f34] text-[#ae2f34] hover:border-[#8c1520] hover:text-[#8c1520]'
+                      : 'border-transparent text-stone-600 hover:border-stone-300 hover:text-stone-950'
                 }`}
               >
                 {item.label}
@@ -123,6 +151,21 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
         </nav>
 
         <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+          {user ? (
+            <Link
+              href="/cycle"
+              className={`relative inline-flex h-11 w-11 items-center justify-center rounded-full border-2 shadow-sm transition ${
+                isActiveRoute(pathname, '/cycle')
+                  ? 'border-[#ae2f34] bg-[#ae2f34] text-white'
+                  : 'border-stone-300 bg-[#fff5f0] text-[#ae2f34] hover:border-[#ae2f34] hover:bg-[#fed4c8]'
+              }`}
+              aria-label="Open cycle tracker"
+              title="Cycle tracker"
+            >
+              <CycleTrackerIcon />
+            </Link>
+          ) : null}
+
           {onCartClick ? (
             <button
               type="button"
@@ -138,6 +181,13 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
               </span>
             </button>
           ) : null}
+
+          <Link
+            href="/donate"
+            className="border border-[#006a65] bg-[#006a65] px-3 py-2 text-xs font-semibold text-white transition hover:border-[#004b48] hover:bg-[#004b48] sm:px-4 sm:text-sm"
+          >
+            Donate
+          </Link>
 
           <Link
             href={accountHref}
@@ -176,15 +226,20 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
       </div>
       <nav className="border-t border-stone-200 bg-white px-3 sm:px-8 lg:hidden" aria-label="Primary navigation">
         <div className="mx-auto flex max-w-7xl gap-2 overflow-x-auto py-2 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {visibleNavigation.map((item) => {
+          {mobileNavigation.map((item) => {
             const isActive = isActiveRoute(pathname, item.href);
+            const isSubscriptionLink = item.href === '/subscriptions';
 
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={`shrink-0 border px-3 py-2 text-xs font-semibold transition ${
-                  isActive ? 'border-rose-700 bg-rose-700 text-white' : 'border-stone-300 bg-white text-stone-700 hover:border-rose-700 hover:text-rose-700'
+                  isActive
+                    ? 'border-rose-700 bg-rose-700 text-white'
+                    : isSubscriptionLink
+                      ? 'border-rose-700 bg-[#fff5f0] text-rose-700 hover:bg-rose-50'
+                      : 'border-stone-300 bg-white text-stone-700 hover:border-rose-700 hover:text-rose-700'
                 }`}
               >
                 {item.label}
@@ -210,16 +265,16 @@ export function SiteFooter() {
               Care that arrives with softness, usefulness, and a little ceremony.
             </h2>
             <p className="mt-4 max-w-xl text-sm leading-6 text-[#fed4c8]">
-              Period care, comfort essentials, thoughtful gifts, subscriptions, and community stories for women and girls across every stage of the cycle.
+              Monthly period care subscriptions with comfort add-ons, cycle-aware reminders, and community support for women and girls.
             </p>
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <Link href="/signup" className="bg-[#ae2f34] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520]">
-              Create account
+            <Link href="/signup?next=/subscriptions" className="bg-[#ae2f34] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520]">
+              Start subscription
             </Link>
-            <Link href="/blog" className="border border-[#fed4c8] px-5 py-3 text-center text-sm font-semibold text-[#fed4c8] transition hover:bg-[#fed4c8] hover:text-[#14090c]">
-              Read the blog
+            <Link href="/donate" className="border border-[#fed4c8] px-5 py-3 text-center text-sm font-semibold text-[#fed4c8] transition hover:bg-[#fed4c8] hover:text-[#14090c]">
+              Donate
             </Link>
           </div>
         </div>
@@ -257,6 +312,8 @@ export function SiteFooter() {
           <div className="flex flex-wrap gap-x-5 gap-y-2">
             <Link href="/about" className="hover:text-white">About</Link>
             <Link href="/faqs" className="hover:text-white">FAQs</Link>
+            <Link href="/privacy" className="hover:text-white">Privacy</Link>
+            <Link href="/terms" className="hover:text-white">Terms</Link>
             <Link href="/login" className="hover:text-white">Log in</Link>
             <Link href="/orders" className="hover:text-white">Track orders</Link>
           </div>

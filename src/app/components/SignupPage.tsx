@@ -194,7 +194,17 @@ export default function SignupPage() {
             onChange={(event) => setAcceptedTerms(event.target.checked)}
             className="mt-1 h-4 w-4 border-stone-300 text-[#ae2f34] focus:ring-[#ae2f34]"
           />
-          <span>I agree to the BloomBox Terms of Service and Privacy Policy.</span>
+          <span>
+            I agree to the BloomBox{' '}
+            <Link href="/terms" className="font-semibold text-[#ae2f34] hover:text-[#8c1520]">
+              Terms and Conditions
+            </Link>{' '}
+            and{' '}
+            <Link href="/privacy" className="font-semibold text-[#ae2f34] hover:text-[#8c1520]">
+              Privacy Policy
+            </Link>
+            .
+          </span>
         </label>
 
         <button

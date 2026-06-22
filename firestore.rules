@@ -29,6 +29,26 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    match /cycleProfiles/{userId} {
+      allow create: if isOwner(userId)
+        && request.resource.data.userId == request.auth.uid;
+      allow read, delete: if isOwner(userId);
+      allow update: if isOwner(userId)
+        && request.resource.data.userId == resource.data.userId;
+    }
+
+    match /cycleLogs/{logId} {
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.date is string
+        && request.resource.data.flow in ['none', 'spotting', 'light', 'medium', 'heavy'];
+      allow read, delete: if signedIn()
+        && resource.data.userId == request.auth.uid;
+      allow update: if signedIn()
+        && resource.data.userId == request.auth.uid
+        && request.resource.data.userId == resource.data.userId;
+    }
+
     match /blogPosts/{postId} {
       allow read: if true;
       allow create: if signedIn()
@@ -117,8 +137,34 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    match /inventoryMovements/{movementId} {
+      allow read, write, delete: if isAdmin();
+    }
+
+    match /leads/{leadId} {
+      allow create: if request.resource.data.email is string
+        && request.resource.data.email.size() >= 5
+        && request.resource.data.email.size() <= 254
+        && request.resource.data.stage == 'new';
+      allow read, update, delete: if isAdmin();
+    }
+
+    match /partnerInquiries/{inquiryId} {
+      allow create: if request.resource.data.email is string
+        && request.resource.data.email.size() >= 5
+        && request.resource.data.email.size() <= 254
+        && request.resource.data.status == 'new';
+      allow read, update, delete: if isAdmin();
+    }
+
     match /subscriptions/{subscriptionId} {
-      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow create: if signedIn()
+        && request.resource.data.userId == request.auth.uid
+        && request.resource.data.status == 'active'
+        && request.resource.data.paymentMethod == 'card'
+        && request.resource.data.card.keys().hasOnly(['holderName', 'brand', 'last4', 'expiry'])
+        && request.resource.data.card.last4 is string
+        && request.resource.data.card.last4.size() == 4;
       allow read: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
       allow update, delete: if isAdmin();
     }

@@ -24,9 +24,14 @@ export const collectionNames = {
   blogPosts: 'blogPosts',
   carts: 'carts',
   categories: 'categories',
+  cycleLogs: 'cycleLogs',
+  cycleProfiles: 'cycleProfiles',
   giftOrders: 'giftOrders',
+  inventoryMovements: 'inventoryMovements',
+  leads: 'leads',
   newsletterSubscribers: 'newsletterSubscribers',
   orders: 'orders',
+  partnerInquiries: 'partnerInquiries',
   payments: 'payments',
   products: 'products',
   subscriptions: 'subscriptions',
@@ -68,12 +73,13 @@ export type DeliveryDetails = {
   deliveryNotes: string;
 };
 
-export type PaymentMethod = 'mpesa' | 'paypal' | 'card';
+export type PaymentMethod = 'mpesa' | 'paypal' | 'card' | 'mchanga';
 
 export type PaymentDetails = {
   method: PaymentMethod;
   mpesaPhone?: string;
   paypalEmail?: string;
+  mchangaReference?: string;
 };
 
 export type PaymentStatus = 'pending' | 'successful' | 'failed';
@@ -102,6 +108,84 @@ export type NewsletterSubscriber = {
   updatedAt?: unknown;
 };
 
+export type CycleTrackingMode = 'regular' | 'irregular' | 'pcos' | 'endo' | 'birth-control';
+export type CycleFlowLevel = 'none' | 'spotting' | 'light' | 'medium' | 'heavy';
+
+export type CycleProfile = {
+  id: string;
+  userId: string;
+  displayName: string;
+  trackingMode: CycleTrackingMode;
+  averageCycleLength: number;
+  averagePeriodLength: number;
+  lastPeriodStart: string;
+  reminderOptIn: boolean;
+  notificationDay: string;
+  notes?: string;
+  createdAt?: unknown;
+  updatedAt?: unknown;
+};
+
+export type CycleLog = {
+  id: string;
+  userId: string;
+  date: string;
+  flow: CycleFlowLevel;
+  mood: string;
+  symptoms: string[];
+  notes: string;
+  createdAt?: unknown;
+  updatedAt?: unknown;
+};
+
+export type LeadStage = 'new' | 'qualified' | 'whatsapp-contacted' | 'checkout-ready' | 'won' | 'nurture';
+
+export type SalesLead = {
+  id: string;
+  name: string;
+  email: string;
+  phone: string;
+  interest: string;
+  budget: string;
+  source: string;
+  stage: LeadStage;
+  notes: string;
+  createdAt?: unknown;
+  updatedAt?: unknown;
+};
+
+export type PartnerInquiryStatus = 'new' | 'reviewing' | 'contacted' | 'approved' | 'declined';
+
+export type PartnerInquiry = {
+  id: string;
+  businessName: string;
+  contactName: string;
+  email: string;
+  phone: string;
+  productCategory: string;
+  message: string;
+  status: PartnerInquiryStatus;
+  createdAt?: unknown;
+  updatedAt?: unknown;
+};
+
+export type InventoryMovementType = 'incoming' | 'outgoing' | 'adjustment';
+
+export type InventoryMovement = {
+  id: string;
+  productId: string;
+  productName: string;
+  sku: string;
+  type: InventoryMovementType;
+  quantity: number;
+  unitCost: number;
+  reason: string;
+  linkedOrderId?: string;
+  createdBy: string;
+  createdAt?: unknown;
+  updatedAt?: unknown;
+};
+
 export type BlogPostType = 'story' | 'product-guide' | 'discussion';
 
 export type BlogPost = {
@@ -126,6 +210,30 @@ export type SubscriptionPlanInput = {
   amount: number | null;
   amountLabel: string;
   summary: string;
+};
+
+export type CustomerSubscription = {
+  id: string;
+  userId: string;
+  planId: string;
+  planName: string;
+  planSummary: string;
+  status: SubscriptionStatus;
+  amount: number | null;
+  amountLabel: string;
+  currency: CatalogProduct['currency'];
+  interval: 'monthly';
+  paymentMethod: PaymentMethod;
+  card?: {
+    holderName: string;
+    brand: string;
+    last4: string;
+    expiry: string;
+  };
+  startedAt?: unknown;
+  nextBillingAt?: unknown;
+  createdAt?: unknown;
+  updatedAt?: unknown;
 };
 
 export type DummyPaymentResult = {
@@ -169,6 +277,7 @@ export const paymentMethodLabels: Record<PaymentMethod, string> = {
   mpesa: 'M-Pesa',
   paypal: 'PayPal',
   card: 'Debit or credit card',
+  mchanga: 'M-Changa donation',
 };
 
 export type FirestoreCollections = {
@@ -178,6 +287,11 @@ export type FirestoreCollections = {
   };
   [collectionNames.blogPosts]: BlogPost;
   [collectionNames.categories]: ProductCategory;
+  [collectionNames.cycleLogs]: CycleLog;
+  [collectionNames.cycleProfiles]: CycleProfile;
+  [collectionNames.inventoryMovements]: InventoryMovement;
+  [collectionNames.leads]: SalesLead;
+  [collectionNames.partnerInquiries]: PartnerInquiry;
   [collectionNames.products]: CatalogProduct;
   [collectionNames.users]: {
     uid: string;
@@ -212,12 +326,13 @@ export type FirestoreCollections = {
     userId: string;
     orderId: string;
     method: PaymentMethod;
-    provider: 'daraja-dummy' | 'paypal-dummy' | 'card-dummy';
+    provider: 'daraja-dummy' | 'paypal-dummy' | 'card-dummy' | 'mchanga-dummy';
     status: PaymentStatus;
     amount: number;
     currency: CatalogProduct['currency'];
     phoneNumber?: string;
     payerEmail?: string;
+    mchangaReference?: string;
     checkoutRequestId?: string;
     receiptNumber?: string;
   };
@@ -517,6 +632,7 @@ export async function createOrderFromCart(
     mpesa: 'daraja-dummy',
     paypal: 'paypal-dummy',
     card: 'card-dummy',
+    mchanga: 'mchanga-dummy',
   };
   const orderRef = doc(collection(db, collectionNames.orders));
   const paymentRef = doc(collection(db, collectionNames.payments));
@@ -546,6 +662,10 @@ export async function createOrderFromCart(
 
   if (paymentDetails.paypalEmail) {
     paymentData.payerEmail = paymentDetails.paypalEmail;
+  }
+
+  if (paymentDetails.mchangaReference) {
+    paymentData.mchangaReference = paymentDetails.mchangaReference;
   }
 
   const cartRef = doc(db, collectionNames.carts, userId);
@@ -708,6 +828,27 @@ export function subscribeToUserOrders(
         .sort((a, b) => getTimestampMillis(b.createdAt) - getTimestampMillis(a.createdAt));
 
       onOrders(orders);
+    },
+    onError,
+  );
+}
+
+export function subscribeToUserSubscriptions(
+  userId: string,
+  onSubscriptions: (subscriptions: CustomerSubscription[]) => void,
+  onError?: (error: FirestoreError) => void,
+): Unsubscribe {
+  return onSnapshot(
+    query(collection(getFirebaseDb(), collectionNames.subscriptions), where('userId', '==', userId)),
+    (snapshot) => {
+      const subscriptions = snapshot.docs
+        .map((subscriptionDoc) => ({
+          id: subscriptionDoc.id,
+          ...(subscriptionDoc.data() as Omit<CustomerSubscription, 'id'>),
+        }))
+        .sort((a, b) => getTimestampMillis(b.createdAt) - getTimestampMillis(a.createdAt));
+
+      onSubscriptions(subscriptions);
     },
     onError,
   );
@@ -932,4 +1073,261 @@ export async function subscribeToNewsletter(email: string, source = 'website-foo
     },
     { merge: true },
   );
+}
+
+export function subscribeToCycleProfile(
+  userId: string,
+  onProfile: (profile: CycleProfile | null) => void,
+  onError?: (error: FirestoreError) => void,
+): Unsubscribe {
+  return onSnapshot(
+    doc(getFirebaseDb(), collectionNames.cycleProfiles, userId),
+    (snapshot) => {
+      onProfile(snapshot.exists() ? { id: snapshot.id, ...(snapshot.data() as Omit<CycleProfile, 'id'>) } : null);
+    },
+    onError,
+  );
+}
+
+export async function saveCycleProfile(
+  user: FirebaseUser,
+  profile: {
+    displayName: string;
+    trackingMode: CycleTrackingMode;
+    averageCycleLength: number;
+    averagePeriodLength: number;
+    lastPeriodStart: string;
+    reminderOptIn: boolean;
+    notificationDay: string;
+    notes?: string;
+  },
+) {
+  const existingProfile = await getDoc(doc(getFirebaseDb(), collectionNames.cycleProfiles, user.uid));
+
+  await setDoc(
+    doc(getFirebaseDb(), collectionNames.cycleProfiles, user.uid),
+    {
+      userId: user.uid,
+      displayName: profile.displayName.trim() || user.displayName || 'BloomBox client',
+      trackingMode: profile.trackingMode,
+      averageCycleLength: profile.averageCycleLength,
+      averagePeriodLength: profile.averagePeriodLength,
+      lastPeriodStart: profile.lastPeriodStart,
+      reminderOptIn: profile.reminderOptIn,
+      notificationDay: profile.notificationDay,
+      ...(profile.notes?.trim() ? { notes: profile.notes.trim() } : {}),
+      createdAt: existingProfile.exists() ? existingProfile.data().createdAt : serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
+}
+
+export function subscribeToCycleLogs(
+  userId: string,
+  onLogs: (logs: CycleLog[]) => void,
+  onError?: (error: FirestoreError) => void,
+): Unsubscribe {
+  return onSnapshot(
+    query(collection(getFirebaseDb(), collectionNames.cycleLogs), where('userId', '==', userId)),
+    (snapshot) => {
+      const logs = snapshot.docs
+        .map((logDoc) => ({
+          id: logDoc.id,
+          ...(logDoc.data() as Omit<CycleLog, 'id'>),
+        }))
+        .sort((a, b) => b.date.localeCompare(a.date));
+
+      onLogs(logs);
+    },
+    onError,
+  );
+}
+
+export async function saveCycleLog(
+  userId: string,
+  log: {
+    date: string;
+    flow: CycleFlowLevel;
+    mood: string;
+    symptoms: string[];
+    notes: string;
+  },
+) {
+  const logId = `${userId}-${log.date}`;
+
+  await setDoc(
+    doc(getFirebaseDb(), collectionNames.cycleLogs, logId),
+    {
+      userId,
+      date: log.date,
+      flow: log.flow,
+      mood: log.mood.trim(),
+      symptoms: log.symptoms,
+      notes: log.notes.trim(),
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    },
+    { merge: true },
+  );
+}
+
+export async function createSalesLead(lead: {
+  name: string;
+  email: string;
+  phone: string;
+  interest: string;
+  budget: string;
+  source: string;
+  notes?: string;
+}) {
+  const normalizedEmail = lead.email.trim().toLowerCase();
+  const leadRef = doc(collection(getFirebaseDb(), collectionNames.leads));
+
+  await setDoc(leadRef, {
+    name: lead.name.trim(),
+    email: normalizedEmail,
+    phone: lead.phone.trim(),
+    interest: lead.interest.trim(),
+    budget: lead.budget.trim(),
+    source: lead.source.trim() || 'website',
+    stage: 'new',
+    notes: lead.notes?.trim() ?? '',
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+
+  return leadRef.id;
+}
+
+export function subscribeToLeads(
+  onLeads: (leads: SalesLead[]) => void,
+  onError?: (error: FirestoreError) => void,
+): Unsubscribe {
+  return onSnapshot(
+    collection(getFirebaseDb(), collectionNames.leads),
+    (snapshot) => {
+      const leads = snapshot.docs
+        .map((leadDoc) => ({
+          id: leadDoc.id,
+          ...(leadDoc.data() as Omit<SalesLead, 'id'>),
+        }))
+        .sort((a, b) => getTimestampMillis(b.updatedAt ?? b.createdAt) - getTimestampMillis(a.updatedAt ?? a.createdAt));
+
+      onLeads(leads);
+    },
+    onError,
+  );
+}
+
+export async function updateLeadStage(leadId: string, stage: LeadStage, notes: string) {
+  await updateDoc(doc(getFirebaseDb(), collectionNames.leads, leadId), {
+    stage,
+    notes,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export async function createPartnerInquiry(inquiry: {
+  businessName: string;
+  contactName: string;
+  email: string;
+  phone: string;
+  productCategory: string;
+  message: string;
+}) {
+  const inquiryRef = doc(collection(getFirebaseDb(), collectionNames.partnerInquiries));
+
+  await setDoc(inquiryRef, {
+    businessName: inquiry.businessName.trim(),
+    contactName: inquiry.contactName.trim(),
+    email: inquiry.email.trim().toLowerCase(),
+    phone: inquiry.phone.trim(),
+    productCategory: inquiry.productCategory.trim(),
+    message: inquiry.message.trim(),
+    status: 'new',
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+
+  return inquiryRef.id;
+}
+
+export function subscribeToPartnerInquiries(
+  onInquiries: (inquiries: PartnerInquiry[]) => void,
+  onError?: (error: FirestoreError) => void,
+): Unsubscribe {
+  return onSnapshot(
+    collection(getFirebaseDb(), collectionNames.partnerInquiries),
+    (snapshot) => {
+      const inquiries = snapshot.docs
+        .map((inquiryDoc) => ({
+          id: inquiryDoc.id,
+          ...(inquiryDoc.data() as Omit<PartnerInquiry, 'id'>),
+        }))
+        .sort((a, b) => getTimestampMillis(b.updatedAt ?? b.createdAt) - getTimestampMillis(a.updatedAt ?? a.createdAt));
+
+      onInquiries(inquiries);
+    },
+    onError,
+  );
+}
+
+export async function updatePartnerInquiryStatus(inquiryId: string, status: PartnerInquiryStatus) {
+  await updateDoc(doc(getFirebaseDb(), collectionNames.partnerInquiries, inquiryId), {
+    status,
+    updatedAt: serverTimestamp(),
+  });
+}
+
+export function subscribeToInventoryMovements(
+  onMovements: (movements: InventoryMovement[]) => void,
+  onError?: (error: FirestoreError) => void,
+): Unsubscribe {
+  return onSnapshot(
+    collection(getFirebaseDb(), collectionNames.inventoryMovements),
+    (snapshot) => {
+      const movements = snapshot.docs
+        .map((movementDoc) => ({
+          id: movementDoc.id,
+          ...(movementDoc.data() as Omit<InventoryMovement, 'id'>),
+        }))
+        .sort((a, b) => getTimestampMillis(b.createdAt) - getTimestampMillis(a.createdAt));
+
+      onMovements(movements);
+    },
+    onError,
+  );
+}
+
+export async function recordInventoryMovement(
+  user: FirebaseUser,
+  movement: {
+    productId: string;
+    productName: string;
+    sku: string;
+    type: InventoryMovementType;
+    quantity: number;
+    unitCost: number;
+    reason: string;
+    linkedOrderId?: string;
+  },
+) {
+  const movementRef = doc(collection(getFirebaseDb(), collectionNames.inventoryMovements));
+
+  await setDoc(movementRef, {
+    productId: movement.productId,
+    productName: movement.productName,
+    sku: movement.sku,
+    type: movement.type,
+    quantity: movement.quantity,
+    unitCost: movement.unitCost,
+    reason: movement.reason.trim(),
+    ...(movement.linkedOrderId?.trim() ? { linkedOrderId: movement.linkedOrderId.trim() } : {}),
+    createdBy: user.uid,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  });
+
+  return movementRef.id;
 }

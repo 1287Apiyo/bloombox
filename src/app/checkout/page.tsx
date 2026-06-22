@@ -41,6 +41,7 @@ const paymentOptions: Array<{ id: PaymentMethod; note: string }> = [
   { id: 'mpesa', note: 'Mobile money number for this delivery.' },
   { id: 'paypal', note: 'Pay with your PayPal account.' },
   { id: 'card', note: 'Debit or credit card payment.' },
+  { id: 'mchanga', note: 'Donation or sponsored bundle reference.' },
 ];
 
 function money(value: number) {
@@ -64,6 +65,7 @@ export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('mpesa');
   const [mpesaPhone, setMpesaPhone] = useState('');
   const [paypalEmail, setPaypalEmail] = useState('');
+  const [mchangaReference, setMchangaReference] = useState('');
   const [isPlacingOrder, setIsPlacingOrder] = useState(false);
   const [isConfirmingPayment, setIsConfirmingPayment] = useState(false);
   const [error, setError] = useState('');
@@ -172,6 +174,10 @@ export default function CheckoutPage() {
       paymentDetails.paypalEmail = paypalEmail.trim();
     }
 
+    if (paymentMethod === 'mchanga' && mchangaReference.trim()) {
+      paymentDetails.mchangaReference = mchangaReference.trim();
+    }
+
     setIsPlacingOrder(true);
 
     try {
@@ -274,13 +280,17 @@ export default function CheckoutPage() {
 
             {orderId && paymentStatus === 'pending' ? (
               <section className="rounded-md border border-stone-300 bg-white p-5 sm:p-6">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-rose-700">Dummy STK push</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-rose-700">
+                  {paymentMethod === 'mpesa' ? 'Dummy STK push' : paymentMethod === 'mchanga' ? 'Donation reference' : 'Dummy payment'}
+                </p>
                 <h2 className="mt-2 text-2xl font-semibold text-stone-950">
                   {paymentMethod === 'mpesa' ? 'Now complete payment' : 'Now confirm payment'}
                 </h2>
                 <p className="mt-3 text-sm leading-6 text-stone-600">
                   {paymentMethod === 'mpesa'
                     ? `A dummy STK request has been sent to ${mpesaPhone || deliveryDetails.phoneNumber}. No real money is charged yet.`
+                    : paymentMethod === 'mchanga'
+                      ? `A dummy M-Changa donation payment has been created${mchangaReference ? ` with reference ${mchangaReference}` : ''}.`
                     : `A dummy ${paymentMethodLabels[paymentMethod]} payment has been created in Firestore.`}
                 </p>
 
@@ -422,7 +432,7 @@ export default function CheckoutPage() {
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-rose-700">Payment</p>
               <h2 className="mt-2 text-2xl font-semibold text-stone-950">Choose how to pay</h2>
 
-              <div className="mt-6 grid gap-3 md:grid-cols-3">
+              <div className="mt-6 grid gap-3 md:grid-cols-4">
                 {paymentOptions.map((option) => (
                   <button
                     key={option.id}
@@ -459,6 +469,18 @@ export default function CheckoutPage() {
                     onChange={(event) => setPaypalEmail(event.target.value)}
                     className="mt-2 w-full rounded-md border border-stone-300 bg-stone-50 px-4 py-3 font-normal text-stone-950 outline-none transition focus:border-rose-700 focus:bg-white focus:ring-2 focus:ring-rose-100"
                     placeholder="paypal@example.com"
+                  />
+                </label>
+              ) : null}
+
+              {paymentMethod === 'mchanga' ? (
+                <label className="mt-5 block text-sm font-semibold text-stone-800">
+                  M-Changa reference
+                  <input
+                    value={mchangaReference}
+                    onChange={(event) => setMchangaReference(event.target.value)}
+                    className="mt-2 w-full rounded-md border border-stone-300 bg-stone-50 px-4 py-3 font-normal text-stone-950 outline-none transition focus:border-rose-700 focus:bg-white focus:ring-2 focus:ring-rose-100"
+                    placeholder="Donation reference or phone"
                   />
                 </label>
               ) : null}
