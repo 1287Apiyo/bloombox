@@ -513,8 +513,7 @@ export default function DashboardPage() {
                 transition={{ delay: 1.2, duration: 0.6 }}
                 className="mt-5 flex flex-wrap justify-center gap-3 text-sm font-semibold text-[#fed4c8]"
               >
-                <Link href="/donate" className="border border-[#ae2f34] bg-[#ae2f34] px-4 py-2 text-white transition hover:border-[#8c1520] hover:bg-[#8c1520]">Donate care</Link>
-                <Link href="/partner" className="border border-[#ae2f34] bg-[#ae2f34] px-4 py-2 text-white transition hover:border-[#8c1520] hover:bg-[#8c1520]">Partner with us</Link>
+                
               </motion.div>
             </div>
           </motion.div>

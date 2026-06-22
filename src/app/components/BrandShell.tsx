@@ -18,7 +18,7 @@ const accountNavigation = [
 ];
 
 const publicNavigation = [
-  { href: '/', label: 'Home' },
+ 
   { href: '/subscriptions', label: 'Subscriptions' },
   { href: '/shop', label: 'Shop' },
   { href: '/partner', label: 'Partner' },
