@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { signOut } from 'firebase/auth';
 import { deleteDoc, doc, getFirestore } from 'firebase/firestore';
-import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
+import { getFirebaseAuth } from '@/lib/firebase';
 import {
   saveProduct,
   subscribeToAdminProducts,
@@ -32,7 +32,6 @@ import {
   type InventoryMovement,
   type InventoryMovementType,
 } from '@/lib/firestore';
-import { getFirebaseAuth, getFirebaseStorage } from '@/lib/firebase';
 import { productCategories, type CatalogProduct, type StockStatus } from '@/data/catalog';
 import { useAuth } from '../components/AuthProvider';
 
@@ -154,17 +153,35 @@ function isLocalImagePath(value: string) {
 }
 
 function getUploadErrorMessage(error: unknown) {
-  const code = error && typeof error === 'object' && 'code' in error ? String(error.code) : '';
-  const message = error instanceof Error ? error.message : 'Could not upload this product image.';
-  if (code.includes('unauthorized') || message.toLowerCase().includes('unauthorized')) {
-    return 'Firebase blocked the image upload. Make sure Storage rules are deployed and this signed-in account is an admin.';
-  }
-  if (code.includes('bucket-not-found') || message.toLowerCase().includes('bucket')) {
-    return 'Firebase Storage bucket could not be found. Check NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET in Vercel and .env.local.';
-  }
+  const message = error instanceof Error ? error.message : 'Could not process this product image.';
   return message;
 }
-
+function fileToDataUrl(file: File, maxWidth = 600): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(new Error('Failed to read the image file.'));
+    reader.onload = () => {
+      const img = new window.Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+        if (width > maxWidth) {
+          height = (height * maxWidth) / width;
+          width = maxWidth;
+        }
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d')!;
+        ctx.drawImage(img, 0, 0, width, height);
+        resolve(canvas.toDataURL('image/jpeg', 0.8));
+      };
+      img.onerror = () => reject(new Error('The chosen file is not a valid image.'));
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
+  });
+}
 function getCustomerName(order: CustomerOrder, users: UserProfile[]) {
   const user = users.find((item) => item.uid === order.userId);
   return user?.displayName || user?.email || order.deliveryDetails?.recipientName || 'Customer';
@@ -926,7 +943,7 @@ function AccessSection() {
           <code className="rounded bg-white/20 px-1.5 py-0.5 text-xs">admins/uid</code>, which keeps customers from self-promoting.
         </p>
         <p className="mt-3 text-white/90">
-          Product image upload uses Firebase Storage. If uploads fail, check Storage rules for admin write access, or paste an existing public image path into the image field.
+         Product images are saved directly inside the Firestore document as resized base64 data URLs. No Firebase Storage bucket or paid plan is required. The upload button on the product form handles everything automatically.
         </p>
       </div>
     </div>
@@ -1737,15 +1754,13 @@ export default function AdminPage() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, []);
 
-  const uploadImage = useCallback(async (productId: string) => {
-    if (!imageFile) return productForm.image.trim();
-    if (!imageFile.type.startsWith('image/')) throw new Error('Choose a valid image file.');
-    if (imageFile.size > 5 * 1024 * 1024) throw new Error('Image must be smaller than 5MB.');
-    const safeName = imageFile.name.replace(/[^a-zA-Z0-9._-]/g, '-');
-    const storageRef = ref(getFirebaseStorage(), `product-images/${productId}-${Date.now()}-${safeName}`);
-    const snapshot = await uploadBytes(storageRef, imageFile, { contentType: imageFile.type });
-    return getDownloadURL(snapshot.ref);
-  }, [imageFile, productForm.image]);
+const uploadImage = useCallback(async (_productId: string) => {
+  if (!imageFile) throw new Error('No file selected');
+  if (!imageFile.type.startsWith('image/')) throw new Error('Choose a valid image file.');
+  // Limit file size before conversion (optional)
+  if (imageFile.size > 2 * 1024 * 1024) throw new Error('Image must be smaller than 2MB.');
+  return fileToDataUrl(imageFile);
+}, [imageFile]);
 
   const submitProduct = useCallback(async (event: FormEvent) => {
     event.preventDefault();
