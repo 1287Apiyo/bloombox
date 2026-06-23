@@ -1,10 +1,15 @@
-// src/app/layout.tsx
 import './globals.css';
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { AccessibilityAssist } from './components/AccessibilityAssist';
 import { AuthProvider } from './components/AuthProvider';
 
 const siteUrl = process.env.NEXT_PUBLIC_SITE_URL ?? 'https://bloombox.co.ke';
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  viewportFit: 'cover',
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
@@ -86,10 +91,8 @@ const structuredData = {
 const preferenceScript = `
 try {
   var root = document.documentElement;
-  var savedTheme = window.localStorage.getItem('bb-dark-mode');
   var savedFont = window.localStorage.getItem('bb-font-mode');
   var savedMotion = window.localStorage.getItem('bb-reduced-motion');
-  if (savedTheme === 'true') root.dataset.bbTheme = 'dark';
   if (savedFont === 'large' || savedFont === 'larger') root.dataset.bbFont = savedFont;
   if (savedMotion === 'true') root.dataset.bbMotion = 'reduced';
 } catch (error) {}

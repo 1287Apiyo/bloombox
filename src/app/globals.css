@@ -13,13 +13,6 @@
   --font-mono: "Times New Roman", Times, serif;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #fffaf7;
-    --foreground: #1c1917;
-  }
-}
-
 body {
   background: var(--background);
   color: var(--foreground);
@@ -27,6 +20,7 @@ body {
   font-size: 15px;
   text-rendering: optimizeLegibility;
   overflow-x: hidden;
+  -webkit-text-size-adjust: 100%;
 }
 
 html[data-bb-font="large"] {
@@ -46,158 +40,6 @@ html[data-bb-motion="reduced"] *::after {
   transition-duration: 0.001ms !important;
 }
 
-html[data-bb-theme="dark"] {
-  color-scheme: dark;
-  --background: #04060a;
-  --foreground: #f8f5ef;
-}
-
-html[data-bb-theme="dark"] body {
-  background:
-    radial-gradient(circle at top left, rgba(174, 47, 52, 0.16), transparent 28rem),
-    radial-gradient(circle at 80% 20%, rgba(4, 132, 110, 0.14), transparent 24rem),
-    #05070a;
-  color: #f8f5ef;
-}
-
-html[data-bb-theme="dark"] main,
-html[data-bb-theme="dark"] [data-site-header] {
-  background-color: transparent !important;
-  color: #f8f5ef !important;
-}
-
-html[data-bb-theme="dark"] .shop-page {
-  background-color: #05070a !important;
-  color: #f8fafc !important;
-}
-
-html[data-bb-theme="dark"] .shop-page .bg-stone-50,
-html[data-bb-theme="dark"] .shop-page .bg-white,
-html[data-bb-theme="dark"] .shop-page .bg-stone-100,
-html[data-bb-theme="dark"] [class*="bg-[#f8f9fa]"],
-html[data-bb-theme="dark"] [class*="bg-[#fffaf7]"],
-html[data-bb-theme="dark"] [class*="bg-[#fff5f0]"],
-html[data-bb-theme="dark"] [class*="bg-[#fff4f1]"],
-html[data-bb-theme="dark"] [class*="bg-[#edeeef]"],
-html[data-bb-theme="dark"] [class*="bg-[#f4ddd7]"],
-html[data-bb-theme="dark"] [class*="bg-[#fed4c8]"],
-html[data-bb-theme="dark"] [class*="bg-[#e0bfbd]"],
-html[data-bb-theme="dark"] [class*="bg-[#e7fbf8]"],
-html[data-bb-theme="dark"] .bg-rose-50 {
-  background-color: #111827 !important;
-  color: #f8fafc !important;
-}
-
-html[data-bb-theme="dark"] [class*="bg-[#14090c]"],
-html[data-bb-theme="dark"] [class*="bg-[#191c1d]"],
-html[data-bb-theme="dark"] .bg-stone-950,
-html[data-bb-theme="dark"] .bg-stone-900 {
-  background-color: #05070a !important;
-}
-
-html[data-bb-theme="dark"] .text-stone-950,
-html[data-bb-theme="dark"] .text-stone-900,
-html[data-bb-theme="dark"] .text-stone-800,
-html[data-bb-theme="dark"] [class*="text-[#191c1d]"],
-html[data-bb-theme="dark"] [class*="text-[#14090c]"] {
-  color: #f8fafc !important;
-}
-
-html[data-bb-theme="dark"] .text-stone-700,
-html[data-bb-theme="dark"] .text-stone-600,
-html[data-bb-theme="dark"] .text-stone-500,
-html[data-bb-theme="dark"] [class*="text-[#584140]"] {
-  color: #d1d5db !important;
-}
-
-html[data-bb-theme="dark"] .text-stone-400,
-html[data-bb-theme="dark"] .text-stone-300,
-html[data-bb-theme="dark"] [class*="text-[#fed4c8]"] {
-  color: #9ca3af !important;
-}
-
-html[data-bb-theme="dark"] [class*="text-[#00504c]"],
-html[data-bb-theme="dark"] [class*="text-[#006a65]"] {
-  color: #5eead4 !important;
-}
-
-html[data-bb-theme="dark"] [class*="border-stone-"],
-html[data-bb-theme="dark"] [class*="border-[#e0bfbd]"],
-html[data-bb-theme="dark"] [class*="border-[#fed4c8]"] {
-  border-color: rgba(148, 163, 184, 0.24) !important;
-}
-
-html[data-bb-theme="dark"] input,
-html[data-bb-theme="dark"] select,
-html[data-bb-theme="dark"] textarea {
-  background-color: #111827 !important;
-  color: #e5e7eb !important;
-  border-color: #4b5563 !important;
-}
-
-html[data-bb-theme="dark"] input::placeholder,
-html[data-bb-theme="dark"] textarea::placeholder {
-  color: #9ca3af !important;
-}
-
-html[data-bb-theme="dark"] img:not([src*="bloom1.png"]) {
-  filter: brightness(1.05) saturate(1.08);
-}
-
-html[data-bb-theme="dark"] .bb-access-button,
-html[data-bb-theme="dark"] .bb-access-panel,
-html[data-bb-theme="dark"] .bb-access-trigger {
-  background-color: #111827 !important;
-  color: #f8fafc !important;
-  border-color: #4b5563 !important;
-}
-
-html[data-bb-theme="dark"] .bb-access-control {
-  background-color: #111827 !important;
-  border-color: #4b5563 !important;
-  color: #f8fafc !important;
-}
-
-html[data-bb-theme="dark"] .bb-access-control:hover,
-html[data-bb-theme="dark"] .bb-access-control[aria-pressed="true"] {
-  background-color: #4b5563 !important;
-  border-color: #4b5563 !important;
-  color: #ffffff !important;
-}
-
-html[data-bb-theme="dark"] .shadow-sm,
-html[data-bb-theme="dark"] .shadow-lg,
-html[data-bb-theme="dark"] .shadow-xl {
-  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.65) !important;
-}
-
-html[data-bb-theme="dark"] [class*="hover:bg-[#fff5f0]"]:hover,
-html[data-bb-theme="dark"] [class*="hover:bg-stone-50"]:hover {
-  background-color: #1f2937 !important;
-}
-
-html[data-bb-theme="dark"] [class*="ring-[#fed4c8]"] {
-  --tw-ring-color: #c084fc !important;
-}
-
-html[data-bb-theme="dark"] [class*="bg-emerald-50"],
-html[data-bb-theme="dark"] [class*="bg-amber-50"],
-html[data-bb-theme="dark"] [class*="bg-rose-50"] {
-  background-color: #111827 !important;
-}
-
-html[data-bb-theme="dark"] [class*="text-emerald-"] {
-  color: #5eead4 !important;
-}
-
-html[data-bb-theme="dark"] [class*="text-amber-"] {
-  color: #fbbf24 !important;
-}
-
-html[data-bb-theme="dark"] [class*="text-rose-"] {
-  color: #fb7185 !important;
-}
-
 * {
   min-width: 0;
 }
@@ -207,7 +49,8 @@ html[data-bb-theme="dark"] [class*="text-rose-"] {
   top: 0 !important;
   left: 0 !important;
   right: 0 !important;
-  z-index: 2147483647 !important;
+  z-index: 1000 !important;
+  padding-top: env(safe-area-inset-top, 0px);
 }
 
 ::selection {
@@ -227,7 +70,43 @@ textarea {
 input,
 select,
 textarea {
-  font-size: 15px;
+  font-size: 16px;
+}
+
+@media (min-width: 641px) {
+  input,
+  select,
+  textarea {
+    font-size: 15px;
+  }
+}
+
+.bb-mobile-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.bb-mobile-scroll::-webkit-scrollbar {
+  display: none;
+}
+
+.bb-page-shell {
+  width: 100%;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline: max(1rem, env(safe-area-inset-left, 0px));
+  padding-inline-end: max(1rem, env(safe-area-inset-right, 0px));
+}
+
+@media (min-width: 640px) {
+  .bb-page-shell {
+    padding-inline: 2rem;
+  }
+}
+
+main {
+  padding-bottom: max(5rem, env(safe-area-inset-bottom, 0px));
 }
 
 .text-7xl {

@@ -28,13 +28,13 @@ export function AuthShell({
 }: AuthShellProps) {
   return (
     <div className="relative min-h-screen overflow-hidden bg-[#f8f9fa] text-[#191c1d]">
-      <div className="absolute left-0 top-0 h-[58%] w-full bg-[#ae2f34] lg:h-full lg:w-[58%]" />
-      <div className="absolute bottom-0 right-0 h-[42%] w-full bg-[#fffaf7] lg:h-full lg:w-[42%]" />
+      <div className="absolute left-0 top-0 h-[52%] w-full bg-[#ae2f34] lg:h-full lg:w-[58%]" />
+      <div className="absolute bottom-0 right-0 h-[48%] w-full bg-[#fffaf7] lg:h-full lg:w-[42%]" />
 
       <main className="relative">
         <section>
-          <div className="mx-auto grid min-h-screen max-w-7xl gap-8 px-5 py-8 sm:px-8 lg:grid-cols-[0.95fr_0.9fr] lg:items-center lg:py-12">
-            <div className="grid gap-5 self-stretch lg:max-w-2xl">
+          <div className="mx-auto grid min-h-screen max-w-7xl gap-6 px-4 py-6 sm:gap-8 sm:px-8 sm:py-8 lg:grid-cols-[0.95fr_0.9fr] lg:items-center lg:py-12">
+            <div className="grid gap-4 self-stretch sm:gap-5 lg:max-w-2xl">
               <Link href="/" className="flex w-fit items-center gap-3">
                 <span className="relative h-11 w-11 overflow-hidden rounded-full border border-stone-300 bg-white">
                   <Image src="/bloom1.png" alt="BloomBox" fill className="object-cover" priority />
@@ -42,7 +42,7 @@ export function AuthShell({
                 <span className="text-xl font-bold tracking-tight text-white">BloomBox</span>
               </Link>
 
-              <div className="relative min-h-[340px] overflow-hidden border border-[#fed4c8] bg-white shadow-[8px_8px_0_#8c1520] sm:min-h-[440px] lg:min-h-[560px]">
+              <div className="relative min-h-[280px] overflow-hidden border border-[#fed4c8] bg-white shadow-[8px_8px_0_#8c1520] sm:min-h-[440px] lg:min-h-[560px]">
                 <Image
                   src={image}
                   alt={imageAlt}
@@ -54,7 +54,7 @@ export function AuthShell({
                 <div className="absolute inset-0 bg-gradient-to-t from-[#14090c]/68 via-[#14090c]/18 to-transparent" />
                 <div className="absolute inset-x-0 bottom-0 p-6 text-white sm:p-8 lg:p-10">
                   <Eyebrow>{eyebrow}</Eyebrow>
-                  <h1 className="mt-5 max-w-2xl font-serif text-5xl font-semibold leading-none text-white">
+                  <h1 className="mt-5 max-w-2xl font-serif text-4xl font-semibold leading-none text-white sm:text-5xl">
                     {title}
                   </h1>
                   <p className="mt-5 max-w-xl text-base leading-7 text-[#fff5f0]">{text}</p>

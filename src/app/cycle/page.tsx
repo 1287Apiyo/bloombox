@@ -161,7 +161,14 @@ export default function CyclePage() {
     event.preventDefault();
     setError('');
     setNotice('');
-    if (!user) return;
+    if (!user) {
+      setError('Sign in to save cycle logs.');
+      return;
+    }
+    if (!logDate.trim()) {
+      setError('Choose a date for this log.');
+      return;
+    }
     setIsSavingLog(true);
     try {
       await saveCycleLog(user.uid, {
@@ -171,7 +178,7 @@ export default function CyclePage() {
         symptoms,
         notes: logNotes,
       });
-      setNotice('Today has been logged.');
+      setNotice(`${logDate} has been logged.`);
       setMood('');
       setSymptoms([]);
       setLogNotes('');
@@ -180,6 +187,12 @@ export default function CyclePage() {
     } finally {
       setIsSavingLog(false);
     }
+  };
+
+  const selectLogDate = (dateKey: string) => {
+    setLogDate(dateKey);
+    setNotice('');
+    document.getElementById('daily-log-form')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   const changeCalendarMonth = (amount: number) => {
@@ -339,6 +352,7 @@ export default function CyclePage() {
                 </label>
 
                 <button
+                  type="submit"
                   disabled={isSavingProfile}
                   className="rounded bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white hover:bg-[#8c1520] disabled:opacity-60"
                 >
@@ -349,6 +363,7 @@ export default function CyclePage() {
 
             {/* Daily log form */}
             <motion.form
+              id="daily-log-form"
               variants={fadeUp}
               initial="hidden"
               whileInView="visible"
@@ -428,6 +443,7 @@ export default function CyclePage() {
                 </label>
 
                 <button
+                  type="submit"
                   disabled={isSavingLog}
                   className="rounded border border-[#ae2f34] px-5 py-3 text-sm font-semibold text-[#ae2f34] hover:bg-[#fff5f0] disabled:opacity-60"
                 >
@@ -499,11 +515,13 @@ export default function CyclePage() {
                 {calendarDays.map((day) => {
                   const savedLog = logByDate.get(day.dateKey);
                   return (
-                    <div
+                    <button
+                      type="button"
                       key={day.dateKey}
-                      className={`min-h-[108px] border-b border-r border-stone-200 p-2 last:border-r-0 ${
+                      onClick={() => selectLogDate(day.dateKey)}
+                      className={`min-h-[108px] border-b border-r border-stone-200 p-2 text-left transition last:border-r-0 hover:bg-[#fff5f0] ${
                         day.isCurrentMonth ? 'bg-white' : 'bg-stone-50 text-stone-400'
-                      }`}
+                      } ${logDate === day.dateKey ? 'ring-2 ring-inset ring-[#ae2f34]' : ''}`}
                     >
                       <div className="flex items-start justify-between gap-1">
                         <span
@@ -525,7 +543,7 @@ export default function CyclePage() {
                       {day.cycleDay && (
                         <p className="mt-1 text-[11px] text-stone-500">Cycle day {day.cycleDay}</p>
                       )}
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -549,7 +567,7 @@ export default function CyclePage() {
                 </p>
               </motion.div>
 
-              <motion.div
+              <motion.div   
                 variants={fadeUp}
                 initial="hidden"
                 whileInView="visible"
@@ -590,7 +608,7 @@ export default function CyclePage() {
               {logs.length === 0 ? (
                 <p className="text-sm leading-6 text-stone-600">No logs yet. Add today’s entry to begin building your pattern.</p>
               ) : (
-                <div className="grid gap-3 md:grid-cols-2">
+                <div className="grid gap-3 md:grid-cols-2"> 
                   {logs.slice(0, 6).map((log) => (
                     <article key={log.id} className="rounded border border-stone-200 p-4">
                       <div className="flex items-center justify-between gap-3">

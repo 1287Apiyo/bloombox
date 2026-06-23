@@ -375,6 +375,24 @@ function sortProducts(products: CatalogProduct[]) {
   });
 }
 
+function mergeCatalogWithFirestore(firestoreProducts: CatalogProduct[]) {
+  const firestoreById = new Map(firestoreProducts.map((product) => [product.id, product]));
+  const merged = catalogProducts.map((catalogProduct) => {
+    const firestoreProduct = firestoreById.get(catalogProduct.id);
+    if (firestoreProduct) {
+      firestoreById.delete(catalogProduct.id);
+      return firestoreProduct;
+    }
+    return catalogProduct;
+  });
+
+  for (const product of firestoreById.values()) {
+    merged.push(product);
+  }
+
+  return sortProducts(merged);
+}
+
 function sortBlogPosts(posts: BlogPost[]) {
   return [...posts].sort((a, b) => getTimestampMillis(b.createdAt) - getTimestampMillis(a.createdAt));
 }
@@ -432,7 +450,7 @@ export async function fetchCategories() {
 export async function fetchProducts() {
   const snapshot = await getDocs(collection(getFirebaseDb(), collectionNames.products));
   const products = snapshot.docs.map((productDoc) => productDoc.data() as CatalogProduct);
-  return products.length > 0 ? sortProducts(products.filter((product) => product.isActive !== false)) : catalogProducts;
+  return mergeCatalogWithFirestore(products).filter((product) => product.isActive !== false);
 }
 
 export function subscribeToProducts(
@@ -443,7 +461,7 @@ export function subscribeToProducts(
     query(collection(getFirebaseDb(), collectionNames.products)),
     (snapshot) => {
       const products = snapshot.docs.map((productDoc) => productDoc.data() as CatalogProduct);
-      onProducts(products.length > 0 ? sortProducts(products.filter((product) => product.isActive !== false)) : catalogProducts);
+      onProducts(mergeCatalogWithFirestore(products).filter((product) => product.isActive !== false));
     },
     onError,
   );
@@ -963,7 +981,7 @@ export function subscribeToAdminProducts(
     collection(getFirebaseDb(), collectionNames.products),
     (snapshot) => {
       const products = snapshot.docs.map((productDoc) => productDoc.data() as CatalogProduct);
-      onProducts(products.length > 0 ? sortProducts(products) : catalogProducts);
+      onProducts(mergeCatalogWithFirestore(products));
     },
     onError,
   );
@@ -1154,18 +1172,30 @@ export async function saveCycleLog(
     notes: string;
   },
 ) {
-  const logId = `${userId}-${log.date}`;
+  const normalizedDate = log.date.trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(normalizedDate)) {
+    throw new Error('Choose a valid log date.');
+  }
+
+  const allowedFlows: CycleFlowLevel[] = ['none', 'spotting', 'light', 'medium', 'heavy'];
+  if (!allowedFlows.includes(log.flow)) {
+    throw new Error('Choose a valid flow level.');
+  }
+
+  const logId = `${userId}-${normalizedDate}`;
+  const logRef = doc(getFirebaseDb(), collectionNames.cycleLogs, logId);
+  const existingLog = await getDoc(logRef);
 
   await setDoc(
-    doc(getFirebaseDb(), collectionNames.cycleLogs, logId),
+    logRef,
     {
       userId,
-      date: log.date,
+      date: normalizedDate,
       flow: log.flow,
       mood: log.mood.trim(),
-      symptoms: log.symptoms,
+      symptoms: log.symptoms.filter(Boolean),
       notes: log.notes.trim(),
-      createdAt: serverTimestamp(),
+      createdAt: existingLog.exists() ? existingLog.data()?.createdAt ?? serverTimestamp() : serverTimestamp(),
       updatedAt: serverTimestamp(),
     },
     { merge: true },

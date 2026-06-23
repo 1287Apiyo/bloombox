@@ -28,14 +28,6 @@ function FontIcon() {
   );
 }
 
-function ContrastIcon() {
-  return (
-    <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 3a9 9 0 1 0 0 18V3Z" />
-    </svg>
-  );
-}
-
 function MotionIcon() {
   return (
     <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
@@ -47,18 +39,17 @@ function MotionIcon() {
 export function AccessibilityAssist() {
   const [isOpen, setIsOpen] = useState(false);
   const [fontMode, setFontMode] = useState<FontMode>('normal');
-  const [darkMode, setDarkMode] = useState(false);
   const [reducedMotion, setReducedMotion] = useState(false);
   const [isReading, setIsReading] = useState(false);
 
   useEffect(() => {
     const savedFont = window.localStorage.getItem('bb-font-mode') as FontMode | null;
-    const savedTheme = window.localStorage.getItem('bb-dark-mode');
     const savedMotion = window.localStorage.getItem('bb-reduced-motion');
 
     if (savedFont === 'large' || savedFont === 'larger') setFontMode(savedFont);
-    setDarkMode(savedTheme === 'true');
     setReducedMotion(savedMotion === 'true');
+    window.localStorage.removeItem('bb-dark-mode');
+    delete document.documentElement.dataset.bbTheme;
   }, []);
 
   useEffect(() => {
@@ -70,12 +61,6 @@ export function AccessibilityAssist() {
       root.dataset.bbFont = fontMode;
     }
 
-    if (darkMode) {
-      root.dataset.bbTheme = 'dark';
-    } else {
-      delete root.dataset.bbTheme;
-    }
-
     if (reducedMotion) {
       root.dataset.bbMotion = 'reduced';
     } else {
@@ -83,9 +68,8 @@ export function AccessibilityAssist() {
     }
 
     window.localStorage.setItem('bb-font-mode', fontMode);
-    window.localStorage.setItem('bb-dark-mode', String(darkMode));
     window.localStorage.setItem('bb-reduced-motion', String(reducedMotion));
-  }, [darkMode, fontMode, reducedMotion]);
+  }, [fontMode, reducedMotion]);
 
   const cycleFontMode = () => {
     setFontMode((current) => {
@@ -123,7 +107,7 @@ export function AccessibilityAssist() {
     }`;
 
   return (
-    <div className="fixed bottom-4 left-4 z-[1200] sm:bottom-5 sm:left-5">
+    <div className="fixed bottom-4 right-4 z-[900] sm:bottom-5 sm:right-5">
       {isOpen ? (
         <div id="bb-access-panel" className="bb-access-panel mb-3 w-[min(20rem,calc(100vw-2rem))] rounded-md border border-stone-300 bg-white p-3 shadow-xl">
           <div className="mb-3 border-b border-stone-200 pb-3">
@@ -140,12 +124,6 @@ export function AccessibilityAssist() {
             <button type="button" onClick={cycleFontMode} className={panelControlClass(fontMode !== 'normal')} aria-pressed={fontMode !== 'normal'}>
               <span className="inline-flex items-center gap-2"><FontIcon /> Font size</span>
               <span className={`text-xs uppercase ${fontMode !== 'normal' ? 'text-white' : 'text-[#ae2f34]'}`}>{fontMode}</span>
-            </button>
-            <button type="button" onClick={() => setDarkMode((current) => !current)} className={panelControlClass(darkMode)} aria-pressed={darkMode}>
-              <span className="inline-flex items-center gap-2"><ContrastIcon /> Dark mode</span>
-              <span className={`inline-flex h-6 w-14 items-center rounded-full px-1 transition ${darkMode ? 'justify-end bg-[#ae2f34]' : 'justify-start bg-stone-300'}`}>
-                <span className="h-4 w-4 rounded-full bg-white" />
-              </span>
             </button>
             <button type="button" onClick={readPage} className={panelControlClass(isReading)} aria-pressed={isReading}>
               <span className="inline-flex items-center gap-2"><SpeakerIcon /> Read aloud</span>

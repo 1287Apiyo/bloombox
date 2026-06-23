@@ -16,7 +16,6 @@ import {
   subscribeToPartnerInquiries,
   subscribeToInventoryMovements,
   recordInventoryMovement,
-  updateProductStatus,
   updateUserRole,
   updateOrderStatus,
   updateLeadStage,
@@ -112,6 +111,34 @@ function slugify(value: string) {
     .replace(/[^a-z0-9]+/g, '-')
     .replace(/^-+|-+$/g, '');
 }
+
+function generateUniqueProductId(baseId: string, existingProducts: CatalogProduct[], currentId = '') {
+  if (currentId && currentId === baseId) return baseId;
+
+  let candidate = baseId;
+  let counter = 2;
+
+  while (existingProducts.some((product) => product.id === candidate && product.id !== currentId)) {
+    candidate = `${baseId}-${counter}`;
+    counter += 1;
+  }
+
+  return candidate;
+}
+
+const adminSections: AdminSection[] = [
+  'overview',
+  'orders',
+  'order-detail',
+  'products',
+  'customers',
+  'subscribers',
+  'access',
+  'inventory',
+  'leads',
+  'partners',
+  'ai-assist',
+];
 
 function makeKeywords(...values: string[]) {
   return values
@@ -303,7 +330,7 @@ function Sidebar({
     <aside className="bg-black text-white lg:sticky lg:top-0 lg:h-screen lg:border-r lg:border-white/10">
       <div className="flex h-full flex-col">
         {/* Logo */}
-        <div className="flex items-center gap-3 border-b border-white/10 px-6 py-5">
+        <div className="flex items-center gap-3 border-b border-white/10 px-4 py-4 sm:px-6 sm:py-5">
           <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full ring-2 ring-white/20">
             <Image src="/bloom1.png" alt="BloomBox" fill sizes="32px" className="object-cover" priority />
           </span>
@@ -314,7 +341,7 @@ function Sidebar({
         </div>
 
         {/* Nav */}
-        <nav className="mt-4 grid gap-1 px-4 py-2 overflow-y-auto" aria-label="Admin navigation">
+        <nav className="bb-mobile-scroll mt-2 flex gap-1 px-3 py-2 lg:mt-4 lg:grid lg:overflow-visible lg:px-4" aria-label="Admin navigation">
           {navigation.map((item) => {
             const isActive = activeSection === item.id;
             return (
@@ -322,29 +349,29 @@ function Sidebar({
                 key={item.id}
                 type="button"
                 onClick={() => setActiveSection(item.id)}
-                className={`flex items-center gap-3 px-4 py-2.5 text-left text-sm transition-colors ${
+                className={`flex shrink-0 items-center gap-2 px-3 py-2 text-left text-sm transition-colors lg:w-full lg:gap-3 lg:px-4 lg:py-2.5 ${
                   isActive
-                    ? 'border-l-4 border-[#a23b35] bg-white/5 text-white pl-3'
-                    : 'border-l-4 border-transparent text-white/70 hover:bg-white/10 hover:text-white'
+                    ? 'border border-[#a23b35] bg-white/10 text-white lg:border-l-4 lg:border-[#a23b35] lg:border-y-0 lg:border-r-0 lg:pl-3'
+                    : 'border border-transparent text-white/70 hover:bg-white/10 hover:text-white lg:border-l-4 lg:border-transparent'
                 }`}
                 aria-current={isActive ? 'page' : undefined}
               >
                 <AdminIcon name={item.icon} className={isActive ? 'text-[#a23b35]' : 'text-white/50'} />
-                <span className="flex-1 font-medium">{item.label}</span>
-                {item.count !== undefined && (
+                <span className="whitespace-nowrap font-medium lg:flex-1">{item.label}</span>
+                {item.count !== undefined ? (
                   <span className={`text-xs tabular-nums ${isActive ? 'text-white/90' : 'text-white/40'}`}>
                     {item.count}
                   </span>
-                )}
+                ) : null}
               </button>
             );
           })}
         </nav>
 
         {/* Footer */}
-        <div className="mt-auto border-t border-white/10 px-6 py-4">
+        <div className="mt-auto border-t border-white/10 px-4 py-4 sm:px-6">
           <p className="truncate text-sm font-medium text-white/80">{user?.email ?? 'Admin'}</p>
-          <div className="mt-2 flex gap-4">
+          <div className="mt-2 flex flex-wrap gap-4">
             <Link href="/dashboard" className="text-sm text-[#a23b35] hover:underline">
               View site
             </Link>
@@ -373,9 +400,9 @@ function SectionHeader({ section, desc }: { section: AdminSection; desc: string 
     'ai-assist': 'AI Assist',
   };
   return (
-    <div className="mb-8 flex items-start justify-between border-b border-black/10 pb-4">
+    <div className="border-b border-black/10 pb-4">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight text-black">{labels[section]}</h1>
+        <h1 className="text-2xl font-bold tracking-tight text-black sm:text-3xl">{labels[section]}</h1>
         <p className="mt-1 text-sm text-black/60">{desc}</p>
       </div>
     </div>
@@ -769,34 +796,38 @@ function ProductList({ products, onEdit, onToggle, onDelete, updatingId }: any) 
       <p className="mb-4 text-xs font-medium uppercase tracking-wider text-black/50">{products.length} products</p>
       <div className="divide-y divide-black/10">
         {products.map((product: CatalogProduct) => (
-          <div key={product.id} className="flex items-center gap-3 py-3 hover:bg-black/5 -mx-2 px-2 rounded-md">
-            <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-black/10">
-              <Image src={product.image || '/bloom1.png'} alt={product.name} fill sizes="48px" className="object-cover" />
+          <div key={product.id} className="-mx-2 flex flex-col gap-3 rounded-md px-2 py-3 hover:bg-black/5 sm:flex-row sm:items-center">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-black/10">
+                <Image src={product.image || '/bloom1.png'} alt={product.name} fill sizes="48px" className="object-cover" />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-black">{product.name}</p>
+                <p className="mt-0.5 truncate text-xs text-black/50">{product.categoryName}</p>
+              </div>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-black">{product.name}</p>
-              <p className="mt-0.5 truncate text-xs text-black/50">{product.categoryName}</p>
-            </div>
-            <p className="shrink-0 text-sm font-semibold text-[#a23b35]">
-              {product.price === null ? product.priceNote ?? 'Pending' : money(product.price)}
-            </p>
-            <span className={`shrink-0 rounded-full px-2.5 py-0.5 text-xs font-medium ${product.isActive === false ? 'bg-black/10 text-black/50' : 'bg-emerald-100 text-emerald-800'}`}>
-              {product.isActive === false ? 'Hidden' : 'Live'}
-            </span>
-            <div className="flex shrink-0 gap-1.5">
-              <button type="button" onClick={() => onEdit(product)} className="rounded-md border border-black/20 px-3 py-1 text-xs font-medium text-black/70 hover:bg-black/5">
-                Edit
-              </button>
-              <button type="button" disabled={updatingId === product.id} onClick={() => onToggle(product)} className="rounded-md border border-black/20 px-3 py-1 text-xs font-medium text-black/70 hover:bg-black/5 disabled:opacity-50">
-                {product.isActive === false ? 'Show' : 'Hide'}
-              </button>
-              <button
-                type="button"
-                onClick={() => onDelete(product.id)}
-                className="rounded-md border border-red-600 text-red-600 px-3 py-1 text-xs font-medium hover:bg-red-600 hover:text-white transition"
-              >
-                Delete
-              </button>
+            <div className="flex flex-wrap items-center gap-2 sm:ml-auto sm:shrink-0">
+              <p className="text-sm font-semibold text-[#a23b35]">
+                {product.price === null ? product.priceNote ?? 'Pending' : money(product.price)}
+              </p>
+              <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${product.isActive === false ? 'bg-black/10 text-black/50' : 'bg-emerald-100 text-emerald-800'}`}>
+                {product.isActive === false ? 'Hidden' : 'Live'}
+              </span>
+              <div className="flex flex-wrap gap-1.5">
+                <button type="button" onClick={() => onEdit(product)} className="rounded-md border border-black/20 px-3 py-1 text-xs font-medium text-black/70 hover:bg-black/5">
+                  Edit
+                </button>
+                <button type="button" disabled={updatingId === product.id} onClick={() => onToggle(product)} className="rounded-md border border-black/20 px-3 py-1 text-xs font-medium text-black/70 hover:bg-black/5 disabled:opacity-50">
+                  {product.isActive === false ? 'Show' : 'Hide'}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDelete(product.id)}
+                  className="rounded-md border border-red-600 px-3 py-1 text-xs font-medium text-red-600 transition hover:bg-red-600 hover:text-white"
+                >
+                  Delete
+                </button>
+              </div>
             </div>
           </div>
         ))}
@@ -1652,6 +1683,14 @@ export default function AdminPage() {
   // ── Subscriptions ──
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const section = params.get('section');
+    if (section && adminSections.includes(section as AdminSection)) {
+      setActiveSection(section as AdminSection);
+    }
+  }, []);
+
+  useEffect(() => {
     const unsubscribers = [
       subscribeToAllOrders(setOrders, (e) => setError(`Orders could not load: ${e.message}`)),
       subscribeToAdminProducts(setProducts, (e) => setError(`Products could not load: ${e.message}`)),
@@ -1715,7 +1754,10 @@ export default function AdminPage() {
     if (!productForm.name.trim()) { setError('Product name is required.'); return; }
     if (!productForm.description.trim()) { setError('Product description is required.'); return; }
 
-    const productId = productForm.id.trim() || slugify(`${productForm.brand}-${productForm.name}-${productForm.variant}`);
+    const baseProductId = productForm.id.trim() || slugify(`${productForm.brand}-${productForm.name}-${productForm.variant}`);
+    const productId = isEditingProduct
+      ? baseProductId
+      : generateUniqueProductId(baseProductId, products, productForm.id.trim());
     setUpdatingId(productId);
 
     try {
@@ -1735,15 +1777,16 @@ export default function AdminPage() {
     } finally {
       setUpdatingId('');
     }
-  }, [productForm, isEditingProduct, imageFile, uploadImage, resetProductForm]);
+  }, [productForm, isEditingProduct, imageFile, uploadImage, resetProductForm, products]);
 
   const toggleProduct = useCallback(async (product: CatalogProduct) => {
     setError('');
     setNotice('');
     setUpdatingId(product.id);
     try {
-      await updateProductStatus(product.id, product.isActive === false);
-      setNotice(`${product.name} is now ${product.isActive === false ? 'visible' : 'hidden'}.`);
+      const nextActive = product.isActive === false;
+      await saveProduct({ ...product, isActive: nextActive });
+      setNotice(`${product.name} is now ${nextActive ? 'visible' : 'hidden'}.`);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not update product.');
     } finally {
@@ -1845,15 +1888,15 @@ export default function AdminPage() {
         onSignOut={handleSignOut}
       />
 
-      <main className="min-w-0 py-8 pr-8">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="mb-8">
+      <main className="min-w-0 px-4 py-4 sm:px-6 sm:py-8 lg:pr-8">
+        <div className="mx-auto max-w-7xl">
+          <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-start sm:justify-between">
             <SectionHeader section={activeSection} desc={sectionDesc[activeSection]} />
             {activeSection === 'products' && (
               <button
                 type="button"
                 onClick={resetProductForm}
-                className="rounded-md bg-[#a23b35] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#8c302b]"
+                className="w-fit rounded-md bg-[#a23b35] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#8c302b]"
               >
                 + New product
               </button>
@@ -1921,7 +1964,7 @@ export default function AdminPage() {
           )}
 
           {activeSection === 'products' && (
-            <div className="grid gap-6 xl:grid-cols-[360px_1fr]">
+            <div className="grid gap-6 lg:grid-cols-[minmax(0,360px)_1fr]">
               <ProductForm
                 form={productForm}
                 setForm={setFormField}
