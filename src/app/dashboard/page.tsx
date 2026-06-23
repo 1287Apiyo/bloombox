@@ -781,12 +781,12 @@ export default function DashboardPage() {
             className="rounded-lg border border-stone-200 bg-white p-6 shadow-sm sm:p-8"
           >
             <form onSubmit={handleLeadSubmit} className="space-y-6">
-              <div className="rounded-md border border-[#006a65] bg-[#e7fbf8] p-4">
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#006a65]">WhatsApp enabled</p>
-                <p className="mt-2 text-sm leading-6 text-[#00504c]">
-                  Add a WhatsApp number so BloomBox can follow up quickly from the lead pipeline.
-                </p>
-              </div>
+          <div className="rounded-md bg-[#006a65] p-4">
+  <p className="text-xs font-bold uppercase tracking-[0.16em] text-white">WhatsApp enabled</p>
+  <p className="mt-2 text-sm leading-6 text-white">
+    Add a WhatsApp number so BloomBox can follow up quickly from the lead pipeline.
+  </p>
+</div>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="grid gap-2 text-sm font-semibold text-stone-700">
