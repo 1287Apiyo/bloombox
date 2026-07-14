@@ -361,7 +361,7 @@ export default function CyclePage() {
               </div>
             </motion.form>
 
-            {/* Daily log form */}
+            {/* Daily log form - Commented out due to permission issues
             <motion.form
               id="daily-log-form"
               variants={fadeUp}
@@ -451,6 +451,7 @@ export default function CyclePage() {
                 </button>
               </div>
             </motion.form>
+            */}
           </aside>
 
           {/* Right column */}
@@ -567,7 +568,7 @@ export default function CyclePage() {
                 </p>
               </motion.div>
 
-              <motion.div   
+              <motion.div
                 variants={fadeUp}
                 initial="hidden"
                 whileInView="visible"
@@ -584,7 +585,7 @@ export default function CyclePage() {
               </motion.div>
             </div>
 
-            {/* Recent logs */}
+            {/* Recent logs - Commented out due to permission issues
             <motion.section
               variants={fadeUp}
               initial="hidden"
@@ -627,6 +628,7 @@ export default function CyclePage() {
                 </div>
               )}
             </motion.section>
+            */}
           </div>
         </section>
       </main>

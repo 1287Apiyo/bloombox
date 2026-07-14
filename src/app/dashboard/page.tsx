@@ -176,6 +176,12 @@ const funnelSteps = [
 
 const pipelineStages = ['New', 'Qualified', 'WhatsApp contacted', 'Checkout ready', 'Won', 'Nurture'];
 
+const heroStats = [
+  { label: 'Monthly subscribers', value: '2,400+' },
+  { label: 'On-time delivery', value: '98%' },
+  { label: 'Starting price', value: 'KSh 300' },
+];
+
 // ---------- Small icons ----------
 function ArrowIcon() {
   return (
@@ -197,6 +203,93 @@ function ChatIcon() {
   return (
     <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M7 8h10M7 12h7m-9 8 3.5-3H18a3 3 0 0 0 3-3V6a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h1v3Z" />
+    </svg>
+  );
+}
+
+// ---------- Signature hero visual: a 28-day delivery dial ----------
+// The product's whole promise is "timed to the cycle, not the calendar."
+// This dial makes that literal: 28 days ringed around a dial, with the
+// delivery window highlighted, rather than a generic product photo.
+function CycleDial() {
+  const size = 400;
+  const center = size / 2;
+  const outerR = 172;
+  const innerR = 156;
+  const dayCount = 28;
+  const deliveryDays = [26, 27, 28, 1]; // wraps: box ships just before the next cycle
+
+  const ticks = Array.from({ length: dayCount }, (_, i) => {
+    const day = i + 1;
+    const angle = (i / dayCount) * 2 * Math.PI - Math.PI / 2;
+    const active = deliveryDays.includes(day);
+    const r1 = active ? innerR - 10 : innerR;
+    return {
+      day,
+      active,
+      x1: center + r1 * Math.cos(angle),
+      y1: center + r1 * Math.sin(angle),
+      x2: center + outerR * Math.cos(angle),
+      y2: center + outerR * Math.sin(angle),
+    };
+  });
+
+  const labelDays = [1, 7, 14, 21];
+  const labels = labelDays.map((day) => {
+    const angle = ((day - 1) / dayCount) * 2 * Math.PI - Math.PI / 2;
+    const r = outerR + 22;
+    return { day, x: center + r * Math.cos(angle), y: center + r * Math.sin(angle) };
+  });
+
+  // Small parcel glyph marking the delivery moment, placed at day 27
+  const parcelAngle = ((27 - 1) / dayCount) * 2 * Math.PI - Math.PI / 2;
+  const parcelR = outerR + 22;
+  const parcelX = center + parcelR * Math.cos(parcelAngle);
+  const parcelY = center + parcelR * Math.sin(parcelAngle);
+
+  return (
+    <svg viewBox={`0 0 ${size} ${size}`} className="h-full w-full" role="img" aria-label="28-day delivery cycle, with the delivery window shown just before day one">
+      <circle cx={center} cy={center} r={innerR - 24} fill="none" stroke="#fed4c8" strokeOpacity="0.14" strokeWidth="1" />
+      {ticks.map((tick) => (
+        <line
+          key={tick.day}
+          x1={tick.x1}
+          y1={tick.y1}
+          x2={tick.x2}
+          y2={tick.y2}
+          stroke={tick.active ? '#ae2f34' : '#fed4c8'}
+          strokeOpacity={tick.active ? 1 : 0.28}
+          strokeWidth={tick.active ? 3.5 : 1.5}
+          strokeLinecap="round"
+        />
+      ))}
+      {labels.map((label) => (
+        <text
+          key={label.day}
+          x={label.x}
+          y={label.y}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fontSize="12"
+          fontWeight={600}
+          fill="#fed4c8"
+          fillOpacity={0.75}
+        >
+          {label.day}
+        </text>
+      ))}
+      <g transform={`translate(${parcelX}, ${parcelY})`}>
+        <circle r="15" fill="#ae2f34" />
+        <path
+          d="M-5.5 -3.5 L0 -6.5 L5.5 -3.5 L5.5 3.5 L0 6.5 L-5.5 3.5 Z"
+          fill="none"
+          stroke="#fff5f0"
+          strokeWidth="1.4"
+          strokeLinejoin="round"
+        />
+        <path d="M-5.5 -3.5 L0 -0.5 L5.5 -3.5 M0 -0.5 L0 6.5" fill="none" stroke="#fff5f0" strokeWidth="1.2" />
+      </g>
+      
     </svg>
   );
 }
@@ -329,7 +422,7 @@ function CollectionCard({ collection, large = false }: { collection: (typeof col
         className="object-cover transition duration-700 group-hover:scale-[1.04]"
       />
       <div className={`absolute inset-x-0 bottom-0 ${collection.panel} p-6 md:p-8`}>
-        <h3 className="font-serif text-3xl font-semibold">{collection.title}</h3>
+        <h3 className="font-sans text-3xl font-semibold">{collection.title}</h3>
         <p className="mt-2 max-w-lg text-sm leading-6 opacity-90">{collection.text}</p>
         <span className={`mt-5 inline-flex px-5 py-2 text-sm font-semibold ${collection.button}`}>
           {collection.action}
@@ -430,93 +523,81 @@ export default function DashboardPage() {
 
       <main>
         {/* ---------- HERO ---------- */}
-        <section className="relative flex min-h-[calc(100svh-116px)] items-center overflow-hidden bg-[#14090c] sm:min-h-[680px] lg:min-h-[760px]">
-          <Image
-            src={mockupImages.giftFlowers}
-            alt="BloomBox floral gift box"
-            fill
-            sizes="100vw"
-            priority
-            className="object-cover opacity-70"
-          />
-          <div className="absolute inset-0 bg-[#14090c]/78" />
-          <div className="absolute inset-x-0 bottom-0 h-24 bg-[#14090c]" />
-
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8, ease: 'easeOut' }}
-            className="relative z-10 mx-auto flex w-full max-w-7xl justify-center px-4 py-14 text-center sm:px-6 sm:py-20 lg:px-8"
-          >
-            <div className="mx-auto max-w-4xl">
-              <motion.p
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.2, duration: 0.6 }}
-                className="mx-auto mb-5 w-fit border border-white/40 px-4 py-2 text-[11px] font-bold uppercase tracking-[0.18em] text-[#fed4c8]"
-              >
-                BloomBox monthly care
-              </motion.p>
-              <motion.h1
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.4, duration: 0.7 }}
-                className="font-serif text-6xl font-bold leading-[0.95] tracking-tight text-white sm:text-7xl"
-              >
-                Monthly period care that arrives before it is needed.
-              </motion.h1>
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.6, duration: 0.7 }}
-                className="mx-auto mt-6 max-w-2xl text-lg leading-8 text-[#fff5f0]"
-              >
-                BloomBox is built around subscriptions: predictable period essentials, comfort extras, cycle-aware reminders, and delivery history in one calm system.
-              </motion.p>
-              <motion.p
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.8, duration: 0.7 }}
-                className="mx-auto mt-4 max-w-2xl text-base leading-7 text-[#fed4c8]"
-              >
-                Shop and gifting are support paths. The main experience is monthly care that customers can keep, adjust, and track.
-              </motion.p>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1.0, duration: 0.6 }}
-                className="mt-10 flex flex-col justify-center gap-3 sm:flex-row sm:gap-4"
-              >
-                {!loading && !user ? (
-                  <>
-                    <Link href="/subscriptions" className="bg-[#ae2f34] px-7 py-3 text-center text-base font-semibold text-white transition hover:bg-[#8c1520] sm:px-10 sm:py-4">
-                      View subscriptions
-                    </Link>
-                    <Link href="/signup?next=/subscriptions" className="bg-[#ae2f34] px-7 py-3 text-center text-base font-semibold text-white transition hover:bg-[#8c1520] sm:px-10 sm:py-4">
-                      Create account
-                    </Link>
-                  </>
-                ) : (
-                  <>
-                    <Link href="/subscriptions" className="bg-[#ae2f34] px-7 py-3 text-center text-base font-semibold text-white transition hover:bg-[#8c1520] sm:px-10 sm:py-4">
-                      Manage subscriptions
-                    </Link>
-                    <Link href="/cycle" className="bg-[#ae2f34] px-7 py-3 text-center text-base font-semibold text-white transition hover:bg-[#8c1520] sm:px-10 sm:py-4">
-                      Track cycle
-                    </Link>
-                  </>
-                )}
-              </motion.div>
-              <motion.div
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                transition={{ delay: 1.2, duration: 0.6 }}
-                className="mt-5 flex flex-wrap justify-center gap-3 text-sm font-semibold text-[#fed4c8]"
-              >
-                
-              </motion.div>
+        <section className="relative min-h-[600px] overflow-hidden bg-bb-red lg:min-h-[800px]">
+          {/* Background Split */}
+          <div className="absolute inset-0 flex flex-col lg:flex-row">
+            <div className="flex-1 bg-bb-red" />
+            <div className="relative w-full lg:w-1/2 h-[400px] lg:h-auto shrink-0">
+              <Image
+                src="/bloom1.png"
+                alt="BloomBox care ritual"
+                fill
+                priority
+                className="object-cover object-center"
+              />
             </div>
-          </motion.div>
+          </div>
+
+          {/* Content layer constrained by max-w-7xl for alignment with Navbar */}
+          <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div className="flex flex-col lg:flex-row min-h-[600px] lg:min-h-[800px]">
+              <div className="flex-1 flex items-center py-20 lg:py-0">
+                <div className="max-w-xl w-full">
+                  <motion.div
+                    initial={{ opacity: 0, x: -24 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.7, ease: 'easeOut' }}
+                    className="space-y-8"
+                  >
+                    <span className="inline-block text-xs font-bold uppercase tracking-[0.26em] text-white/70">
+                      Timed to your cycle, not the calendar
+                    </span>
+
+                    <h1 className="text-5xl font-bold leading-[1.08] tracking-tight text-white sm:text-7xl lg:text-8xl">
+                      Monthly Period Care, a Timed{' '}
+                      <span className="text-bb-pink">Ritual.</span>
+                    </h1>
+
+                    <p className="max-w-prose text-lg leading-relaxed text-white/95 sm:text-xl">
+                      The first cycle‑aware subscription in Kenya. BloomBox delivers a curated
+                      monthly ritual of period essentials, comfort extras, and a reminder a day
+                      ahead — so you’re never caught off guard. Starting at KSh 300.
+                    </p>
+
+                    <div className="flex flex-wrap gap-5">
+                      <Link
+                        href="/subscriptions"
+                        className="inline-flex items-center justify-center rounded-full bg-bb-pink px-8 py-4 text-sm font-bold text-[#14090c] shadow-lg transition hover:bg-white"
+                      >
+                        Get started
+                      </Link>
+                      <Link
+                        href="/cycle"
+                        className="inline-flex items-center justify-center rounded-full border border-white/30 bg-white/5 px-8 py-4 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/10"
+                      >
+                        Track your cycle
+                      </Link>
+                    </div>
+
+                    <dl className="mt-16 grid grid-cols-3 gap-x-8 gap-y-6 sm:gap-x-14">
+                      {heroStats.map((stat) => (
+                        <div key={stat.label}>
+                          <dd className="text-4xl font-bold tracking-tight text-bb-pink sm:text-5xl">
+                            {stat.value}
+                          </dd>
+                          <dt className="mt-2 text-[10px] font-bold uppercase tracking-[0.16em] text-white/60">
+                            {stat.label}
+                          </dt>
+                        </div>
+                      ))}
+                    </dl>
+                  </motion.div>
+                </div>
+              </div>
+              {/* Spacer for the image side */}
+              <div className="flex-1 hidden lg:block" />
+            </div>
+          </div>
         </section>
 
         {/* ---------- SUBSCRIPTION JOURNEY ---------- */}
@@ -531,7 +612,7 @@ export default function DashboardPage() {
               className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end"
             >
               <div>
-                <h2 className="font-serif text-4xl font-semibold text-[#ae2f34]">Subscription journey</h2>
+                <h2 className="font-sans text-4xl font-semibold text-[#ae2f34]">Subscription journey</h2>
                 <p className="mt-2 max-w-2xl text-base leading-7 text-[#584140]">
                   The customer path is designed around recurring monthly care first, with customization, cycle support, and delivery tracking wrapped around it.
                 </p>
@@ -560,7 +641,7 @@ export default function DashboardPage() {
                     className="group flex h-full flex-col border border-stone-300 bg-[#f8f9fa] p-4 hover:border-[#ae2f34] hover:bg-[#fff5f0]"
                   >
                     <StepIcon name={step.icon} className="mb-3 h-8 w-8 text-[#ae2f34]" />
-                    <h3 className="font-serif text-2xl font-semibold text-[#191c1d]">{step.title}</h3>
+                    <h3 className="font-sans text-2xl font-semibold text-[#191c1d]">{step.title}</h3>
                     <p className="mt-2 text-sm leading-5 text-stone-600">{step.text}</p>
                   </Link>
                 </motion.div>
@@ -573,7 +654,7 @@ export default function DashboardPage() {
         <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
           <div className="mb-12 flex flex-col justify-between gap-4 md:flex-row md:items-end">
             <div>
-              <h2 className="font-serif text-4xl font-semibold text-[#ae2f34]">Subscription paths</h2>
+              <h2 className="font-sans text-4xl font-semibold text-[#ae2f34]">Subscription paths</h2>
               <p className="mt-2 text-base leading-7 text-[#584140]">Start with monthly care, then add customization only where it helps.</p>
             </div>
             <Link href="/subscriptions" className="inline-flex items-center gap-2 text-sm font-semibold text-[#ae2f34]">
@@ -589,7 +670,7 @@ export default function DashboardPage() {
 
             <div className="bg-[#fed4c8] p-6 sm:p-8 md:col-span-8 md:min-h-[360px] md:p-12">
               <div className="max-w-xl">
-                <h3 className="font-serif text-4xl font-semibold italic text-[#76574e]">
+                <h3 className="font-sans text-4xl font-semibold italic text-[#76574e]">
                   &quot;Care feels different when it arrives on time.&quot;
                 </h3>
                 <p className="mt-5 text-base leading-7 text-[#795950]">
@@ -630,7 +711,7 @@ export default function DashboardPage() {
             className="mb-10 flex flex-col justify-between gap-4 md:flex-row md:items-end"
           >
             <div>
-              <h2 className="font-serif text-4xl font-semibold text-[#ae2f34]">Monthly subscription plans</h2>
+              <h2 className="font-sans text-4xl font-semibold text-[#ae2f34]">Monthly subscription plans</h2>
               <p className="mt-2 max-w-2xl text-base leading-7 text-[#584140]">
                 The core BloomBox experience is recurring care: pick a base, save the customer record, then adjust over time.
               </p>
@@ -666,7 +747,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex flex-1 flex-col p-6">
                   <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">{item.price}</p>
-                  <h3 className="mt-3 font-serif text-3xl font-semibold text-[#191c1d]">{item.title}</h3>
+                  <h3 className="mt-3 font-sans text-3xl font-semibold text-[#191c1d]">{item.title}</h3>
                   <p className="mt-3 text-sm leading-6 text-[#584140]">{item.text}</p>
                   <div className="mt-5 flex flex-wrap gap-2">
                     {item.includes.map((include) => (
@@ -698,7 +779,7 @@ export default function DashboardPage() {
               transition={{ duration: 0.6 }}
             >
               <p className="w-fit bg-[#006a65] px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-white">WhatsApp follow-up</p>
-              <h2 className="mt-4 font-serif text-4xl font-semibold text-[#191c1d]">Sales funnel and tracking.</h2>
+              <h2 className="mt-4 font-sans text-4xl font-semibold text-[#191c1d]">Sales funnel and tracking.</h2>
               <p className="mt-3 max-w-xl text-base leading-7 text-[#584140]">
                 When someone fills the sign-up sheet, the record goes into the BloomBox lead pipeline. Admins can qualify the lead, add notes, and open WhatsApp follow-up from the lead card.
               </p>
@@ -723,7 +804,7 @@ export default function DashboardPage() {
                     transition={{ duration: 0.5 }}
                     className="border border-stone-300 bg-white p-5"
                   >
-                    <h3 className="font-serif text-2xl font-semibold text-[#ae2f34]">{step.title}</h3>
+                    <h3 className="font-sans text-2xl font-semibold text-[#ae2f34]">{step.title}</h3>
                     <p className="mt-3 text-sm leading-6 text-stone-600">{step.text}</p>
                   </motion.article>
                 ))}
@@ -766,7 +847,7 @@ export default function DashboardPage() {
             className="flex flex-col justify-center"
           >
             <p className="w-fit bg-[#006a65] px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-white">Sign-up sheet</p>
-            <h2 className="mt-4 font-serif text-4xl font-semibold text-[#ae2f34]">Find your BloomBox fit.</h2>
+            <h2 className="mt-4 font-sans text-4xl font-semibold text-[#ae2f34]">Find your BloomBox fit.</h2>
             <p className="mt-3 max-w-xl text-base leading-7 text-[#584140]">
               Choose the care path you are considering. This information is saved to Admin Leads for qualification, notes, and WhatsApp follow-up.
             </p>
@@ -870,7 +951,7 @@ export default function DashboardPage() {
               transition={{ duration: 0.6 }}
               className="mx-auto mb-14 max-w-2xl text-center"
             >
-              <h2 className="font-serif text-4xl font-semibold text-white">The BloomBox promise</h2>
+              <h2 className="font-sans text-4xl font-semibold text-white">The BloomBox promise</h2>
               <p className="mt-4 text-base leading-7 text-[#fff5f0]">
                 We believe care packages are more than products. They are a medium for connection, relief, and ritual.
               </p>
@@ -893,7 +974,7 @@ export default function DashboardPage() {
                   <div className="mb-6 flex h-16 w-16 items-center justify-center bg-white text-[#ae2f34]">
                     <PromiseIcon type={promise.icon} />
                   </div>
-                  <h3 className="font-serif text-2xl font-semibold text-white">{promise.title}</h3>
+                  <h3 className="font-sans text-2xl font-semibold text-white">{promise.title}</h3>
                   <p className="mt-3 text-base leading-7 text-[#fed4c8]">{promise.text}</p>
                 </motion.div>
               ))}
@@ -942,7 +1023,7 @@ export default function DashboardPage() {
               transition={{ duration: 0.6 }}
               className="lg:pl-10"
             >
-              <h2 className="font-serif text-4xl font-semibold italic text-[#ae2f34]">Voices of the BloomBox family</h2>
+              <h2 className="font-sans text-4xl font-semibold italic text-[#ae2f34]">Voices of the BloomBox family</h2>
               <div className="mt-9 space-y-9">
                 {testimonials.map((item) => (
                   <div key={item.title} className="border-b border-[#e0bfbd] pb-8">

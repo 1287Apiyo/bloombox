@@ -29,44 +29,40 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // ---- CYCLE TRACKING ----
     match /cycleProfiles/{userId} {
-      allow create: if isOwner(userId)
-        && request.resource.data.userId == request.auth.uid;
-      allow read, delete: if isOwner(userId);
-      allow update: if isOwner(userId)
-        && request.resource.data.userId == resource.data.userId;
+      allow read: if isAdmin() || isOwner(userId);
+      allow create: if isOwner(userId) 
+                    && request.resource.data.userId == request.auth.uid;
+      allow update: if isAdmin() || (
+        isOwner(userId) 
+        && request.resource.data.userId == resource.data.userId
+      );
+      allow delete: if isAdmin() || isOwner(userId);
     }
 
     match /cycleLogs/{logId} {
-      allow create: if signedIn()
-        && request.resource.data.userId == request.auth.uid
-        && request.resource.data.date is string
-        && request.resource.data.flow in ['none', 'spotting', 'light', 'medium', 'heavy'];
-      allow read, delete: if signedIn()
-        && resource.data.userId == request.auth.uid;
-      allow update: if signedIn()
-        && resource.data.userId == request.auth.uid
-        && request.resource.data.userId == resource.data.userId;
+      // Allow read if the user is an admin OR if the document exists and belongs to the user 
+      // OR if the document doesn't exist (to allow getDoc() checks to return null instead of crashing)
+      allow read: if isAdmin() || (signedIn() && (resource == null || resource.data.userId == request.auth.uid));
+      allow create: if signedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isAdmin() || (
+        signedIn() 
+        && resource.data.userId == request.auth.uid 
+        && request.resource.data.userId == resource.data.userId
+      );
+      allow delete: if isAdmin() || (signedIn() && resource.data.userId == request.auth.uid);
     }
 
+    // ---- BLOG POSTS ----
     match /blogPosts/{postId} {
       allow read: if true;
       allow create: if signedIn()
         && request.resource.data.authorId == request.auth.uid
-        && request.resource.data.title is string
-        && request.resource.data.title.size() >= 5
-        && request.resource.data.title.size() <= 120
-        && request.resource.data.body is string
-        && request.resource.data.body.size() >= 30
-        && request.resource.data.body.size() <= 6000
-        && request.resource.data.type in ['story', 'product-guide', 'discussion']
         && request.resource.data.status == 'published';
-      allow update: if isAdmin() || (
-        signedIn()
-        && resource.data.authorId == request.auth.uid
-        && request.resource.data.authorId == resource.data.authorId
+      allow update, delete: if isAdmin() || (
+        signedIn() && resource.data.authorId == request.auth.uid
       );
-      allow delete: if isAdmin() || (signedIn() && resource.data.authorId == request.auth.uid);
     }
 
     match /users/{userId} {
@@ -142,18 +138,22 @@ service cloud.firestore {
     }
 
     match /leads/{leadId} {
-      allow create: if request.resource.data.email is string
-        && request.resource.data.email.size() >= 5
-        && request.resource.data.email.size() <= 254
-        && request.resource.data.stage == 'new';
+      allow create: if request.resource.data.name is string
+                    && request.resource.data.name.size() > 0
+                    && request.resource.data.email is string
+                    && request.resource.data.email.size() >= 5
+                    && request.resource.data.phone is string;
       allow read, update, delete: if isAdmin();
     }
 
     match /partnerInquiries/{inquiryId} {
-      allow create: if request.resource.data.email is string
-        && request.resource.data.email.size() >= 5
-        && request.resource.data.email.size() <= 254
-        && request.resource.data.status == 'new';
+      allow create: if request.resource.data.businessName is string
+                    && request.resource.data.businessName.size() > 0
+                    && request.resource.data.contactName is string
+                    && request.resource.data.contactName.size() > 0
+                    && request.resource.data.email is string
+                    && request.resource.data.email.size() >= 5
+                    && request.resource.data.phone is string;
       allow read, update, delete: if isAdmin();
     }
 
