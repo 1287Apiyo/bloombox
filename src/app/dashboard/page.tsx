@@ -535,6 +535,9 @@ export default function DashboardPage() {
                 priority
                 className="object-cover object-center"
               />
+              {/* Darker branded reddish layover */}
+              <div className="absolute inset-0 bg-[#ae2f34]/30 mix-blend-multiply" />
+              <div className="absolute inset-0 bg-black/20" />
             </div>
           </div>
 
