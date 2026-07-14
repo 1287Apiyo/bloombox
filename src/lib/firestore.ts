@@ -822,6 +822,44 @@ export async function createCardSubscription(
   return subscriptionRef.id;
 }
 
+export function subscribeToAllSubscriptions(
+  onSubscriptions: (subscriptions: CustomerSubscription[]) => void,
+  onError?: (error: FirestoreError) => void,
+): Unsubscribe {
+  return onSnapshot(
+    collection(getFirebaseDb(), collectionNames.subscriptions),
+    (snapshot) => {
+      const subscriptions = snapshot.docs
+        .map((subscriptionDoc) => ({
+          id: subscriptionDoc.id,
+          ...(subscriptionDoc.data() as Omit<CustomerSubscription, 'id'>),
+        }))
+        .sort((a, b) => getTimestampMillis(b.createdAt) - getTimestampMillis(a.createdAt));
+
+      onSubscriptions(subscriptions);
+    },
+    onError,
+  );
+}
+
+export function subscribeToAllCycleProfiles(
+  onProfiles: (profiles: CycleProfile[]) => void,
+  onError?: (error: FirestoreError) => void,
+): Unsubscribe {
+  return onSnapshot(
+    collection(getFirebaseDb(), collectionNames.cycleProfiles),
+    (snapshot) => {
+      const profiles = snapshot.docs.map((profileDoc) => ({
+        id: profileDoc.id,
+        ...(profileDoc.data() as Omit<CycleProfile, 'id'>),
+      }));
+
+      onProfiles(profiles);
+    },
+    onError,
+  );
+}
+
 function getTimestampMillis(value: unknown) {
   if (value && typeof value === 'object' && 'toMillis' in value && typeof value.toMillis === 'function') {
     return value.toMillis();

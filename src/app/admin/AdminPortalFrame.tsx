@@ -7,12 +7,13 @@ import { signOut } from 'firebase/auth';
 import { getFirebaseAuth } from '@/lib/firebase';
 import { useAuth } from '../components/AuthProvider';
 
-export type AdminSection = 'overview' | 'orders' | 'products' | 'customers' | 'subscribers' | 'access' | 'inventory' | 'leads' | 'partners' | 'ai-assist';
-type IconName = 'chart' | 'orders' | 'products' | 'users' | 'mail' | 'shield' | 'inventory' | 'pipeline' | 'partners' | 'ai';
+export type AdminSection = 'overview' | 'orders' | 'upcoming' | 'products' | 'customers' | 'subscribers' | 'access' | 'inventory' | 'leads' | 'partners' | 'ai-assist';
+type IconName = 'chart' | 'orders' | 'calendar' | 'products' | 'users' | 'mail' | 'shield' | 'inventory' | 'pipeline' | 'partners' | 'ai';
 
 const navigation: { id: AdminSection; href: string; label: string; detail: string; icon: IconName }[] = [
   { id: 'overview', href: '/admin?section=overview', label: 'Overview', detail: 'Metrics and activity', icon: 'chart' },
   { id: 'orders', href: '/admin?section=orders', label: 'Orders', detail: 'Delivery workflow', icon: 'orders' },
+  { id: 'upcoming', href: '/admin?section=upcoming', label: 'Upcoming', detail: 'Cycle prep', icon: 'calendar' },
   { id: 'products', href: '/admin?section=products', label: 'Products', detail: 'Catalog and images', icon: 'products' },
   { id: 'inventory', href: '/admin/inventory', label: 'Inventory', detail: 'Stock and revenue', icon: 'inventory' },
   { id: 'leads', href: '/admin/leads', label: 'Leads', detail: 'Sales pipeline', icon: 'pipeline' },
@@ -27,6 +28,7 @@ function AdminIcon({ name }: { name: IconName }) {
   const paths: Record<IconName, string> = {
     chart: 'M4 19V5m0 14h16M8 16V9m4 7V7m4 9v-5',
     orders: 'M7 7h10M7 12h10M7 17h6M5 3h14v18H5z',
+    calendar: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
     products: 'M4 7l8-4 8 4-8 4-8-4Zm0 0v10l8 4 8-4V7M12 11v10',
     inventory: 'M4 6h16M6 6v14h12V6M9 10h6m-6 4h6',
     pipeline: 'M4 6h5v5H4V6Zm11 0h5v5h-5V6ZM4 16h5v2H4v-2Zm11 0h5v2h-5v-2ZM9 8h6M9 17h6',

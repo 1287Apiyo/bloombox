@@ -11,6 +11,8 @@ import {
   subscribeToAdminProducts,
   subscribeToAllOrders,
   subscribeToAllUsers,
+  subscribeToAllSubscriptions,
+  subscribeToAllCycleProfiles,
   subscribeToNewsletterSubscribers,
   subscribeToLeads,
   subscribeToPartnerInquiries,
@@ -21,12 +23,13 @@ import {
   updateLeadStage,
   updatePartnerInquiryStatus,
   type CustomerOrder,
+  type CustomerSubscription,
   type NewsletterSubscriber,
   type OrderStatus,
   type UserProfile,
   type UserRole,
+  type CycleProfile,
   type SalesLead,
-  type LeadStage,
   type PartnerInquiry,
   type PartnerInquiryStatus,
   type InventoryMovement,
@@ -34,6 +37,7 @@ import {
 } from '@/lib/firestore';
 import { productCategories, type CatalogProduct, type StockStatus } from '@/data/catalog';
 import { useAuth } from '../components/AuthProvider';
+import { getNextPeriodDate } from '@/lib/cycle';
 
 // ─── Helpers ───────────────────────────────────────────────
 
@@ -44,6 +48,7 @@ type AdminSection =
   | 'overview'
   | 'orders'
   | 'order-detail'
+  | 'upcoming'
   | 'products'
   | 'customers'
   | 'subscribers'
@@ -53,7 +58,7 @@ type AdminSection =
   | 'partners'
   | 'ai-assist';
 
-type IconName = 'chart' | 'orders' | 'products' | 'users' | 'mail' | 'shield' | 'box' | 'handshake' | 'sparkles';
+type IconName = 'chart' | 'orders' | 'products' | 'users' | 'mail' | 'shield' | 'box' | 'handshake' | 'sparkles' | 'calendar';
 
 // ─── Order item type (used for typed flatMap callbacks) ──────
 type OrderItem = NonNullable<CustomerOrder['items']>[0];
@@ -129,6 +134,7 @@ const adminSections: AdminSection[] = [
   'overview',
   'orders',
   'order-detail',
+  'upcoming',
   'products',
   'customers',
   'subscribers',
@@ -308,6 +314,7 @@ function AdminIcon({ name, className = '' }: { name: IconName; className?: strin
     box: 'M20 7l-8-4-8 4 8 4 8-4Zm0 0v10l-8 4-8-4V7M12 11v10',
     handshake: 'M17 12l-4 4-4-4M7 12h10M4 8h16M4 16h16',
     sparkles: 'M12 2L14.5 9.5L22 12L14.5 14.5L12 22L9.5 14.5L2 12L9.5 9.5L12 2Z',
+    calendar: 'M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z',
   };
 
   return (
@@ -333,6 +340,7 @@ function Sidebar({
   const navigation: { id: AdminSection; label: string; icon: IconName; count?: number }[] = [
     { id: 'overview', label: 'Overview', icon: 'chart' },
     { id: 'orders', label: 'Orders', icon: 'orders', count: metrics.activeOrders },
+    { id: 'upcoming', label: 'Upcoming', icon: 'calendar' },
     { id: 'products', label: 'Products', icon: 'products', count: metrics.activeProducts },
     { id: 'customers', label: 'Customers', icon: 'users' },
     { id: 'subscribers', label: 'Subscribers', icon: 'mail', count: metrics.subscribers },
@@ -407,6 +415,7 @@ function SectionHeader({ section, desc }: { section: AdminSection; desc: string 
     overview: 'Overview',
     orders: 'Orders',
     'order-detail': 'Order Details',
+    upcoming: 'Upcoming Prep',
     products: 'Products',
     customers: 'Customers',
     subscribers: 'Subscribers',
@@ -664,6 +673,234 @@ function OrderDetailModal({
             )}
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Upcoming Section ───────────────────────────────────────
+
+function UpcomingSection({
+  subscriptions,
+  users,
+  cycleProfiles,
+}: {
+  subscriptions: CustomerSubscription[];
+  users: UserProfile[];
+  cycleProfiles: CycleProfile[];
+}) {
+  const rows = useMemo(() => {
+    return cycleProfiles.map((cycle) => {
+      const user = users.find((u) => u.uid === cycle.userId);
+      const sub = subscriptions.find((s) => s.userId === cycle.userId && s.status === 'active');
+      const nextPeriod = getNextPeriodDate(cycle);
+      
+      const periodMillis = nextPeriod ? nextPeriod.getTime() : null;
+      const daysToPeriod = periodMillis ? Math.ceil((periodMillis - Date.now()) / 86400000) : null;
+
+      let priority = 4; // Tracking
+      if (daysToPeriod !== null) {
+        if (daysToPeriod <= 3) priority = 1; // Immediate
+        else if (daysToPeriod <= 7) priority = 2; // Ship Now
+        else if (daysToPeriod <= 12) priority = 3; // Prepare
+      }
+
+      return {
+        sub,
+        user,
+        cycle,
+        nextPeriod,
+        daysToPeriod,
+        priority,
+      };
+    }).sort((a, b) => {
+      if (a.priority !== b.priority) return a.priority - b.priority;
+      const dateA = a.nextPeriod ? a.nextPeriod.getTime() : Infinity;
+      const dateB = b.nextPeriod ? b.nextPeriod.getTime() : Infinity;
+      return dateA - dateB;
+    });
+  }, [subscriptions, users, cycleProfiles]);
+
+  function getTimestampMillis(value: unknown) {
+    if (value && typeof value === 'object' && 'toMillis' in value && typeof value.toMillis === 'function') {
+      return value.toMillis();
+    }
+    if (value instanceof Date) return value.getTime();
+    return 0;
+  }
+
+  function formatValueDate(value: unknown) {
+    const millis = getTimestampMillis(value);
+    if (!millis) return 'Not dated';
+    return new Date(millis).toLocaleDateString('en-KE', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  }
+
+  function getUpcomingWhatsappHref(phone: string, name: string, type: 'remind' | 'wish', days?: number | null) {
+    const digits = phone.replace(/\D/g, '');
+    const normalized = digits.startsWith('0') ? `254${digits.slice(1)}` : digits;
+    
+    let message = '';
+    if (type === 'remind') {
+      message = `Hi ${name || 'there'}, this is BloomBox. We noticed your period is approaching ${days ? `in about ${days} days` : 'soon'}! Just a reminder that we have comfort boxes ready to help you through. Would you like to see what's new in our shop?`;
+    } else {
+      message = `Hi ${name || 'there'}, BloomBox is thinking of you as your period approaches. We wish you a comfortable and peaceful cycle. Remember to be patient with yourself this week!`;
+    }
+    
+    const encoded = encodeURIComponent(message);
+    return normalized ? `https://wa.me/${normalized}?text=${encoded}` : '#';
+  }
+
+  const sections = [
+    { id: 1, label: 'Action Required', desc: 'Arriving in 3 days or less', color: 'bg-rose-50 text-rose-700 border-rose-200' },
+    { id: 2, label: 'Preparation Window', desc: 'Arriving in 4-7 days', color: 'bg-orange-50 text-orange-700 border-orange-200' },
+    { id: 3, label: 'Upcoming Cycles', desc: 'Arriving in 8-12 days', color: 'bg-sky-50 text-sky-700 border-sky-200' },
+    { id: 4, label: 'Future Tracking', desc: 'Logged profiles with later dates', color: 'bg-stone-50 text-stone-600 border-stone-200' },
+  ];
+
+  return (
+    <div className="space-y-10">
+      {/* Metrics Row */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="bg-white border border-black/5 p-6 rounded-xl shadow-sm">
+          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-black/40">Network reach</p>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-4xl font-serif font-bold text-black">{cycleProfiles.length}</span>
+            <span className="text-sm text-black/40">Tracked cycles</span>
+          </div>
+        </div>
+        <div className="bg-[#a23b35] p-6 rounded-xl shadow-sm text-white">
+          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/60">Urgent support</p>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-4xl font-serif font-bold">{rows.filter(r => r.priority === 1).length}</span>
+            <span className="text-sm text-white/70 text-balance">Arriving in next 72 hours</span>
+          </div>
+        </div>
+        <div className="bg-[#006a65] p-6 rounded-xl shadow-sm text-white">
+          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/60">Subscription health</p>
+          <div className="mt-2 flex items-baseline gap-2">
+            <span className="text-4xl font-serif font-bold">{subscriptions.filter(s => s.status === 'active').length}</span>
+            <span className="text-sm text-white/70">Active members</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="space-y-12">
+        {sections.map((section) => {
+          const sectionRows = rows.filter(r => r.priority === section.id);
+          if (sectionRows.length === 0 && section.id !== 1) return null;
+
+          return (
+            <section key={section.id} className="space-y-5">
+              <div className="flex items-center gap-4">
+                <h2 className="text-lg font-bold tracking-tight text-black">{section.label}</h2>
+                <span className={`px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider ${section.color}`}>
+                  {sectionRows.length} {sectionRows.length === 1 ? 'User' : 'Users'}
+                </span>
+                <div className="h-px flex-1 bg-black/5" />
+              </div>
+              
+              {sectionRows.length === 0 ? (
+                <div className="py-8 text-center bg-white border border-dashed border-black/10 rounded-xl text-black/30 text-sm italic">
+                  No users in this window right now.
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+                  {sectionRows.map(({ sub, user, nextPeriod, daysToPeriod }, idx) => {
+                    const phone = user?.deliveryDetails?.phoneNumber || '';
+                    const customerName = user?.displayName || user?.email || 'Valued Customer';
+                    const location = [user?.deliveryDetails?.town, user?.deliveryDetails?.county].filter(Boolean).join(', ');
+
+                    return (
+                      <article key={user?.uid || idx} className="group bg-white border border-black/10 rounded-xl p-5 hover:border-[#a23b35]/30 hover:shadow-md transition-all">
+                        <div className="flex flex-col sm:flex-row gap-5">
+                          {/* Left: User Initials & Info */}
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-start justify-between gap-3">
+                              <div className="flex items-center gap-3">
+                                <div className="h-10 w-10 shrink-0 flex items-center justify-center rounded-full bg-[#fdf2f2] text-[#a23b35] font-bold text-sm uppercase">
+                                  {customerName.slice(0, 2)}
+                                </div>
+                                <div className="min-w-0">
+                                  <h3 className="font-bold text-black truncate">{customerName}</h3>
+                                  <p className="text-xs text-black/40 truncate">{user?.email}</p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-black/30">Next Period</p>
+                                <p className="text-sm font-bold text-black mt-0.5">
+                                  {nextPeriod ? formatValueDate(nextPeriod) : 'TBD'}
+                                </p>
+                                {daysToPeriod !== null && (
+                                  <p className={`text-[10px] font-black uppercase mt-1 ${daysToPeriod <= 3 ? 'text-rose-600' : 'text-black/50'}`}>
+                                    In {daysToPeriod} days
+                                  </p>
+                                )}
+                              </div>
+                            </div>
+
+                            <div className="mt-5 grid grid-cols-2 gap-4 border-t border-black/5 pt-4">
+                              <div>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-black/30">Subscription</p>
+                                <div className="mt-1">
+                                  {sub ? (
+                                    <>
+                                      <p className="text-xs font-bold text-black">{sub.planName}</p>
+                                      <p className="text-[10px] text-[#006a65] font-bold">{money(sub.amount ?? 0)}</p>
+                                    </>
+                                  ) : (
+                                    <p className="text-xs text-black/40 italic">One-time / No sub</p>
+                                  )}
+                                </div>
+                              </div>
+                              <div>
+                                <p className="text-[10px] font-bold uppercase tracking-widest text-black/30">Logistics</p>
+                                <div className="mt-1 min-w-0">
+                                  <p className="text-xs text-black/60 truncate">{location || 'No location saved'}</p>
+                                  <p className="text-[10px] text-black/40 font-mono">{phone || 'No phone number'}</p>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Right: Actions */}
+                          <div className="flex flex-row sm:flex-col gap-2 shrink-0 border-t sm:border-t-0 sm:border-l border-black/5 pt-4 sm:pt-0 sm:pl-4">
+                            <a
+                              href={getUpcomingWhatsappHref(phone, customerName, 'remind', daysToPeriod)}
+                              target="_blank"
+                              rel="noreferrer"
+                              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition ${
+                                phone ? 'bg-white border border-[#006a65] text-[#006a65] hover:bg-[#006a65] hover:text-white' : 'bg-black/5 text-black/20 pointer-events-none'
+                              }`}
+                            >
+                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.539 2.016 2.126-.54c1.029.59 2.067.928 3.162.929h.001c3.181 0 5.767-2.587 5.768-5.766 0-3.181-2.587-5.766-5.769-5.766z" /></svg>
+                              Remind
+                            </a>
+                            <a
+                              href={getUpcomingWhatsappHref(phone, customerName, 'wish', daysToPeriod)}
+                              target="_blank"
+                              rel="noreferrer"
+                              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition ${
+                                phone ? 'bg-white border border-[#a23b35] text-[#a23b35] hover:bg-[#a23b35] hover:text-white' : 'bg-black/5 text-black/20 pointer-events-none'
+                              }`}
+                            >
+                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                              Wish Well
+                            </a>
+                          </div>
+                        </div>
+                      </article>
+                    );
+                  })}
+                </div>
+              )}
+            </section>
+          );
+        })}
       </div>
     </div>
   );
@@ -1683,6 +1920,8 @@ export default function AdminPage() {
   const { user } = useAuth();
   const [activeSection, setActiveSection] = useState<AdminSection>('overview');
   const [orders, setOrders] = useState<CustomerOrder[]>([]);
+  const [subscriptions, setSubscriptions] = useState<CustomerSubscription[]>([]);
+  const [cycleProfiles, setCycleProfiles] = useState<CycleProfile[]>([]);
   const [products, setProducts] = useState<CatalogProduct[]>([]);
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [subscribers, setSubscribers] = useState<NewsletterSubscriber[]>([]);
@@ -1710,6 +1949,8 @@ export default function AdminPage() {
   useEffect(() => {
     const unsubscribers = [
       subscribeToAllOrders(setOrders, (e) => setError(`Orders could not load: ${e.message}`)),
+      subscribeToAllSubscriptions(setSubscriptions, (e) => setError(`Subscriptions could not load: ${e.message}`)),
+      subscribeToAllCycleProfiles(setCycleProfiles, (e) => setError(`Cycle profiles could not load: ${e.message}`)),
       subscribeToAdminProducts(setProducts, (e) => setError(`Products could not load: ${e.message}`)),
       subscribeToAllUsers(setUsers, (e) => setError(`Customers could not load: ${e.message}`)),
       subscribeToNewsletterSubscribers(setSubscribers, (e) => setError(`Subscribers could not load: ${e.message}`)),
@@ -1883,6 +2124,7 @@ const uploadImage = useCallback(async (_productId: string) => {
     overview: 'A snapshot of how the shop is doing right now.',
     orders: 'Track and move every order through delivery.',
     'order-detail': 'Review and manage order details.',
+    upcoming: 'Prepare for next subscription cycles and period dates.',
     products: 'Manage what is live in the catalog.',
     customers: 'Manage accounts and admin access.',
     subscribers: 'Everyone signed up to hear from BloomBox.',
@@ -1975,6 +2217,14 @@ const uploadImage = useCallback(async (_productId: string) => {
                 if (selectedOrder) handleStatusChange(selectedOrder.id, status);
               }}
               updating={updatingId === selectedOrder?.id}
+            />
+          )}
+
+          {activeSection === 'upcoming' && (
+            <UpcomingSection
+              subscriptions={subscriptions}
+              users={users}
+              cycleProfiles={cycleProfiles}
             />
           )}
 
