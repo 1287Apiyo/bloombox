@@ -37,7 +37,7 @@ export function AuthShell({
             <div className="grid gap-4 self-stretch sm:gap-5 lg:max-w-2xl">
               <Link href="/" className="flex w-fit items-center gap-3">
                 <span className="relative h-11 w-11 overflow-hidden rounded-full border border-stone-300 bg-white">
-                  <Image src="/bloom1.png" alt="BloomBox" fill className="object-cover" priority />
+                  <Image src="/bloom1.png" alt="BloomBox" fill sizes="44px" className="object-cover" priority />
                 </span>
                 <span className="text-xl font-bold tracking-tight text-white">BloomBox</span>
               </Link>

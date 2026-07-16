@@ -26,9 +26,9 @@ const viewportSettings = { once: true, amount: 0.15 };
 
 // ---------- Mockup images ----------
 const mockupImages = {
-  delivery: '/mockups/bloombox-delivery.png',
+  delivery: 'https://sc04.alicdn.com/kf/A3dff533b686644578dfa0b91834a6f62M.jpg',
   openBox: '/mockups/bloombox-open-box.png',
-  giftFlowers: '/mockups/bloombox-gift-flowers.png',
+  giftFlowers: 'https://sc04.alicdn.com/kf/A3c7d43016fbb4823964fd2fe6ce2d057F.jpg',
 };
 
 // ---------- Data ----------
@@ -56,7 +56,7 @@ const collections = [
     text: 'Flowers, cards, and comfort items can still support the monthly plan when the moment calls for it.',
     action: 'Browse add-ons',
     href: '/gifting',
-    image: mockupImages.delivery,
+    image: mockupImages.giftFlowers,
     panel: 'bg-[#191c1d] text-white',
     button: 'bg-[#006a65] text-white',
   },
@@ -419,6 +419,7 @@ function CollectionCard({ collection, large = false }: { collection: (typeof col
         alt={collection.title}
         fill
         sizes={large ? '(min-width: 768px) 760px, 100vw' : '(min-width: 768px) 420px, 100vw'}
+        priority
         className="object-cover transition duration-700 group-hover:scale-[1.04]"
       />
       <div className={`absolute inset-x-0 bottom-0 ${collection.panel} p-6 md:p-8`}>
@@ -529,15 +530,15 @@ export default function DashboardPage() {
             <div className="flex-1 bg-bb-red" />
             <div className="relative w-full lg:w-1/2 h-[400px] lg:h-auto shrink-0">
               <Image
-                src="/bloom1.png"
+                src="/family.png"
                 alt="BloomBox care ritual"
+                sizes="(min-width: 1024px) 50vw, 100vw"
                 fill
                 priority
                 className="object-cover object-center"
               />
-              {/* Darker branded reddish layover */}
-              <div className="absolute inset-0 bg-[#ae2f34]/30 mix-blend-multiply" />
-              <div className="absolute inset-0 bg-black/20" />
+              {/* Dark layover to improve visual depth and focus */}
+              <div className="absolute inset-0 bg-black/45 shadow-inner" />
             </div>
           </div>
 
@@ -942,6 +943,7 @@ export default function DashboardPage() {
             alt="Darkened BloomBox floral gift arrangement"
             fill
             sizes="100vw"
+            priority
             className="object-cover opacity-70"
           />
           <div className="absolute inset-0 bg-[#14090c]/78" />
@@ -1002,6 +1004,7 @@ export default function DashboardPage() {
                   alt="BloomBox handoff"
                   width={900}
                   height={900}
+                  priority
                   className="h-full w-full object-cover"
                 />
               </div>

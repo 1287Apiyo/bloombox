@@ -627,7 +627,7 @@ function OrderDetailModal({
                 <div key={idx} className="py-2 flex justify-between items-center">
                   <div className="flex items-center gap-3">
                     <div className="relative h-12 w-12 overflow-hidden rounded-md bg-black/5">
-                      <Image src={item.image || '/bloom1.png'} alt={item.productName} fill className="object-cover" />
+                      <Image src={item.image || '/bloom1.png'} alt={item.productName} fill sizes="48px" className="object-cover" />
                     </div>
                     <div>
                       <p className="font-medium">{item.productName}</p>
