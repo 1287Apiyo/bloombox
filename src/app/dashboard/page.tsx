@@ -545,40 +545,56 @@ export default function DashboardPage() {
       <main>
         {/* ---------- HERO ---------- */}
         <section className="relative overflow-hidden bg-bb-red">
-          {/* Background Split */}
-          <div className="absolute inset-0 flex flex-col lg:flex-row">
+          {/* Mobile only: full-bleed photo background with reddish shades */}
+          <div className="absolute inset-0 lg:hidden" aria-hidden="true">
+            <Image
+              src="/family-hero.jpg"
+              alt=""
+              sizes="100vw"
+              quality={90}
+              fill
+              priority
+              className="object-cover object-[center_30%]"
+            />
+            {/* Warm rose wash so the photo stays visible but branded */}
+            <div className="absolute inset-0 bg-[#ae2f34]/50 mix-blend-multiply" />
+            <div className="absolute inset-0 bg-gradient-to-b from-[#5c1215]/75 via-[#ae2f34]/45 to-[#3a0a0d]/92" />
+            <div className="absolute inset-0 bg-gradient-to-t from-[#2a0608]/80 via-transparent to-[#ae2f34]/25" />
+          </div>
+
+          {/* Desktop: solid red + side image split */}
+          <div className="absolute inset-0 hidden lg:flex lg:flex-row">
             <div className="flex-1 bg-bb-red" />
-            <div className="relative hidden w-full shrink-0 lg:block lg:h-auto lg:w-1/2">
+            <div className="relative w-1/2 shrink-0">
               <Image
                 src="/family-hero.jpg"
                 alt="BloomBox care ritual"
-                sizes="(min-width: 1536px) 50vw, (min-width: 1024px) 50vw, 100vw"
+                sizes="(min-width: 1536px) 50vw, 50vw"
                 quality={100}
                 fill
                 priority
                 className="object-cover object-center [image-rendering:high-quality]"
               />
-              {/* Soft edge only — keep the photo bright and crisp */}
               <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-black/10" />
             </div>
           </div>
 
-          {/* Content layer constrained by max-w-7xl for alignment with Navbar */}
+          {/* Content */}
           <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex min-h-0 flex-col lg:min-h-[800px] lg:flex-row">
-              <div className="flex flex-1 items-center py-8 sm:py-16 lg:py-0">
+            <div className="flex min-h-[min(78dvh,640px)] flex-col justify-end pb-10 pt-14 sm:min-h-[min(72dvh,700px)] sm:justify-center sm:py-16 lg:min-h-[800px] lg:flex-row lg:justify-start lg:py-0">
+              <div className="flex flex-1 items-end sm:items-center lg:items-center">
                 <div className="w-full max-w-xl">
                   <motion.div
-                    initial={{ opacity: 0, x: -24 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ duration: 0.7, ease: 'easeOut' }}
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.65, ease: 'easeOut' }}
                     className="space-y-4 sm:space-y-8"
                   >
-                    <span className="inline-block text-[10px] font-bold uppercase tracking-[0.2em] text-white/70 sm:text-xs sm:tracking-[0.26em]">
+                    <span className="inline-block text-[10px] font-bold uppercase tracking-[0.2em] text-white/85 sm:text-xs sm:tracking-[0.26em] sm:text-white/70">
                       Timed to your cycle, not the calendar
                     </span>
 
-                    <h1 className="text-3xl font-bold leading-[1.08] tracking-tight text-white sm:text-7xl lg:text-8xl">
+                    <h1 className="text-[2rem] font-bold leading-[1.08] tracking-tight text-white drop-shadow-sm sm:text-5xl lg:text-6xl">
                       Monthly Period Care, a Timed{' '}
                       <span className="text-bb-pink">Ritual.</span>
                     </h1>
@@ -588,20 +604,20 @@ export default function DashboardPage() {
                       monthly ritual of period essentials, comfort extras, and a reminder a day
                       ahead — so you’re never caught off guard. Starting at KSh 300.
                     </p>
-                    <p className="max-w-prose text-sm leading-relaxed text-white/95 sm:hidden">
+                    <p className="max-w-prose text-sm leading-relaxed text-white/90 drop-shadow-sm sm:hidden">
                       Cycle-aware care in Kenya from KSh 300 — essentials, comfort extras, and on-time reminders.
                     </p>
 
                     <div className="flex gap-2.5 sm:flex-wrap sm:gap-5">
                       <Link
                         href="/subscriptions"
-                        className="inline-flex flex-1 items-center justify-center rounded-full bg-bb-pink px-4 py-3 text-sm font-bold text-[#14090c] shadow-lg transition hover:bg-white sm:flex-none sm:px-8 sm:py-4"
+                        className="inline-flex flex-1 items-center justify-center rounded-full bg-bb-pink px-4 py-3.5 text-sm font-bold text-[#14090c] shadow-lg transition hover:bg-white sm:flex-none sm:px-8 sm:py-4"
                       >
                         Get started
                       </Link>
                       <Link
                         href="/cycle"
-                        className="inline-flex flex-1 items-center justify-center rounded-full border border-white/30 bg-white/5 px-4 py-3 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/10 sm:flex-none sm:px-8 sm:py-4"
+                        className="inline-flex flex-1 items-center justify-center rounded-full border border-white/40 bg-white/10 px-4 py-3.5 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/15 sm:flex-none sm:border-white/30 sm:bg-white/5 sm:px-8 sm:py-4"
                       >
                         Track cycle
                       </Link>
@@ -622,23 +638,9 @@ export default function DashboardPage() {
                   </motion.div>
                 </div>
               </div>
-              {/* Spacer for the image side */}
+              {/* Spacer for the image side (desktop) */}
               <div className="hidden flex-1 lg:block" />
             </div>
-          </div>
-
-          {/* Mobile hero image under copy */}
-          <div className="relative h-56 w-full sm:h-72 lg:hidden">
-            <Image
-              src="/family-hero.jpg"
-              alt="BloomBox care ritual"
-              sizes="100vw"
-              quality={90}
-              fill
-              priority
-              className="object-cover object-center"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
           </div>
         </section>
 
