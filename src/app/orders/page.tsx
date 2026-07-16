@@ -4,7 +4,6 @@ import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { motion } from 'framer-motion';
 import {
   subscribeToUserOrders,
   type CustomerOrder,
@@ -15,15 +14,6 @@ import {
 import { useAuth } from '../components/AuthProvider';
 import { Eyebrow, SiteFooter, SiteHeader } from '../components/BrandShell';
 
-// ---------- Animation presets ----------
-const fadeUp = {
-  hidden: { opacity: 0, y: 24 },
-  visible: { opacity: 1, y: 0 },
-};
-
-const viewportSettings = { once: true, amount: 0.05 };
-
-// ---------- Constants ----------
 const paidStatuses: OrderStatus[] = ['paid', 'preparing', 'out-for-delivery', 'delivered'];
 const finalStatuses: OrderStatus[] = ['delivered', 'cancelled'];
 const unpaidActiveWindowMs = 2 * 60 * 60 * 1000;
@@ -46,7 +36,7 @@ const orderImageRules = [
   { prefix: 'flowers', image: '/mockups/bloombox-gift-flowers.png' },
 ] as const;
 
-// ---------- Helper functions ----------
+// ---------- Helpers ----------
 function money(value: number) {
   return new Intl.NumberFormat('en-KE', {
     style: 'currency',
@@ -101,14 +91,17 @@ function getStatusLabel(order: CustomerOrder) {
   return 'Placed';
 }
 
+/** Soft status chips */
 function getStatusStyle(order: CustomerOrder) {
-  if (order.status === 'paid') return 'bg-emerald-600 text-white';
-  if (order.status === 'delivered') return 'bg-emerald-800 text-white';
-  if (order.status === 'pending-payment' || order.status === 'placed') return 'bg-[#FFC857] text-[#3d2a00]';
-  if (order.status === 'preparing') return 'bg-[#1B1F3B] text-white';
-  if (order.status === 'out-for-delivery') return 'bg-[#006a65] text-white';
-  if (order.status === 'cancelled') return 'bg-stone-600 text-white';
-  return 'bg-[#ae2f34] text-white';
+  if (order.status === 'delivered') return 'border-emerald-200 bg-emerald-50 text-emerald-800';
+  if (order.status === 'paid') return 'border-emerald-200 bg-emerald-50 text-emerald-800';
+  if (order.status === 'preparing') return 'border-stone-200 bg-stone-50 text-stone-700';
+  if (order.status === 'out-for-delivery') return 'border-teal-200 bg-[#e7fbf8] text-[#00504c]';
+  if (order.status === 'pending-payment' || order.status === 'placed') {
+    return 'border-amber-200 bg-[#fff8df] text-[#76574e]';
+  }
+  if (order.status === 'cancelled') return 'border-stone-200 bg-stone-100 text-stone-500';
+  return 'border-[#e0bfbd] bg-[#fff5f0] text-[#8c1520]';
 }
 
 function getTrackingSteps(order: CustomerOrder) {
@@ -122,24 +115,21 @@ function getTrackingSteps(order: CustomerOrder) {
   const delivered = order.status === 'delivered' || order.deliveryStatus === 'delivered';
 
   return [
-    { label: 'Order placed', detail: 'We received the order and saved the parcel details.', complete: true },
-    {
-      label: 'Payment successful',
-      detail: paymentSuccessful ? 'Payment is confirmed.' : 'Waiting for payment confirmation.',
-      complete: paymentSuccessful,
-    },
-    {
-      label: 'Preparing parcel',
-      detail: preparing ? 'The BloomBox is being packed.' : 'Packing starts after payment.',
-      complete: preparing,
-    },
-    {
-      label: 'Out for delivery',
-      detail: outForDelivery ? 'Courier is on the way.' : 'Courier has not been assigned yet.',
-      complete: outForDelivery,
-    },
-    { label: 'Delivered', detail: delivered ? 'Parcel delivered.' : 'Not delivered yet.', complete: delivered },
+    { label: 'Placed', complete: true },
+    { label: 'Paid', complete: paymentSuccessful },
+    { label: 'Preparing', complete: preparing },
+    { label: 'On the way', complete: outForDelivery },
+    { label: 'Delivered', complete: delivered },
   ];
+}
+
+function getActiveStepIndex(order: CustomerOrder) {
+  const steps = getTrackingSteps(order);
+  let last = 0;
+  steps.forEach((step, i) => {
+    if (step.complete) last = i;
+  });
+  return last;
 }
 
 function getDeliveryDetails(order: CustomerOrder): DeliveryDetails | null {
@@ -155,178 +145,228 @@ function getOrderImage(item: OrderItem) {
   return match?.image ?? item.image ?? '/bloom1.png';
 }
 
-// ---------- Order Card Component ----------
+// ---------- Progress line (shown inside dropdown) ----------
+function TrackingProgress({ order }: { order: CustomerOrder }) {
+  const steps = getTrackingSteps(order);
+  const activeIndex = getActiveStepIndex(order);
+
+  return (
+    <div className="w-full">
+      <div className="flex items-start justify-between gap-1">
+        {steps.map((step, index) => {
+          const done = step.complete;
+          const current = index === activeIndex;
+          return (
+            <div key={step.label} className="flex flex-1 flex-col items-center text-center">
+              <div className="relative flex w-full items-center justify-center">
+                {index > 0 && (
+                  <span
+                    className={`absolute right-1/2 left-0 top-1/2 h-px -translate-y-1/2 ${
+                      steps[index - 1].complete ? 'bg-[#006a65]' : 'bg-stone-200'
+                    }`}
+                  />
+                )}
+                {index < steps.length - 1 && (
+                  <span
+                    className={`absolute left-1/2 right-0 top-1/2 h-px -translate-y-1/2 ${
+                      done ? 'bg-[#006a65]' : 'bg-stone-200'
+                    }`}
+                  />
+                )}
+                <span
+                  className={`relative z-10 flex h-6 w-6 items-center justify-center rounded-full border text-[10px] font-bold ${
+                    done
+                      ? 'border-[#006a65] bg-[#006a65] text-white'
+                      : current
+                        ? 'border-[#ae2f34] bg-white text-[#ae2f34]'
+                        : 'border-stone-200 bg-white text-stone-400'
+                  }`}
+                >
+                  {done ? '✓' : index + 1}
+                </span>
+              </div>
+              <p
+                className={`mt-1.5 text-[10px] font-medium sm:text-[11px] ${
+                  done || current ? 'text-[#191c1d]' : 'text-stone-400'
+                }`}
+              >
+                {step.label}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function ChevronIcon({ open }: { open: boolean }) {
+  return (
+    <svg
+      className={`h-4 w-4 transition-transform duration-200 ${open ? 'rotate-180' : ''}`}
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      aria-hidden="true"
+    >
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+    </svg>
+  );
+}
+
+// ---------- Order card (thin rounded box + dropdown) ----------
 function OrderCard({
   order,
-  index,
   isOpen,
   toggleKey,
   onToggle,
 }: {
   order: CustomerOrder;
-  index: number;
   isOpen: boolean;
   toggleKey: string;
   onToggle: (orderId: string) => void;
 }) {
-  const steps = getTrackingSteps(order);
   const deliveryDetails = getDeliveryDetails(order);
   const orderItems = getOrderItems(order);
+  const thumb = orderItems[0] ? getOrderImage(orderItems[0]) : '/mockups/bloombox-open-box.png';
 
   return (
-    <motion.article
-      variants={fadeUp}
-      initial="hidden"
-      whileInView="visible"
-      viewport={viewportSettings}
-      transition={{ duration: 0.4 }}
-      className="overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm"
-    >
+    <article className="overflow-hidden rounded-2xl border border-stone-200/80 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
+      {/* Thin summary row */}
       <button
         type="button"
         onClick={() => onToggle(toggleKey)}
-        className="grid w-full gap-3 p-4 text-left transition hover:bg-[#fff5f0] md:grid-cols-[40px_minmax(0,1fr)_152px_150px_32px] md:items-center"
+        className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-[#fafaf9] sm:gap-4 sm:px-5 sm:py-3.5"
         aria-expanded={isOpen}
       >
-        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#191c1d] text-xs font-semibold text-white">
-          {index + 1}
-        </span>
-        <div>
-          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-stone-400">Order ID</p>
-          <p className="mt-1 text-sm font-semibold text-stone-950">#{order.id.slice(0, 8)}</p>
-          <p className="mt-1 text-xs text-stone-500">Placed {formatDate(order.createdAt)}</p>
+        <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl border border-stone-100 bg-stone-50 sm:h-12 sm:w-12">
+          <Image src={thumb} alt="" fill sizes="48px" className="object-cover" />
         </div>
-        <div className="md:justify-self-start">
-          <p className="mb-1 text-[10px] font-bold uppercase tracking-[0.16em] text-stone-400">Status</p>
-          <span
-            className={`inline-flex h-9 w-36 items-center justify-center rounded-md px-3 text-center text-[10px] font-bold uppercase tracking-[0.1em] shadow-sm ${getStatusStyle(order)}`}
-          >
-            {getStatusLabel(order)}
-          </span>
-        </div>
-        <div className="text-left md:text-right">
-          <p className="text-xs text-stone-500">Total</p>
-          <p className="mt-0.5 text-base font-semibold text-stone-950">{money(order.total ?? 0)}</p>
-          <p className="mt-0.5 text-xs text-stone-600">
-            {order.payment?.label ?? 'Payment'}: {order.payment?.status ?? 'pending'}
+
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="truncate text-sm font-semibold text-[#191c1d] sm:text-base">
+              Order #{order.id.slice(0, 8).toUpperCase()}
+            </p>
+            <span
+              className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${getStatusStyle(order)}`}
+            >
+              {getStatusLabel(order)}
+            </span>
+          </div>
+          <p className="mt-0.5 truncate text-xs text-stone-500">
+            {formatDate(order.createdAt)}
+            {orderItems.length > 0
+              ? ` · ${orderItems.length} item${orderItems.length === 1 ? '' : 's'}`
+              : ''}
           </p>
         </div>
-        <span className="flex h-8 w-8 items-center justify-center rounded border border-stone-200 text-base font-semibold text-stone-600 transition hover:border-[#ae2f34] hover:text-[#ae2f34]">
-          {isOpen ? '−' : '+'}
-        </span>
+
+        <div className="flex shrink-0 items-center gap-3">
+          <p className="text-sm font-semibold text-[#191c1d]">{money(order.total ?? 0)}</p>
+          <span
+            className={`flex h-8 w-8 items-center justify-center rounded-full border border-stone-200 text-stone-500 transition ${
+              isOpen ? 'border-[#ae2f34] bg-[#fff5f0] text-[#ae2f34]' : 'bg-white'
+            }`}
+          >
+            <ChevronIcon open={isOpen} />
+          </span>
+        </div>
       </button>
 
+      {/* Dropdown: steps + details */}
       {isOpen && (
-        <div className="grid gap-4 border-t border-stone-200 p-4 lg:grid-cols-[1fr_280px]">
-          <div>
-            <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Tracking</h3>
-            <div className="mt-3 overflow-hidden rounded border border-stone-200">
-              {steps.map((step, stepIndex) => (
-                <div
-                  key={step.label}
-                  className={`grid grid-cols-[22px_1fr] gap-3 p-3 ${
-                    stepIndex === steps.length - 1 ? '' : 'border-b border-stone-200'
-                  }`}
-                >
-                  <span
-                    className={`mt-1 h-3 w-3 rounded-sm border ${
-                      step.complete ? 'border-[#006a65] bg-[#006a65]' : 'border-stone-300 bg-white'
-                    }`}
-                  />
-                  <div>
-                    <p className={`text-sm font-semibold ${step.complete ? 'text-stone-950' : 'text-stone-500'}`}>
-                      {step.label}
-                    </p>
-                    <p className="mt-0.5 text-xs leading-5 text-stone-600">{step.detail}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+        <div className="border-t border-stone-100 px-4 pb-4 pt-3 sm:px-5 sm:pb-5">
+          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400">
+            Delivery steps
+          </p>
+          <TrackingProgress order={order} />
 
-            <div className="mt-5">
-              <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Items</h3>
-              <div className="mt-3 grid gap-2 md:grid-cols-2">
+          <div className="mt-5 grid gap-3 lg:grid-cols-[1.15fr_0.85fr]">
+            <div>
+              <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400">
+                Items
+              </p>
+              <div className="space-y-2">
                 {orderItems.length === 0 && (
-                  <p className="rounded border border-stone-200 p-3 text-xs text-stone-600">
-                    This older order does not have item details saved.
+                  <p className="rounded-xl border border-stone-100 bg-[#fafaf9] px-3 py-2.5 text-xs text-stone-500">
+                    No item details saved for this order.
                   </p>
                 )}
                 {orderItems.map((item) => (
                   <div
                     key={item.productId}
-                    className="grid grid-cols-[52px_1fr] gap-2 rounded border border-stone-200 p-2"
+                    className="flex items-center gap-3 rounded-xl border border-stone-100 bg-[#fafaf9] px-2.5 py-2"
                   >
-                    <div className="relative h-[52px] overflow-hidden rounded bg-stone-100">
+                    <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-stone-100 bg-white">
                       <Image
                         src={getOrderImage(item)}
                         alt={item.productName}
                         fill
-                        sizes="52px"
+                        sizes="40px"
                         className="object-cover"
                       />
                     </div>
-                    <div>
-                      <p className="text-xs font-semibold leading-4 text-stone-950">
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-medium text-[#191c1d]">
                         {item.productName ?? 'BloomBox item'}
                       </p>
-                      <p className="mt-1 text-xs text-stone-500">Qty {item.quantity}</p>
-                      <p className="mt-1 text-xs font-semibold text-[#ae2f34]">
-                        {item.priceNote ??
-                          (item.price === null ? 'Price pending' : money(item.price ?? 0))}
-                      </p>
+                      <p className="text-xs text-stone-500">Qty {item.quantity}</p>
                     </div>
+                    <p className="shrink-0 text-sm font-semibold text-[#ae2f34]">
+                      {item.priceNote ?? (item.price === null ? '—' : money(item.price ?? 0))}
+                    </p>
                   </div>
                 ))}
               </div>
             </div>
-          </div>
 
-          <aside className="rounded border border-stone-200 bg-[#fff5f0] p-4">
-            <h3 className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">Delivery address</h3>
-            {deliveryDetails ? (
-              <>
-                <p className="mt-3 text-sm font-semibold text-stone-950">
-                  {deliveryDetails.recipientName || 'Recipient not saved'}
+            <div className="space-y-2">
+              <div className="rounded-xl border border-stone-100 bg-[#fff5f0] px-3.5 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#ae2f34]">
+                  Delivery
                 </p>
-                <p className="mt-1 text-xs leading-5 text-stone-700">
-                  {deliveryDetails.phoneNumber || 'Phone not saved'}
-                </p>
-                <p className="mt-1 text-xs leading-5 text-stone-700">
-                  {[deliveryDetails.addressLine, deliveryDetails.town, deliveryDetails.county]
-                    .filter(Boolean)
-                    .join(', ') || 'Address not saved'}
-                </p>
-                {deliveryDetails.landmark && (
-                  <p className="mt-1 text-xs leading-5 text-stone-700">
-                    Landmark: {deliveryDetails.landmark}
-                  </p>
+                {deliveryDetails ? (
+                  <div className="mt-2 space-y-0.5 text-sm leading-6 text-[#584140]">
+                    <p className="font-medium text-[#191c1d]">
+                      {deliveryDetails.recipientName || 'Recipient not saved'}
+                    </p>
+                    <p className="text-xs">{deliveryDetails.phoneNumber || 'Phone not saved'}</p>
+                    <p className="text-xs">
+                      {[deliveryDetails.addressLine, deliveryDetails.town, deliveryDetails.county]
+                        .filter(Boolean)
+                        .join(', ') || 'Address not saved'}
+                    </p>
+                    {deliveryDetails.landmark ? (
+                      <p className="text-xs">Landmark: {deliveryDetails.landmark}</p>
+                    ) : null}
+                  </div>
+                ) : (
+                  <p className="mt-2 text-xs text-[#584140]">No delivery details on this order.</p>
                 )}
-                {deliveryDetails.deliveryNotes && (
-                  <p className="mt-1 text-xs leading-5 text-stone-700">
-                    Note: {deliveryDetails.deliveryNotes}
-                  </p>
-                )}
-              </>
-            ) : (
-              <p className="mt-3 text-xs leading-5 text-stone-700">
-                This older order was created before delivery details were added.
-              </p>
-            )}
+              </div>
 
-            <div className="mt-4 border-t border-stone-300 pt-4">
-              <p className="text-xs text-stone-500">Receipt</p>
-              <p className="mt-1 text-sm font-semibold text-stone-950">
-                {order.payment?.receiptNumber ?? 'Pending payment'}
-              </p>
+              <div className="rounded-xl border border-stone-100 bg-white px-3.5 py-3">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400">
+                  Payment
+                </p>
+                <p className="mt-1.5 text-sm font-medium text-[#191c1d]">
+                  {order.payment?.label ?? 'Payment method'}
+                </p>
+                <p className="text-xs text-stone-500">
+                  {order.payment?.status ?? 'pending'}
+                  {order.payment?.receiptNumber ? ` · ${order.payment.receiptNumber}` : ''}
+                </p>
+              </div>
             </div>
-          </aside>
+          </div>
         </div>
       )}
-    </motion.article>
+    </article>
   );
 }
 
-// ---------- Main Page ----------
+// ---------- Page ----------
 export default function OrdersPage() {
   const router = useRouter();
   const { loading, user } = useAuth();
@@ -357,10 +397,10 @@ export default function OrdersPage() {
     return () => window.clearInterval(timer);
   }, []);
 
-  const latestOrder = useMemo(() => orders[0], [orders]);
   const activeOrders = useMemo(() => orders.filter((order) => isActiveOrder(order, now)), [now, orders]);
   const pastOrders = orders;
   const visibleOrders = selectedTab === 'active' ? activeOrders : pastOrders;
+
   const orderStats = useMemo(() => {
     const deliveredOrders = orders.filter((order) => order.status === 'delivered').length;
     const totalSpend = orders.reduce((sum, order) => sum + (order.total ?? 0), 0);
@@ -378,105 +418,72 @@ export default function OrdersPage() {
       <SiteHeader />
 
       <main className="pb-16">
-        {/* ---------- HERO SECTION ---------- */}
+        {/* Hero */}
         <section className="border-b border-stone-200 bg-white">
-          <motion.div
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={viewportSettings}
-            transition={{ duration: 0.6 }}
-            className="mx-auto grid max-w-7xl gap-6 px-5 py-9 sm:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-end lg:py-12"
-          >
-            <div>
-              <Eyebrow>Orders</Eyebrow>
-              <h1 className="mt-4 font-serif text-4xl font-semibold leading-none text-[#191c1d] sm:text-5xl">
-                Track every BloomBox from cart to doorstep.
-              </h1>
-              <p className="mt-4 max-w-2xl text-sm leading-6 text-[#584140]">
-                Follow payment status, packing progress, delivery details, and what went into each parcel.
-              </p>
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-                <Link
-                  href="/shop"
-                  className="rounded bg-[#ae2f34] px-5 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520]"
-                >
-                  Continue shopping
-                </Link>
-                <Link
-                  href="/checkout"
-                  className="rounded border border-[#ae2f34] px-5 py-2.5 text-center text-sm font-semibold text-[#ae2f34] transition hover:bg-[#fff5f0]"
-                >
-                  Go to checkout
-                </Link>
+          <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:py-14">
+            <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+              <div className="max-w-2xl">
+                <Eyebrow>Orders</Eyebrow>
+                <h1 className="mt-4 font-serif text-4xl font-semibold leading-none text-[#191c1d] sm:text-5xl">
+                  Your BloomBox parcels
+                </h1>
+                <p className="mt-4 max-w-xl text-base leading-7 text-[#584140]">
+                  Track payment, packing, and delivery for every order — all in one calm place.
+                </p>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <Link
+                    href="/shop"
+                    className="bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8c1520]"
+                  >
+                    Continue shopping
+                  </Link>
+                  <Link
+                    href="/checkout"
+                    className="border border-[#ae2f34] px-5 py-3 text-sm font-semibold text-[#ae2f34] transition hover:bg-[#fff5f0]"
+                  >
+                    Go to checkout
+                  </Link>
+                </div>
               </div>
-            </div>
 
-            <div className="overflow-hidden rounded-lg border border-stone-200 bg-[#fff5f0] shadow-sm">
-              <div className="grid md:grid-cols-[1fr_1fr]">
-                <div className="border-b border-stone-200 p-4 md:border-b-0 md:border-r">
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">Latest order</p>
-                  <p className="mt-2 font-serif text-2xl font-semibold text-[#191c1d]">
-                    {latestOrder ? getStatusLabel(latestOrder) : 'No orders yet'}
-                  </p>
-                  <p className="mt-2 text-xs leading-5 text-[#584140]">
-                    {latestOrder
-                      ? `#${latestOrder.id.slice(0, 10)}`
-                      : 'Checkout will create your first order.'}
-                  </p>
-                </div>
-                <div className="grid grid-cols-2">
-                  <div className="border-b border-r border-stone-200 p-4">
-                    <p className="text-xl font-semibold text-[#ae2f34]">{orders.length}</p>
-                    <p className="mt-1 text-xs uppercase tracking-[0.16em] text-stone-500">Orders</p>
+              <div className="grid w-full max-w-md grid-cols-2 gap-2 sm:grid-cols-4">
+                {[
+                  { label: 'Orders', value: String(orders.length) },
+                  { label: 'Active', value: String(orderStats.activeOrders) },
+                  { label: 'Delivered', value: String(orderStats.deliveredOrders) },
+                  { label: 'Spent', value: money(orderStats.totalSpend) },
+                ].map((stat) => (
+                  <div
+                    key={stat.label}
+                    className="rounded-2xl border border-stone-200/80 bg-[#fff5f0] px-3 py-3"
+                  >
+                    <p className="text-base font-semibold text-[#191c1d] sm:text-lg">{stat.value}</p>
+                    <p className="mt-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#ae2f34]">
+                      {stat.label}
+                    </p>
                   </div>
-                  <div className="border-b border-stone-200 p-4">
-                    <p className="text-xl font-semibold text-[#ae2f34]">{orderStats.activeOrders}</p>
-                    <p className="mt-1 text-xs uppercase tracking-[0.16em] text-stone-500">Active</p>
-                  </div>
-                  <div className="border-r border-stone-200 p-4">
-                    <p className="text-xl font-semibold text-[#ae2f34]">{orderStats.deliveredOrders}</p>
-                    <p className="mt-1 text-xs uppercase tracking-[0.16em] text-stone-500">Delivered</p>
-                  </div>
-                  <div className="p-4">
-                    <p className="text-xl font-semibold text-[#ae2f34]">{money(orderStats.totalSpend)}</p>
-                    <p className="mt-1 text-xs uppercase tracking-[0.16em] text-stone-500">Total</p>
-                  </div>
-                </div>
+                ))}
               </div>
             </div>
-          </motion.div>
+          </div>
         </section>
 
-        {/* ---------- CONTENT ---------- */}
-        <section className="mx-auto max-w-7xl px-5 py-8 sm:px-8">
+        <section className="mx-auto max-w-7xl px-5 py-10 sm:px-8">
           {error && (
-            <motion.div
-              variants={fadeUp}
-              initial="hidden"
-              animate="visible"
-              className="mb-6 rounded border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-800"
-            >
+            <div className="mb-6 border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-800">
               {error}
-            </motion.div>
+            </div>
           )}
 
           {loading && (
-            <div className="rounded border border-stone-200 bg-white p-8 text-sm text-stone-600">
-              Loading your order history...
+            <div className="border border-stone-200 bg-white p-8 text-sm text-stone-600">
+              Loading your orders…
             </div>
           )}
 
           {!loading && orders.length === 0 && (
-            <motion.div
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={viewportSettings}
-              transition={{ duration: 0.5 }}
-              className="grid overflow-hidden rounded-lg border border-stone-200 bg-white shadow-sm lg:grid-cols-[0.8fr_1.2fr]"
-            >
-              <div className="relative min-h-[320px] bg-stone-100">
+            <div className="grid border border-stone-200 bg-white lg:grid-cols-[0.85fr_1.15fr]">
+              <div className="relative min-h-[280px] bg-stone-100">
                 <Image
                   src="/mockups/bloombox-open-box.png"
                   alt="BloomBox package"
@@ -485,134 +492,87 @@ export default function OrdersPage() {
                   className="object-cover"
                 />
               </div>
-              <div className="p-8 lg:p-10">
+              <div className="flex flex-col justify-center p-8 lg:p-10">
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">No orders yet</p>
-                <h2 className="mt-4 font-serif text-4xl font-semibold text-stone-950">
-                  Your first parcel will appear here.
+                <h2 className="mt-3 font-serif text-3xl font-semibold text-[#191c1d] sm:text-4xl">
+                  Your first parcel will show up here.
                 </h2>
-                <p className="mt-3 max-w-xl text-sm leading-6 text-stone-600">
-                  Once you place and pay for an order, this page becomes your delivery timeline.
+                <p className="mt-3 max-w-md text-sm leading-6 text-stone-600">
+                  After you place and pay for an order, you can track packing and delivery on this page.
                 </p>
                 <Link
                   href="/shop"
-                  className="mt-7 inline-flex rounded bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8c1520]"
+                  className="mt-6 inline-flex w-fit bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8c1520]"
                 >
-                  Shop catalog
+                  Browse the shop
                 </Link>
               </div>
-            </motion.div>
+            </div>
           )}
 
           {orders.length > 0 && (
-            <div>
-              {/* ---------- Tabs ---------- */}
-              <div className="mb-5 inline-flex overflow-hidden rounded border border-stone-200 bg-white p-1 shadow-sm">
-                {[
-                  { id: 'active' as const, label: 'Active', count: activeOrders.length },
-                  { id: 'past' as const, label: 'Past orders', count: pastOrders.length },
-                ].map((tab) => (
-                  <button
-                    key={tab.id}
-                    type="button"
-                    onClick={() => setSelectedTab(tab.id)}
-                    className={`px-5 py-2 text-sm font-semibold transition ${
-                      selectedTab === tab.id
-                        ? 'bg-[#ae2f34] text-white'
-                        : 'text-stone-700 hover:bg-[#fff5f0] hover:text-[#ae2f34]'
-                    }`}
-                  >
-                    {tab.label}
-                    <span className="ml-2 text-xs opacity-80">{tab.count}</span>
-                  </button>
-                ))}
-              </div>
-
-              {/* ---------- Grid: key + list ---------- */}
-              <div className="grid gap-6 lg:grid-cols-[230px_1fr]">
-                {/* Delivery key */}
-                <aside className="lg:sticky lg:top-28 lg:self-start">
-                  <motion.div
-                    variants={fadeUp}
-                    initial="hidden"
-                    whileInView="visible"
-                    viewport={viewportSettings}
-                    transition={{ duration: 0.4 }}
-                    className="rounded-lg border border-stone-200 bg-white p-4 shadow-sm"
-                  >
-                    <h2 className="font-serif text-xl font-semibold text-[#191c1d]">Delivery key</h2>
-                    <div className="mt-4 grid gap-2 text-xs leading-5 text-stone-600">
-                      {[
-                        ['Awaiting', 'Payment not confirmed.', 'bg-[#FFC857] text-[#3d2a00]'],
-                        ['Paid', 'Payment confirmed.', 'bg-emerald-600 text-white'],
-                        ['Preparing', 'Parcel is being assembled.', 'bg-[#1B1F3B] text-white'],
-                        ['Delivery', 'Courier has left for the address.', 'bg-[#006a65] text-white'],
-                      ].map(([label, detail, style]) => (
-                        <div key={label} className="grid grid-cols-[112px_1fr] items-center gap-3">
-                          <span
-                            className={`inline-flex h-8 w-28 items-center justify-center rounded-md px-2 text-center text-[10px] font-bold uppercase tracking-[0.1em] ${style}`}
-                          >
-                            {label}
-                          </span>
-                          <span>{detail}</span>
-                        </div>
-                      ))}
-                      <p className="pt-2 text-[11px] leading-5 text-stone-500">
-                        Unpaid active orders leave this tab after 2 hours.
-                      </p>
-                    </div>
-                    <Link
-                      href="/shop"
-                      className="mt-5 inline-flex w-full justify-center rounded border border-[#ae2f34] px-3 py-2 text-sm font-semibold text-[#ae2f34] transition hover:bg-[#fff5f0]"
+            <>
+              {/* Tabs */}
+              <div className="mb-6 flex flex-col gap-4 border-b border-stone-200 pb-4 sm:flex-row sm:items-end sm:justify-between">
+                <div>
+                  <h2 className="font-serif text-2xl font-semibold text-[#191c1d] sm:text-3xl">
+                    {selectedTab === 'active' ? 'Active orders' : 'All orders'}
+                  </h2>
+                  <p className="mt-1 text-sm text-stone-600">
+                    {selectedTab === 'active'
+                      ? 'Orders still moving through payment, packing, or delivery.'
+                      : 'Full history including delivered and cancelled orders.'}
+                  </p>
+                </div>
+                <div className="inline-flex overflow-hidden rounded-full border border-stone-200 bg-white p-0.5">
+                  {[
+                    { id: 'active' as const, label: 'Active', count: activeOrders.length },
+                    { id: 'past' as const, label: 'All', count: pastOrders.length },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      type="button"
+                      onClick={() => setSelectedTab(tab.id)}
+                      className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
+                        selectedTab === tab.id
+                          ? 'bg-[#ae2f34] text-white'
+                          : 'text-stone-600 hover:text-[#ae2f34]'
+                      }`}
                     >
-                      Add items
-                    </Link>
-                  </motion.div>
-                </aside>
-
-                {/* Order list */}
-                <section>
-                  <div className="mb-4 flex flex-col justify-between gap-2 border-b border-stone-200 pb-3 sm:flex-row sm:items-end">
-                    <div>
-                      <h2 className="font-serif text-2xl font-semibold text-[#191c1d]">
-                        {selectedTab === 'active' ? 'Active orders' : 'Past orders'}
-                      </h2>
-                      <p className="mt-1 text-xs leading-5 text-stone-600">
-                        {selectedTab === 'active'
-                          ? 'Orders still waiting for payment, packing, courier dispatch, or delivery.'
-                          : 'Full order history, including active, delivered, cancelled, and unpaid orders.'}
-                      </p>
-                    </div>
-                    <span className="w-fit rounded border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-700 shadow-sm">
-                      {visibleOrders.length} shown
-                    </span>
-                  </div>
-
-                  {visibleOrders.length === 0 ? (
-                    <div className="rounded-lg border border-stone-200 bg-white p-5 shadow-sm">
-                      <h3 className="font-serif text-xl font-semibold text-stone-950">
-                        No active orders right now.
-                      </h3>
-                      <p className="mt-2 text-xs leading-5 text-stone-600">
-                        Paid and delivered orders stay in Past Orders. Unpaid orders leave Active after 2 hours.
-                      </p>
-                    </div>
-                  ) : (
-                    <div className="space-y-3">
-                      {visibleOrders.map((order, index) => (
-                        <OrderCard
-                          key={`${selectedTab}-${order.id}`}
-                          order={order}
-                          index={index}
-                          isOpen={openOrderIds.includes(`${selectedTab}-${order.id}`)}
-                          toggleKey={`${selectedTab}-${order.id}`}
-                          onToggle={toggleOrder}
-                        />
-                      ))}
-                    </div>
-                  )}
-                </section>
+                      {tab.label}
+                      <span className="ml-1 opacity-80">({tab.count})</span>
+                    </button>
+                  ))}
+                </div>
               </div>
-            </div>
+
+              {visibleOrders.length === 0 ? (
+                <div className="border border-stone-200 bg-white p-8 text-center sm:p-10">
+                  <h3 className="font-serif text-2xl font-semibold text-[#191c1d]">No active orders</h3>
+                  <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-stone-600">
+                    Delivered orders live under All. Unpaid orders leave Active after 2 hours.
+                  </p>
+                  <Link
+                    href="/shop"
+                    className="mt-6 inline-flex bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white hover:bg-[#8c1520]"
+                  >
+                    Shop care items
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-2.5">
+                  {visibleOrders.map((order) => (
+                    <OrderCard
+                      key={`${selectedTab}-${order.id}`}
+                      order={order}
+                      isOpen={openOrderIds.includes(`${selectedTab}-${order.id}`)}
+                      toggleKey={`${selectedTab}-${order.id}`}
+                      onToggle={toggleOrder}
+                    />
+                  ))}
+                </div>
+              )}
+            </>
           )}
         </section>
       </main>

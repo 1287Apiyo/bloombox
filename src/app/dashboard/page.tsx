@@ -164,20 +164,21 @@ const journeySteps = [
 
 const funnelSteps = [
   {
-    title: '1. Capture',
+    step: '01',
+    title: 'Capture',
     text: 'The sign-up sheet saves name, email, WhatsApp number, interest, budget, and source.',
   },
   {
-    title: '2. Qualify',
-    text: 'Admins move leads through New, Qualified, WhatsApp Contacted, Checkout Ready, Won, or Nurture.',
+    step: '02',
+    title: 'Qualify',
+    text: 'The team reviews the inquiry, adds notes, and decides the right care path.',
   },
   {
-    title: '3. WhatsApp',
-    text: 'Each lead has a WhatsApp follow-up action with a prefilled BloomBox message.',
+    step: '03',
+    title: 'Follow up',
+    text: 'Open WhatsApp with a ready BloomBox message and guide the customer to checkout.',
   },
 ];
-
-const pipelineStages = ['New', 'Qualified', 'WhatsApp contacted', 'Checkout ready', 'Won', 'Nurture'];
 
 const heroStats = [
   { label: 'Monthly subscribers', value: '2,400+' },
@@ -611,14 +612,14 @@ export default function DashboardPage() {
 
         {/* ---------- SUBSCRIPTION JOURNEY ---------- */}
         <section className="border-b border-stone-300 bg-white">
-          <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
+          <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
             <motion.div
               variants={fadeUp}
               initial="hidden"
               whileInView="visible"
               viewport={viewportSettings}
               transition={{ duration: 0.6 }}
-              className="mb-8 flex flex-col justify-between gap-4 md:flex-row md:items-end"
+              className="mb-10 flex flex-col justify-between gap-4 md:flex-row md:items-end md:mb-14"
             >
               <div>
                 <h2 className="font-sans text-4xl font-semibold text-[#ae2f34]">Subscription journey</h2>
@@ -631,31 +632,58 @@ export default function DashboardPage() {
               </Link>
             </motion.div>
 
-            <motion.div
+            {/* Connected circle path — horizontal on desktop, vertical on mobile */}
+            <motion.ol
               variants={staggerContainer}
               initial="hidden"
               whileInView="visible"
               viewport={viewportSettings}
-              className="grid gap-3 md:grid-cols-3 xl:grid-cols-6"
+              className="relative flex flex-col gap-0 md:flex-row md:items-start md:justify-between"
             >
-              {journeySteps.map((step) => (
-                <motion.div
+              {/* Continuous line behind circles (desktop) */}
+              <div
+                className="pointer-events-none absolute left-0 right-0 top-10 hidden h-0.5 bg-[#e0bfbd] md:block"
+                aria-hidden="true"
+              />
+              {/* Continuous line (mobile) */}
+              <div
+                className="pointer-events-none absolute bottom-4 left-10 top-4 w-0.5 bg-[#e0bfbd] md:hidden"
+                aria-hidden="true"
+              />
+
+              {journeySteps.map((step, index) => (
+                <motion.li
                   key={step.title}
                   variants={fadeUp}
-                  transition={{ duration: 0.5 }}
-                  className="h-full"
+                  transition={{ duration: 0.45 }}
+                  className="relative z-10 flex flex-1 flex-row gap-4 pb-10 last:pb-0 md:flex-col md:items-center md:gap-0 md:pb-0 md:text-center"
                 >
                   <Link
                     href={step.href}
-                    className="group flex h-full flex-col border border-stone-300 bg-[#f8f9fa] p-4 hover:border-[#ae2f34] hover:bg-[#fff5f0]"
+                    className="group flex flex-row items-start gap-4 md:flex-col md:items-center"
                   >
-                    <StepIcon name={step.icon} className="mb-3 h-8 w-8 text-[#ae2f34]" />
-                    <h3 className="font-sans text-2xl font-semibold text-[#191c1d]">{step.title}</h3>
-                    <p className="mt-2 text-sm leading-5 text-stone-600">{step.text}</p>
+                    {/* Numbered circle */}
+                    <span className="relative z-10 flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-2 border-[#ae2f34] bg-white text-[#ae2f34] shadow-sm transition group-hover:bg-[#ae2f34] group-hover:text-white">
+                      <span className="flex flex-col items-center justify-center">
+                        <StepIcon name={step.icon} className="h-6 w-6" />
+                        <span className="mt-0.5 text-[10px] font-bold tracking-wide">
+                          {String(index + 1).padStart(2, '0')}
+                        </span>
+                      </span>
+                    </span>
+
+                    <span className="min-w-0 flex-1 pt-1 md:mt-5 md:px-2 md:pt-0">
+                      <span className="block font-sans text-lg font-semibold text-[#191c1d] group-hover:text-[#ae2f34] md:text-xl">
+                        {step.title}
+                      </span>
+                      <span className="mt-1.5 block text-sm leading-6 text-stone-600">
+                        {step.text}
+                      </span>
+                    </span>
                   </Link>
-                </motion.div>
+                </motion.li>
               ))}
-            </motion.div>
+            </motion.ol>
           </div>
         </section>
 
@@ -774,76 +802,79 @@ export default function DashboardPage() {
           </motion.div>
         </section>
 
-        {/* ---------- SALES FUNNEL EXPLAINER (Delilah) ---------- */}
+        {/* ---------- HOW FOLLOW-UP WORKS ---------- */}
         <section className="border-b border-stone-300 bg-[#fff5f0]">
-          <div className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[0.72fr_1.28fr] lg:px-8">
-            <motion.div
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={viewportSettings}
-              transition={{ duration: 0.6 }}
-            >
-              <p className="w-fit bg-[#006a65] px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-white">WhatsApp follow-up</p>
-              <h2 className="mt-4 font-sans text-4xl font-semibold text-[#191c1d]">Sales funnel and tracking.</h2>
-              <p className="mt-3 max-w-xl text-base leading-7 text-[#584140]">
-                When someone fills the sign-up sheet, the record goes into the BloomBox lead pipeline. Admins can qualify the lead, add notes, and open WhatsApp follow-up from the lead card.
-              </p>
-              <Link href="/admin/leads" className="mt-6 inline-flex bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8c1520]">
-                Open lead pipeline
-              </Link>
-              <DelilahGuide />
-            </motion.div>
-
-            <div className="grid gap-4">
-              <motion.div
-                variants={staggerContainer}
-                initial="hidden"
-                whileInView="visible"
-                viewport={viewportSettings}
-                className="grid gap-4 md:grid-cols-3"
-              >
-                {funnelSteps.map((step) => (
-                  <motion.article
-                    key={step.title}
-                    variants={fadeUp}
-                    transition={{ duration: 0.5 }}
-                    className="border border-stone-300 bg-white p-5"
-                  >
-                    <h3 className="font-sans text-2xl font-semibold text-[#ae2f34]">{step.title}</h3>
-                    <p className="mt-3 text-sm leading-6 text-stone-600">{step.text}</p>
-                  </motion.article>
-                ))}
-              </motion.div>
-
+          <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
+            <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
               <motion.div
                 variants={fadeUp}
                 initial="hidden"
                 whileInView="visible"
                 viewport={viewportSettings}
                 transition={{ duration: 0.6 }}
-                className="border border-[#006a65] bg-white p-5"
               >
-                <div className="flex flex-col justify-between gap-4 md:flex-row md:items-center">
-                  <div>
-                    <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#006a65]">Pipeline stages</p>
-                    <p className="mt-2 text-sm leading-6 text-stone-600">Track and qualify every inquiry after the form is submitted.</p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {pipelineStages.map((stage) => (
-                      <span key={stage} className="border border-stone-300 bg-[#f8f9fa] px-3 py-1.5 text-xs font-semibold text-stone-700">
-                        {stage}
-                      </span>
-                    ))}
-                  </div>
+                <p className="w-fit bg-[#006a65] px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-white">
+                  Care follow-up
+                </p>
+                <h2 className="mt-4 font-sans text-4xl font-semibold text-[#191c1d]">
+                  From form to WhatsApp, without the scramble.
+                </h2>
+                <p className="mt-3 max-w-xl text-base leading-7 text-[#584140]">
+                  When someone shares their details below, BloomBox saves the request, the team reviews it, and follow-up can open in WhatsApp with a ready message.
+                </p>
+                <div className="mt-6 flex flex-wrap gap-3">
+                  <a href="#care-planner" className="bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8c1520]">
+                    Fill the form
+                  </a>
+                  <Link href="/admin/leads" className="border border-[#191c1d] px-5 py-3 text-sm font-semibold text-[#191c1d] transition hover:bg-white">
+                    Open lead list
+                  </Link>
                 </div>
+                <DelilahGuide />
               </motion.div>
+
+              {/* Simple 3-step path with connecting line */}
+              <motion.ol
+                variants={staggerContainer}
+                initial="hidden"
+                whileInView="visible"
+                viewport={viewportSettings}
+                className="relative grid gap-0"
+              >
+                <div
+                  className="pointer-events-none absolute bottom-8 left-8 top-8 w-0.5 bg-[#e0bfbd]"
+                  aria-hidden="true"
+                />
+                {funnelSteps.map((step, index) => (
+                  <motion.li
+                    key={step.title}
+                    variants={fadeUp}
+                    transition={{ duration: 0.45 }}
+                    className="relative z-10 flex gap-5 pb-8 last:pb-0"
+                  >
+                    <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-[#006a65] bg-white font-sans text-lg font-bold text-[#006a65]">
+                      {step.step}
+                    </span>
+                    <div className="flex-1 border border-stone-300 bg-white p-5">
+                      <div className="flex items-center gap-2">
+                        <h3 className="font-sans text-2xl font-semibold text-[#191c1d]">{step.title}</h3>
+                        {index < funnelSteps.length - 1 && (
+                          <span className="hidden text-xs font-semibold uppercase tracking-wide text-stone-400 sm:inline">
+                            then
+                          </span>
+                        )}
+                      </div>
+                      <p className="mt-2 text-sm leading-6 text-stone-600">{step.text}</p>
+                    </div>
+                  </motion.li>
+                ))}
+              </motion.ol>
             </div>
           </div>
         </section>
 
         {/* ---------- SIGN-UP SHEET (Lead Form with direct WhatsApp) ---------- */}
-        <section className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[0.78fr_1fr] lg:px-8">
+        <section id="care-planner" className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[0.78fr_1fr] lg:px-8">
           <motion.div
             variants={fadeUp}
             initial="hidden"
@@ -855,7 +886,7 @@ export default function DashboardPage() {
             <p className="w-fit bg-[#006a65] px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-white">Sign-up sheet</p>
             <h2 className="mt-4 font-sans text-4xl font-semibold text-[#ae2f34]">Find your BloomBox fit.</h2>
             <p className="mt-3 max-w-xl text-base leading-7 text-[#584140]">
-              Choose the care path you are considering. This information is saved to Admin Leads for qualification, notes, and WhatsApp follow-up.
+              Choose the care path you are considering. We save your details so the team can follow up with the right plan and a WhatsApp message when needed.
             </p>
           </motion.div>
 
@@ -865,15 +896,15 @@ export default function DashboardPage() {
             whileInView="visible"
             viewport={viewportSettings}
             transition={{ duration: 0.6 }}
-            className="rounded-lg border border-stone-200 bg-white p-6 shadow-sm sm:p-8"
+            className="border border-stone-200 bg-white p-6 sm:p-8"
           >
             <form onSubmit={handleLeadSubmit} className="space-y-6">
-          <div className="rounded-md bg-[#006a65] p-4">
-  <p className="text-xs font-bold uppercase tracking-[0.16em] text-white">WhatsApp enabled</p>
-  <p className="mt-2 text-sm leading-6 text-white">
-    Add a WhatsApp number so BloomBox can follow up quickly from the lead pipeline.
-  </p>
-</div>
+              <div className="border border-[#006a65] bg-[#e7fbf8] p-4">
+                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#006a65]">WhatsApp follow-up</p>
+                <p className="mt-2 text-sm leading-6 text-[#00504c]">
+                  Add a WhatsApp number so BloomBox can reply quickly after you send this form.
+                </p>
+              </div>
 
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="grid gap-2 text-sm font-semibold text-stone-700">
