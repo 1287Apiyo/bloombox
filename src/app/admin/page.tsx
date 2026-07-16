@@ -22,6 +22,7 @@ import {
   updateOrderStatus,
   updateLeadStage,
   updatePartnerInquiryStatus,
+  type LeadStage,
   type CustomerOrder,
   type CustomerSubscription,
   type NewsletterSubscriber,
