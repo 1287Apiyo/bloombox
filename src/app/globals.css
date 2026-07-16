@@ -182,9 +182,7 @@ textarea {
   }
 }
 
-main {
-  padding-bottom: max(5rem, env(safe-area-inset-bottom, 0px));
-}
+/* base main padding replaced by FAB-aware rule below */
 
 /* Shared mobile-friendly section rhythm */
 .bb-section {
@@ -201,11 +199,62 @@ main {
   }
 }
 
-/* Prevent fixed chrome from overlapping interactive content on phones */
-.bb-access-trigger,
-.bb-access-panel {
-  margin-bottom: env(safe-area-inset-bottom, 0px);
-  margin-right: env(safe-area-inset-right, 0px);
+/* Floating action stack — fixed right side, vertical only, always on top while scrolling */
+:root {
+  --bb-float-gap: 0.85rem;
+  --bb-fab-size: 4rem; /* 64px — easier to tap on phones */
+  /* Sit just above typical footer / home-indicator, not mid-screen */
+  --bb-float-edge: max(0.875rem, env(safe-area-inset-right, 0px));
+  --bb-float-bottom: max(1.25rem, env(safe-area-inset-bottom, 0px));
+}
+
+@media (min-width: 640px) {
+  :root {
+    --bb-fab-size: 4.25rem; /* 68px on larger screens */
+    --bb-float-gap: 0.9rem;
+    --bb-float-edge: 1.5rem;
+    --bb-float-bottom: 1.5rem;
+  }
+}
+
+.bb-float-stack {
+  position: fixed !important;
+  top: auto !important;
+  left: auto !important;
+  right: var(--bb-float-edge) !important;
+  bottom: var(--bb-float-bottom) !important;
+  z-index: 1100 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex-wrap: nowrap !important;
+  align-items: center !important;
+  justify-content: flex-end !important;
+  gap: var(--bb-float-gap);
+  width: var(--bb-fab-size);
+  max-width: var(--bb-fab-size);
+  margin: 0;
+  padding: 0;
+  pointer-events: none; /* only children receive clicks */
+  transform: none !important;
+}
+
+.bb-float-stack > * {
+  pointer-events: auto;
+  flex-shrink: 0;
+}
+
+.bb-float-stack .bb-fab {
+  width: var(--bb-fab-size);
+  height: var(--bb-fab-size);
+  min-width: var(--bb-fab-size);
+  min-height: var(--bb-fab-size);
+  border-radius: 9999px !important;
+  box-shadow: 0 8px 24px rgba(20, 9, 12, 0.22);
+}
+
+/* Room so last content isn’t hidden under the 3 FABs */
+main {
+  padding-bottom: max(calc(var(--bb-fab-size) * 3 + var(--bb-float-gap) * 2 + 2.5rem), env(safe-area-inset-bottom, 0px)) !important;
 }
 
 /* Compact touch targets stay at least ~44px where buttons are small */

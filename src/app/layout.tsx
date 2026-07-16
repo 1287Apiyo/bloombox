@@ -113,6 +113,7 @@ export default function RootLayout({
         />
         <AuthProvider>
           {children}
+          {/* Fixed right-side FABs: subscriptions, WhatsApp lead, accessibility — always visible while scrolling */}
           <AccessibilityAssist />
         </AuthProvider>
       </body>

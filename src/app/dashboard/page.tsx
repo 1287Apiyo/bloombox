@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type UIEvent } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
@@ -203,14 +203,6 @@ function PlayIcon() {
   );
 }
 
-function ChatIcon() {
-  return (
-    <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M7 8h10M7 12h7m-9 8 3.5-3H18a3 3 0 0 0 3-3V6a3 3 0 0 0-3-3H6a3 3 0 0 0-3 3v8a3 3 0 0 0 3 3h1v3Z" />
-    </svg>
-  );
-}
-
 // ---------- Signature hero visual: a 28-day delivery dial ----------
 // The product's whole promise is "timed to the cycle, not the calendar."
 // This dial makes that literal: 28 days ringed around a dial, with the
@@ -407,6 +399,23 @@ function StepIcon({ name, className = 'h-8 w-8' }: { name: string; className?: s
   }
 }
 
+/** Chunk items into pairs for mobile “2 visible, scroll to next 2” carousels */
+function chunkPairs<T>(items: T[]): T[][] {
+  const pairs: T[][] = [];
+  for (let i = 0; i < items.length; i += 2) {
+    pairs.push(items.slice(i, i + 2));
+  }
+  return pairs;
+}
+
+function getSnapPageIndex(container: HTMLDivElement) {
+  const width = container.clientWidth || 1;
+  return Math.min(
+    Math.max(0, Math.round(container.scrollLeft / width)),
+    Math.max(0, Math.ceil(container.scrollWidth / width) - 1),
+  );
+}
+
 // ---------- Collection card – static (no animation) ----------
 function CollectionCard({
   collection,
@@ -415,7 +424,7 @@ function CollectionCard({
 }: {
   collection: (typeof collections)[number];
   large?: boolean;
-  /** Compact fixed-width card for mobile horizontal rails */
+  /** Compact tile for mobile 2-up carousel pages */
   rail?: boolean;
 }) {
   return (
@@ -423,7 +432,7 @@ function CollectionCard({
       href={collection.href}
       className={`group relative block overflow-hidden rounded-md border border-[#e0bfbd] bg-white ${
         rail
-          ? 'h-[220px] w-[78vw] max-w-[300px] shrink-0 snap-start rounded-xl'
+          ? 'h-full min-h-[168px] w-full'
           : large
             ? 'h-full min-h-[260px] sm:min-h-[420px] md:col-span-8 lg:min-h-[500px]'
             : 'h-full min-h-[240px] sm:min-h-[300px] md:col-span-4 lg:min-h-[360px]'
@@ -433,19 +442,19 @@ function CollectionCard({
         src={collection.image}
         alt={collection.title}
         fill
-        sizes={rail ? '300px' : large ? '(min-width: 768px) 760px, 100vw' : '(min-width: 768px) 420px, 100vw'}
+        sizes={rail ? '50vw' : large ? '(min-width: 768px) 760px, 100vw' : '(min-width: 768px) 420px, 100vw'}
         quality={IMAGE_QUALITY}
         priority={!rail}
         className="object-cover transition duration-700 group-hover:scale-[1.04]"
       />
-      <div className={`absolute inset-x-0 bottom-0 ${collection.panel} ${rail ? 'p-3.5' : 'p-4 sm:p-6 md:p-8'}`}>
-        <h3 className={`font-sans font-semibold ${rail ? 'text-lg leading-snug' : 'text-2xl sm:text-3xl'}`}>
+      <div className={`absolute inset-x-0 bottom-0 ${collection.panel} ${rail ? 'p-2.5' : 'p-4 sm:p-6 md:p-8'}`}>
+        <h3 className={`font-sans font-semibold ${rail ? 'text-sm leading-snug' : 'text-2xl sm:text-3xl'}`}>
           {collection.title}
         </h3>
         {!rail ? (
           <p className="mt-2 max-w-lg text-sm leading-6 opacity-90">{collection.text}</p>
         ) : null}
-        <span className={`inline-flex font-semibold ${rail ? 'mt-2 px-3 py-1.5 text-xs' : 'mt-4 px-4 py-2 text-sm sm:mt-5 sm:px-5'} ${collection.button}`}>
+        <span className={`inline-flex font-semibold ${rail ? 'mt-1.5 px-2 py-1 text-[10px]' : 'mt-4 px-4 py-2 text-sm sm:mt-5 sm:px-5'} ${collection.button}`}>
           {collection.action}
         </span>
       </div>
@@ -478,6 +487,29 @@ export default function DashboardPage() {
   const [leadError, setLeadError] = useState('');
   const [isSavingLead, setIsSavingLead] = useState(false);
   const [whatsappUrl, setWhatsappUrl] = useState<string | null>(null);
+  const journeyPairs = chunkPairs(journeySteps.map((step, index) => ({ step, index })));
+  const [journeyPage, setJourneyPage] = useState(0);
+  const journeyScrollRef = useRef<HTMLDivElement | null>(null);
+
+  const handleJourneyScroll = (event: UIEvent<HTMLDivElement>) => {
+    setJourneyPage(getSnapPageIndex(event.currentTarget));
+  };
+
+  const scrollJourneyToPage = (pageIndex: number) => {
+    const node = journeyScrollRef.current;
+    if (!node) return;
+    const width = node.clientWidth;
+    node.scrollTo({ left: pageIndex * width, behavior: 'smooth' });
+    setJourneyPage(pageIndex);
+  };
+
+  useEffect(() => {
+    const node = journeyScrollRef.current;
+    if (!node) return;
+    const onResize = () => setJourneyPage(getSnapPageIndex(node));
+    window.addEventListener('resize', onResize);
+    return () => window.removeEventListener('resize', onResize);
+  }, []);
 
   const handleNewsletterSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -653,30 +685,89 @@ export default function DashboardPage() {
                 <p className="mt-1 hidden max-w-2xl text-base leading-7 text-[#584140] sm:mt-2 sm:block">
                   Recurring monthly care first, with customization, cycle support, and delivery tracking wrapped around it.
                 </p>
+                <p className="mt-1 text-xs font-medium text-stone-500 md:hidden">
+                  {journeySteps.length} steps · swipe for more
+                </p>
               </div>
               <Link href="/signup?next=/subscriptions" className="rounded-md hidden shrink-0 bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white hover:bg-[#8c1520] sm:inline-flex">
                 Start subscription
               </Link>
             </div>
 
-            {/* Mobile: horizontal rail */}
-            <div className="bb-mobile-scroll -mx-4 flex snap-x snap-mandatory gap-3 px-4 pb-1 md:hidden">
-              {journeySteps.map((step, index) => (
-                <Link
-                  key={step.title}
-                  href={step.href}
-                  className="w-[72vw] max-w-[260px] shrink-0 snap-start rounded-xl border border-[#e0bfbd] bg-[#fffaf7] p-4"
+            {/* Mobile: show 2, swipe to next 2 */}
+            <div className="relative md:hidden">
+              <div
+                ref={journeyScrollRef}
+                onScroll={handleJourneyScroll}
+                className="bb-mobile-scroll flex snap-x snap-mandatory gap-0"
+                aria-label="How it works steps"
+              >
+                {journeyPairs.map((pair, pageIndex) => (
+                  <div
+                    key={`journey-page-${pageIndex}`}
+                    className="grid w-full shrink-0 snap-start grid-cols-2 gap-3"
+                  >
+                    {pair.map(({ step, index }) => (
+                      <Link
+                        key={step.title}
+                        href={step.href}
+                        className="flex h-full min-h-[148px] flex-col rounded-md border border-[#e0bfbd] bg-[#fffaf7] p-3"
+                      >
+                        <span className="inline-flex h-9 w-9 items-center justify-center rounded-full border-2 border-[#ae2f34] bg-white text-[#ae2f34]">
+                          <StepIcon name={step.icon} className="h-4 w-4" />
+                        </span>
+                        <p className="mt-2.5 text-[10px] font-bold uppercase tracking-[0.12em] text-[#ae2f34]">
+                          Step {String(index + 1).padStart(2, '0')}
+                        </p>
+                        <h3 className="mt-1 font-sans text-sm font-semibold leading-snug text-[#191c1d]">{step.title}</h3>
+                        <p className="mt-1 line-clamp-3 flex-1 text-[11px] leading-4 text-stone-600">{step.text}</p>
+                      </Link>
+                    ))}
+                    {pair.length === 1 ? <div className="invisible" aria-hidden="true" /> : null}
+                  </div>
+                ))}
+              </div>
+
+              {/* Edge fade + swipe cue when more pages remain */}
+              {journeyPage < journeyPairs.length - 1 ? (
+                <div
+                  className="pointer-events-none absolute inset-y-0 right-0 flex w-10 items-center justify-end bg-gradient-to-l from-white via-white/80 to-transparent pr-0.5"
+                  aria-hidden="true"
                 >
-                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-full border-2 border-[#ae2f34] bg-white text-[#ae2f34]">
-                    <StepIcon name={step.icon} className="h-5 w-5" />
+                  <span className="flex h-8 w-8 items-center justify-center rounded-full border border-[#e0bfbd] bg-white text-sm font-bold text-[#ae2f34] shadow-sm">
+                    ›
                   </span>
-                  <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">
-                    Step {String(index + 1).padStart(2, '0')}
-                  </p>
-                  <h3 className="mt-1 font-sans text-base font-semibold text-[#191c1d]">{step.title}</h3>
-                  <p className="mt-1.5 line-clamp-3 text-xs leading-5 text-stone-600">{step.text}</p>
-                </Link>
-              ))}
+                </div>
+              ) : null}
+
+              <div className="mt-3 flex items-center justify-between gap-3">
+                <p className="text-xs font-semibold text-stone-500">
+                  Steps {journeyPage * 2 + 1}–{Math.min(journeyPage * 2 + 2, journeySteps.length)} of {journeySteps.length}
+                </p>
+                <div className="flex items-center gap-1.5" role="tablist" aria-label="How it works pages">
+                  {journeyPairs.map((_, pageIndex) => (
+                    <button
+                      key={`journey-dot-${pageIndex}`}
+                      type="button"
+                      role="tab"
+                      aria-selected={journeyPage === pageIndex}
+                      aria-label={`Show steps ${pageIndex * 2 + 1} to ${Math.min(pageIndex * 2 + 2, journeySteps.length)}`}
+                      onClick={() => scrollJourneyToPage(pageIndex)}
+                      className={`h-2 rounded-full transition ${
+                        journeyPage === pageIndex ? 'w-5 bg-[#ae2f34]' : 'w-2 bg-stone-300'
+                      }`}
+                    />
+                  ))}
+                </div>
+                <button
+                  type="button"
+                  onClick={() => scrollJourneyToPage(Math.min(journeyPage + 1, journeyPairs.length - 1))}
+                  disabled={journeyPage >= journeyPairs.length - 1}
+                  className="text-xs font-semibold text-[#ae2f34] disabled:text-stone-300"
+                >
+                  {journeyPage >= journeyPairs.length - 1 ? 'Done' : 'More →'}
+                </button>
+              </div>
             </div>
 
             {/* Desktop: connected path */}
@@ -722,10 +813,18 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          {/* Mobile horizontal rail */}
-          <div className="bb-mobile-scroll -mx-4 flex snap-x snap-mandatory gap-3 px-4 pb-1 md:hidden">
-            {collections.map((collection) => (
-              <CollectionCard key={collection.title} collection={collection} rail />
+          {/* Mobile: show 2, swipe to next 2 */}
+          <div className="bb-mobile-scroll flex snap-x snap-mandatory gap-0 md:hidden">
+            {chunkPairs(collections).map((pair, pageIndex) => (
+              <div
+                key={`paths-page-${pageIndex}`}
+                className="grid w-full shrink-0 snap-start grid-cols-2 gap-3"
+              >
+                {pair.map((collection) => (
+                  <CollectionCard key={collection.title} collection={collection} rail />
+                ))}
+                {pair.length === 1 ? <div className="invisible" aria-hidden="true" /> : null}
+              </div>
             ))}
           </div>
 
@@ -782,28 +881,36 @@ export default function DashboardPage() {
             </Link>
           </div>
 
-          {/* Mobile horizontal rail */}
-          <div className="bb-mobile-scroll -mx-4 flex snap-x snap-mandatory gap-3 px-4 pb-1 md:hidden">
-            {packages.map((item) => (
-              <article
-                key={item.title}
-                className="flex w-[72vw] max-w-[280px] shrink-0 snap-start flex-col overflow-hidden rounded-xl border border-[#e0bfbd] bg-white"
+          {/* Mobile: show 2, swipe to next 2 */}
+          <div className="bb-mobile-scroll flex snap-x snap-mandatory gap-0 md:hidden">
+            {chunkPairs(packages).map((pair, pageIndex) => (
+              <div
+                key={`plans-page-${pageIndex}`}
+                className="grid w-full shrink-0 snap-start grid-cols-2 gap-3"
               >
-                <div className="relative aspect-[5/3] overflow-hidden border-b border-[#e0bfbd] bg-[#edeeef]">
-                  <Image src={item.image} alt={item.title} fill sizes="280px" quality={IMAGE_QUALITY} className="object-cover" />
-                </div>
-                <div className="flex flex-1 flex-col p-3.5">
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">{item.price}</p>
-                  <h3 className="mt-1.5 font-sans text-lg font-semibold text-[#191c1d]">{item.title}</h3>
-                  <p className="mt-1 line-clamp-2 text-xs leading-5 text-[#584140]">{item.text}</p>
-                  <Link
-                    href={item.href}
-                    className="rounded-md mt-3 inline-flex w-full items-center justify-center bg-[#ae2f34] px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-[#8c1520]"
+                {pair.map((item) => (
+                  <article
+                    key={item.title}
+                    className="flex h-full flex-col overflow-hidden rounded-md border border-[#e0bfbd] bg-white"
                   >
-                    View plan
-                  </Link>
-                </div>
-              </article>
+                    <div className="relative aspect-[4/3] overflow-hidden border-b border-[#e0bfbd] bg-[#edeeef]">
+                      <Image src={item.image} alt={item.title} fill sizes="50vw" quality={IMAGE_QUALITY} className="object-cover" />
+                    </div>
+                    <div className="flex flex-1 flex-col p-2.5">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#ae2f34]">{item.price}</p>
+                      <h3 className="mt-1 font-sans text-sm font-semibold leading-snug text-[#191c1d]">{item.title}</h3>
+                      <p className="mt-1 line-clamp-2 flex-1 text-[11px] leading-4 text-[#584140]">{item.text}</p>
+                      <Link
+                        href={item.href}
+                        className="mt-2.5 inline-flex w-full items-center justify-center rounded-md bg-[#ae2f34] px-2 py-2 text-[11px] font-semibold text-white transition hover:bg-[#8c1520]"
+                      >
+                        View plan
+                      </Link>
+                    </div>
+                  </article>
+                ))}
+                {pair.length === 1 ? <div className="invisible" aria-hidden="true" /> : null}
+              </div>
             ))}
           </div>
 
@@ -968,8 +1075,8 @@ export default function DashboardPage() {
           </div>
         </section>
 
-        {/* ---------- BLOOMBOX PROMISE (desktop only) ---------- */}
-        <section className="relative hidden overflow-hidden bg-[#14090c] py-12 sm:py-16 md:block">
+        {/* ---------- OUR STORY / PROMISE ---------- */}
+        <section className="relative overflow-hidden bg-[#14090c] py-8 sm:py-12 md:py-16">
           <Image
             src={mockupImages.giftFlowers}
             alt="Darkened BloomBox floral gift arrangement"
@@ -980,17 +1087,48 @@ export default function DashboardPage() {
           />
           <div className="absolute inset-0 bg-[#14090c]/70" />
           <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="mx-auto mb-14 max-w-2xl text-center">
-              <h2 className="font-sans text-4xl font-semibold text-white">The BloomBox promise</h2>
-              <p className="mt-4 text-base leading-7 text-[#fff5f0]">
-                We believe care packages are more than products. They are a medium for connection, relief, and ritual.
-              </p>
+            <div className="mb-4 flex items-end justify-between gap-3 md:mb-10 md:text-center">
+              <div className="min-w-0 md:mx-auto md:max-w-2xl">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#fed4c8] md:text-xs">Our story</p>
+                <h2 className="mt-1 font-sans text-2xl font-semibold text-white sm:text-4xl">The BloomBox promise</h2>
+                <p className="mt-2 hidden text-base leading-7 text-[#fff5f0] md:mt-4 md:block">
+                  We believe care packages are more than products. They are a medium for connection, relief, and ritual.
+                </p>
+              </div>
+              <Link href="/about" className="shrink-0 text-sm font-semibold text-[#fed4c8] md:hidden">
+                Full story
+              </Link>
             </div>
 
-            <div className="grid gap-10 md:grid-cols-3">
+            {/* Mobile: show 2, swipe to next 2 */}
+            <div className="bb-mobile-scroll flex snap-x snap-mandatory gap-0 md:hidden">
+              {chunkPairs(promises).map((pair, pageIndex) => (
+                <div
+                  key={`promise-page-${pageIndex}`}
+                  className="grid w-full shrink-0 snap-start grid-cols-2 gap-3"
+                >
+                  {pair.map((promise) => (
+                    <div
+                      key={promise.title}
+                      className="flex h-full min-h-[168px] flex-col rounded-md border border-white/15 bg-white/10 p-3 backdrop-blur-[1px]"
+                    >
+                      <div className="mb-2.5 flex h-10 w-10 items-center justify-center rounded-md bg-white text-[#ae2f34]">
+                        <PromiseIcon type={promise.icon} />
+                      </div>
+                      <h3 className="font-sans text-sm font-semibold leading-snug text-white">{promise.title}</h3>
+                      <p className="mt-1.5 line-clamp-4 flex-1 text-[11px] leading-4 text-[#fed4c8]">{promise.text}</p>
+                    </div>
+                  ))}
+                  {pair.length === 1 ? <div className="invisible" aria-hidden="true" /> : null}
+                </div>
+              ))}
+            </div>
+
+            {/* Desktop grid */}
+            <div className="hidden gap-10 md:grid md:grid-cols-3">
               {promises.map((promise) => (
                 <div key={promise.title} className="flex flex-col items-center text-center">
-                  <div className="mb-6 flex h-16 w-16 items-center justify-center bg-white text-[#ae2f34]">
+                  <div className="mb-6 flex h-16 w-16 items-center justify-center rounded-md bg-white text-[#ae2f34]">
                     <PromiseIcon type={promise.icon} />
                   </div>
                   <h3 className="font-sans text-2xl font-semibold text-white">{promise.title}</h3>
@@ -998,30 +1136,59 @@ export default function DashboardPage() {
                 </div>
               ))}
             </div>
+
+            <div className="mt-5 md:mt-10 md:text-center">
+              <Link
+                href="/about"
+                className="inline-flex items-center gap-2 text-sm font-semibold text-[#fed4c8] transition hover:text-white"
+              >
+                Read our full story
+                <ArrowIcon />
+              </Link>
+            </div>
           </div>
         </section>
 
-        {/* ---------- TESTIMONIALS: compact rail on mobile, full on desktop ---------- */}
+        {/* ---------- WHAT FAMILIES SAY ---------- */}
         <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-16 lg:px-8">
-          <div className="mb-4 flex items-end justify-between gap-3 md:hidden">
-            <h2 className="font-sans text-2xl font-semibold italic text-[#ae2f34]">What families say</h2>
-            <Link href="/about" className="text-sm font-semibold text-[#ae2f34]">
-              Our story
-            </Link>
+          <div className="mb-4 flex items-end justify-between gap-3 sm:mb-10">
+            <div className="min-w-0">
+              <h2 className="font-sans text-2xl font-semibold italic text-[#ae2f34] sm:text-4xl">
+                What families say
+              </h2>
+              <p className="mt-1 hidden text-base leading-7 text-[#584140] sm:block">
+                Voices from the BloomBox community.
+              </p>
+            </div>
           </div>
-          <div className="bb-mobile-scroll -mx-4 flex snap-x snap-mandatory gap-3 px-4 pb-1 md:hidden">
-            {testimonials.map((item) => (
-              <article
-                key={item.title}
-                className="w-[80vw] max-w-[300px] shrink-0 snap-start rounded-xl border border-[#e0bfbd] bg-white p-4"
+
+          {/* Mobile: show 2, swipe to next 2 */}
+          <div className="bb-mobile-scroll flex snap-x snap-mandatory gap-0 md:hidden">
+            {chunkPairs(testimonials).map((pair, pageIndex) => (
+              <div
+                key={`family-page-${pageIndex}`}
+                className="grid w-full shrink-0 snap-start grid-cols-2 gap-3"
               >
-                <h3 className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#584140]">&quot;{item.title}&quot;</h3>
-                <p className="mt-2 line-clamp-4 text-sm leading-6 text-[#191c1d]">&quot;{item.text}&quot;</p>
-                <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.14em] text-[#76574e]">{item.name}</p>
-              </article>
+                {pair.map((item) => (
+                  <article
+                    key={item.title}
+                    className="flex h-full min-h-[168px] flex-col rounded-md border border-[#e0bfbd] bg-white p-3"
+                  >
+                    <h3 className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#584140]">
+                      &quot;{item.title}&quot;
+                    </h3>
+                    <p className="mt-2 line-clamp-5 flex-1 text-[11px] leading-4 text-[#191c1d]">
+                      &quot;{item.text}&quot;
+                    </p>
+                    <p className="mt-2 text-[10px] font-bold uppercase tracking-[0.12em] text-[#76574e]">{item.name}</p>
+                  </article>
+                ))}
+                {pair.length === 1 ? <div className="invisible" aria-hidden="true" /> : null}
+              </div>
             ))}
           </div>
 
+          {/* Desktop layout */}
           <div className="hidden gap-14 md:grid lg:grid-cols-2 lg:items-center">
             <div className="relative">
               <div className="relative aspect-[4/3] overflow-hidden rounded-md border border-[#e0bfbd] bg-[#edeeef]">
@@ -1059,7 +1226,7 @@ export default function DashboardPage() {
                 ))}
               </div>
               <Link href="/about" className="mt-11 inline-flex items-center gap-4 text-sm font-bold text-[#ae2f34]">
-                <span className="flex h-12 w-12 items-center justify-center border border-[#ae2f34]">
+                <span className="flex h-12 w-12 items-center justify-center rounded-md border border-[#ae2f34]">
                   <PlayIcon />
                 </span>
                 Watch our story
@@ -1070,10 +1237,6 @@ export default function DashboardPage() {
       </main>
 
       <SiteFooter />
-
-      <Link href="/subscriptions" className="fixed bottom-24 right-5 z-40 flex h-14 w-14 items-center justify-center bg-[#ae2f34] text-white md:bottom-10" aria-label="Open subscription plans">
-        <ChatIcon />
-      </Link>
     </div>
   );
 }
