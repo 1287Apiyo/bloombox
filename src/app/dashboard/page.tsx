@@ -24,12 +24,15 @@ const staggerContainer = {
 
 const viewportSettings = { once: true, amount: 0.15 };
 
-// ---------- Mockup images ----------
+// ---------- Mockup images (local high-res assets for crisp rendering) ----------
 const mockupImages = {
-  delivery: 'https://sc04.alicdn.com/kf/A3dff533b686644578dfa0b91834a6f62M.jpg',
+  delivery: '/mockups/bloombox-delivery.png',
   openBox: '/mockups/bloombox-open-box.png',
-  giftFlowers: 'https://sc04.alicdn.com/kf/A3c7d43016fbb4823964fd2fe6ce2d057F.jpg',
+  giftFlowers: '/mockups/bloombox-gift-flowers.png',
 };
+
+/** Prefer near-lossless Next.js image optimization on the homepage */
+const IMAGE_QUALITY = 95;
 
 // ---------- Data ----------
 const collections = [
@@ -419,6 +422,7 @@ function CollectionCard({ collection, large = false }: { collection: (typeof col
         alt={collection.title}
         fill
         sizes={large ? '(min-width: 768px) 760px, 100vw' : '(min-width: 768px) 420px, 100vw'}
+        quality={IMAGE_QUALITY}
         priority
         className="object-cover transition duration-700 group-hover:scale-[1.04]"
       />
@@ -530,15 +534,16 @@ export default function DashboardPage() {
             <div className="flex-1 bg-bb-red" />
             <div className="relative w-full lg:w-1/2 h-[400px] lg:h-auto shrink-0">
               <Image
-                src="/family.png"
+                src="/family-hero.jpg"
                 alt="BloomBox care ritual"
-                sizes="(min-width: 1024px) 50vw, 100vw"
+                sizes="(min-width: 1536px) 50vw, (min-width: 1024px) 50vw, 100vw"
+                quality={100}
                 fill
                 priority
-                className="object-cover object-center"
+                className="object-cover object-center [image-rendering:high-quality]"
               />
-              {/* Dark layover to improve visual depth and focus */}
-              <div className="absolute inset-0 bg-black/45 shadow-inner" />
+              {/* Soft edge only — keep the photo bright and crisp */}
+              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent lg:bg-gradient-to-l lg:from-transparent lg:via-transparent lg:to-black/10" />
             </div>
           </div>
 
@@ -746,6 +751,7 @@ export default function DashboardPage() {
                     alt={item.title}
                     fill
                     sizes="(min-width: 768px) 33vw, 100vw"
+                    quality={IMAGE_QUALITY}
                     className="object-cover"
                   />
                 </div>
@@ -939,10 +945,11 @@ export default function DashboardPage() {
             alt="Darkened BloomBox floral gift arrangement"
             fill
             sizes="100vw"
+            quality={IMAGE_QUALITY}
             priority
-            className="object-cover opacity-70"
+            className="object-cover opacity-80"
           />
-          <div className="absolute inset-0 bg-[#14090c]/78" />
+          <div className="absolute inset-0 bg-[#14090c]/70" />
           <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
             <motion.div
               variants={fadeUp}
@@ -994,14 +1001,15 @@ export default function DashboardPage() {
               transition={{ duration: 0.6 }}
               className="relative"
             >
-              <div className="aspect-square overflow-hidden border border-[#e0bfbd] bg-[#edeeef]">
+              <div className="relative aspect-[4/3] overflow-hidden border border-[#e0bfbd] bg-[#edeeef]">
                 <Image
-                  src={mockupImages.delivery}
-                  alt="BloomBox handoff"
-                  width={900}
-                  height={900}
+                  src="/gift.png"
+                  alt="BloomBox gift collection"
+                  fill
+                  quality={100}
+                  sizes="(min-width: 1024px) 560px, 90vw"
                   priority
-                  className="h-full w-full object-cover"
+                  className="object-cover object-center [image-rendering:high-quality]"
                 />
               </div>
               <div className="mt-5 max-w-sm border border-[#e0bfbd] bg-white p-7 lg:absolute lg:-bottom-8 lg:-right-8 lg:mt-0">
