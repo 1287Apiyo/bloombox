@@ -11,7 +11,12 @@ import {
   type SalesLead,
 } from '@/lib/firestore';
 import type { CatalogProduct } from '@/data/catalog';
-import { AdminPortalFrame } from '../AdminPortalFrame';
+import {
+  AdminAlert,
+  AdminPanel,
+  AdminPortalFrame,
+  AdminStatStrip,
+} from '../AdminPortalFrame';
 
 const paidStatuses = ['paid', 'preparing', 'out-for-delivery', 'delivered'];
 
@@ -31,7 +36,6 @@ function getOrderRevenue(orders: CustomerOrder[]) {
 
 function getTopProduct(orders: CustomerOrder[]) {
   const totals = new Map<string, { name: string; quantity: number; revenue: number }>();
-
   orders
     .filter((order) => paidStatuses.includes(order.status))
     .flatMap((order) => order.items ?? [])
@@ -41,7 +45,6 @@ function getTopProduct(orders: CustomerOrder[]) {
       current.revenue += (item.price ?? 0) * item.quantity;
       totals.set(item.productId, current);
     });
-
   return [...totals.values()].sort((a, b) => b.quantity - a.quantity)[0] ?? null;
 }
 
@@ -55,13 +58,12 @@ export default function AiAssistPage() {
 
   useEffect(() => {
     const unsubscribers = [
-      subscribeToAdminProducts(setProducts, (productsError) => setError(`Products could not load: ${productsError.message}`)),
-      subscribeToAllOrders(setOrders, (ordersError) => setError(`Orders could not load: ${ordersError.message}`)),
-      subscribeToLeads(setLeads, (leadsError) => setError(`Leads could not load: ${leadsError.message}`)),
-      subscribeToInventoryMovements(setMovements, (movementError) => setError(`Inventory could not load: ${movementError.message}`)),
+      subscribeToAdminProducts(setProducts, (e) => setError(`Products could not load: ${e.message}`)),
+      subscribeToAllOrders(setOrders, (e) => setError(`Orders could not load: ${e.message}`)),
+      subscribeToLeads(setLeads, (e) => setError(`Leads could not load: ${e.message}`)),
+      subscribeToInventoryMovements(setMovements, (e) => setError(`Inventory could not load: ${e.message}`)),
     ];
-
-    return () => unsubscribers.forEach((unsubscribe) => unsubscribe());
+    return () => unsubscribers.forEach((u) => u());
   }, []);
 
   const insights = useMemo(() => {
@@ -91,7 +93,10 @@ export default function AiAssistPage() {
     const lowStock = products
       .map((product) => ({
         product,
-        stock: (incomingByProduct.get(product.id) ?? 0) - (manualOutgoingByProduct.get(product.id) ?? 0) - (soldByProduct.get(product.id) ?? 0),
+        stock:
+          (incomingByProduct.get(product.id) ?? 0) -
+          (manualOutgoingByProduct.get(product.id) ?? 0) -
+          (soldByProduct.get(product.id) ?? 0),
       }))
       .filter((row) => row.stock <= 5)
       .slice(0, 6);
@@ -145,77 +150,62 @@ export default function AiAssistPage() {
     <AdminPortalFrame
       activeSection="ai-assist"
       title="Use AI-style assistance for marketing and inventory."
-      description="This workspace turns live BloomBox data into draft copy, alerts, and operating suggestions. It can later be connected to an LLM provider."
+      description="Turn live BloomBox data into draft copy, alerts, and operating suggestions."
     >
-      {error ? <div className="mb-5 border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-800">{error}</div> : null}
-
       <div className="grid gap-5">
-        <div className="grid border-y border-stone-300 bg-white sm:grid-cols-2 xl:grid-cols-4">
-          {[
-            ['Paid revenue', money(insights.revenue), 'Orders that reached paid flow'],
-            ['Active leads', insights.activeLeads.length, 'Need sales action'],
-            ['Low-stock items', insights.lowStock.length, 'Five units or fewer'],
-            ['Top product', insights.topProduct?.name ?? 'Not enough data', 'By paid quantity'],
-          ].map(([label, value, detail], index) => (
-            <div key={label} className={`px-4 py-3 ${index < 3 ? 'border-b border-stone-200 sm:border-r xl:border-b-0' : ''}`}>
-              <p className="text-2xl font-semibold text-[#ae2f34]">{value}</p>
-              <p className="mt-1 text-[10px] uppercase tracking-[0.14em] text-stone-500">{label}</p>
-              <p className="mt-1 text-xs text-stone-500">{detail}</p>
-            </div>
-          ))}
-        </div>
+        {error ? <AdminAlert>{error}</AdminAlert> : null}
 
-        <section className="grid gap-5 xl:grid-cols-[0.8fr_1.2fr]">
-          <div className="border border-stone-300 bg-[#fff5f0] p-5">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">Agent roadmap</p>
-            <h2 className="mt-3 font-serif text-3xl font-semibold text-[#191c1d]">What these assistants should automate next.</h2>
-            <div className="mt-5 divide-y divide-stone-300 border-y border-stone-300">
-              {[
-                'Marketing agent: turn leads, subscribers, cycle phases, and top products into campaign briefs.',
-                'Inventory agent: flag low stock, slow movers, incoming purchase needs, and revenue exposure.',
-                'WhatsApp agent: draft consent-based follow-up messages and sales qualification questions.',
-                'Donation agent: reconcile M-Changa references with sponsored bundle fulfilment.',
-              ].map((item) => (
-                <p key={item} className="py-3 text-sm leading-6 text-[#584140]">{item}</p>
-              ))}
-            </div>
-          </div>
+        <AdminStatStrip
+          items={[
+            { label: 'Paid revenue', value: money(insights.revenue), detail: 'Orders that reached paid flow' },
+            { label: 'Active leads', value: insights.activeLeads.length, detail: 'Need sales action' },
+            { label: 'Low-stock items', value: insights.lowStock.length, detail: 'Five units or fewer' },
+            {
+              label: 'Top product',
+              value: insights.topProduct?.name ?? '—',
+              detail: 'By paid quantity',
+            },
+          ]}
+        />
 
+        <AdminPanel title="Draft outputs" description="Copy-ready prompts built from current store data.">
           <div className="grid gap-4 md:grid-cols-2">
             {drafts.map((draft) => (
-              <article key={draft.title} className="border border-stone-300 bg-white p-5">
+              <article key={draft.title} className="border border-stone-300 p-4">
                 <div className="flex items-start justify-between gap-3">
                   <div>
                     <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">{draft.type}</p>
-                    <h3 className="mt-2 text-lg font-semibold text-stone-950">{draft.title}</h3>
+                    <h3 className="mt-1 text-lg font-semibold text-black">{draft.title}</h3>
                   </div>
                   <button
                     type="button"
                     onClick={() => copyDraft(draft.title, draft.text)}
-                    className="border border-[#ae2f34] px-3 py-1.5 text-xs font-semibold text-[#ae2f34] hover:bg-[#fff5f0]"
+                    className="shrink-0 border border-stone-300 px-3 py-1.5 text-xs font-semibold text-black hover:bg-[#fff5f0]"
                   >
                     {copied === draft.title ? 'Copied' : 'Copy'}
                   </button>
                 </div>
-                <p className="mt-4 text-sm leading-6 text-stone-700">{draft.text}</p>
+                <p className="mt-3 text-sm leading-6 text-black">{draft.text}</p>
               </article>
             ))}
           </div>
-        </section>
+        </AdminPanel>
 
-        <section className="border border-stone-300 bg-white p-5">
-          <h2 className="text-lg font-semibold text-stone-950">Low-stock recommendations</h2>
-          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
-            {insights.lowStock.map((row) => (
-              <article key={row.product.id} className="border border-stone-200 p-4">
-                <p className="font-semibold text-stone-950">{row.product.name}</p>
-                <p className="mt-1 text-sm text-[#ae2f34]">Estimated stock: {row.stock}</p>
-                <p className="mt-2 text-xs leading-5 text-stone-600">Suggested action: restock, hide if unavailable, or promote a substitute package.</p>
-              </article>
-            ))}
-            {insights.lowStock.length === 0 ? <p className="text-sm text-stone-600">No low-stock alerts based on recorded inventory.</p> : null}
-          </div>
-        </section>
+        <AdminPanel title="Low stock watchlist" description="Items at or below five units on hand." bordered>
+          {insights.lowStock.length === 0 ? (
+            <p className="text-sm text-black">No low-stock items right now.</p>
+          ) : (
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {insights.lowStock.map((row) => (
+                <article key={row.product.id} className="border border-stone-200 p-4">
+                  <p className="font-semibold text-black">{row.product.name}</p>
+                  <p className="mt-1 text-xs text-black">{row.product.sku}</p>
+                  <p className="mt-3 text-sm font-semibold text-[#ae2f34]">On hand: {row.stock}</p>
+                </article>
+              ))}
+            </div>
+          )}
+        </AdminPanel>
       </div>
     </AdminPortalFrame>
   );

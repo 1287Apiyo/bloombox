@@ -39,6 +39,7 @@ import {
 import { productCategories, type CatalogProduct, type StockStatus } from '@/data/catalog';
 import { useAuth } from '../components/AuthProvider';
 import { getNextPeriodDate } from '@/lib/cycle';
+import { AdminAlert, AdminFormCard, AdminPanel, AdminStatStrip } from './AdminPortalFrame';
 
 // ─── Helpers ───────────────────────────────────────────────
 
@@ -98,15 +99,15 @@ function getOrderStatusLabel(status: OrderStatus) {
 
 function getStatusButtonStyle(status: OrderStatus) {
   const styles: Record<OrderStatus, string> = {
-    'pending-payment': 'bg-[#a23b35] text-white',
-    'paid': 'bg-green-600 text-white',
-    'preparing': 'bg-yellow-500 text-white',
-    'out-for-delivery': 'bg-sky-600 text-white',
-    'delivered': 'bg-emerald-600 text-white',
-    'cancelled': 'bg-gray-500 text-white',
-    'placed': 'bg-blue-600 text-white',
+    'pending-payment': 'border border-amber-200 bg-amber-50 text-amber-900',
+    paid: 'border border-emerald-200 bg-emerald-50 text-emerald-800',
+    preparing: 'border border-stone-200 bg-stone-100 text-stone-700',
+    'out-for-delivery': 'border border-teal-200 bg-teal-50 text-teal-800',
+    delivered: 'border border-emerald-200 bg-emerald-50 text-emerald-900',
+    cancelled: 'border border-stone-200 bg-stone-50 text-stone-500',
+    placed: 'border border-sky-200 bg-sky-50 text-sky-800',
   };
-  return styles[status] || 'bg-gray-500 text-white';
+  return styles[status] || 'border border-stone-200 bg-stone-50 text-stone-600';
 }
 
 function slugify(value: string) {
@@ -328,46 +329,46 @@ function AdminIcon({ name, className = '' }: { name: IconName; className?: strin
 function Sidebar({
   activeSection,
   setActiveSection,
-  metrics,
   user,
   onSignOut,
 }: {
   activeSection: AdminSection;
   setActiveSection: (s: AdminSection) => void;
-  metrics: { activeOrders: number; activeProducts: number; subscribers: number; leads: number; partners: number };
+  metrics?: { activeOrders: number; activeProducts: number; subscribers: number; leads: number; partners: number };
   user: { email?: string | null } | null;
   onSignOut: () => void;
 }) {
-  const navigation: { id: AdminSection; label: string; icon: IconName; count?: number }[] = [
+  const navigation: { id: AdminSection; label: string; icon: IconName }[] = [
     { id: 'overview', label: 'Overview', icon: 'chart' },
-    { id: 'orders', label: 'Orders', icon: 'orders', count: metrics.activeOrders },
+    { id: 'orders', label: 'Orders', icon: 'orders' },
     { id: 'upcoming', label: 'Upcoming', icon: 'calendar' },
-    { id: 'products', label: 'Products', icon: 'products', count: metrics.activeProducts },
+    { id: 'products', label: 'Products', icon: 'products' },
     { id: 'customers', label: 'Customers', icon: 'users' },
-    { id: 'subscribers', label: 'Subscribers', icon: 'mail', count: metrics.subscribers },
+    { id: 'subscribers', label: 'Subscribers', icon: 'mail' },
     { id: 'inventory', label: 'Inventory', icon: 'box' },
-    { id: 'leads', label: 'Leads', icon: 'users', count: metrics.leads },
-    { id: 'partners', label: 'Partners', icon: 'handshake', count: metrics.partners },
+    { id: 'leads', label: 'Leads', icon: 'users' },
+    { id: 'partners', label: 'Partners', icon: 'handshake' },
     { id: 'ai-assist', label: 'AI Assist', icon: 'sparkles' },
     { id: 'access', label: 'Access', icon: 'shield' },
   ];
 
   return (
-    <aside className="bg-black text-white lg:sticky lg:top-0 lg:h-screen lg:border-r lg:border-white/10">
-      <div className="flex h-full flex-col">
-        {/* Logo */}
-        <div className="flex items-center gap-3 border-b border-white/10 px-4 py-4 sm:px-6 sm:py-5">
-          <span className="relative h-8 w-8 shrink-0 overflow-hidden rounded-full ring-2 ring-white/20">
-            <Image src="/bloom1.png" alt="BloomBox" fill sizes="32px" className="object-cover" priority />
+    <aside className="border-b border-white/10 bg-black text-white lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r lg:border-white/10">
+      <div className="flex h-full flex-col px-3 py-4 sm:px-4">
+        <div className="flex items-center gap-3 border-b border-white/10 px-2 pb-4">
+          <span className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-white/20 bg-white">
+            <Image src="/bloom1.png" alt="BloomBox" fill sizes="36px" className="object-cover" priority />
           </span>
-          <div>
-            <p className="text-base font-semibold leading-tight text-white">BloomBox</p>
-            <p className="text-[10px] uppercase tracking-widest text-white/50">Admin</p>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold">BloomBox</p>
+            <p className="text-[10px] font-medium uppercase tracking-[0.16em] text-white/70">Admin</p>
           </div>
         </div>
 
-        {/* Nav */}
-        <nav className="bb-mobile-scroll mt-2 flex gap-1 px-3 py-2 lg:mt-4 lg:grid lg:overflow-visible lg:px-4" aria-label="Admin navigation">
+        <nav
+          className="bb-mobile-scroll mt-4 flex gap-1 overflow-x-auto pb-1 lg:mt-5 lg:flex-1 lg:flex-col lg:overflow-y-auto lg:overflow-x-visible lg:pb-0"
+          aria-label="Admin navigation"
+        >
           {navigation.map((item) => {
             const isActive = activeSection === item.id;
             return (
@@ -375,33 +376,40 @@ function Sidebar({
                 key={item.id}
                 type="button"
                 onClick={() => setActiveSection(item.id)}
-                className={`flex shrink-0 items-center gap-2 px-3 py-2 text-left text-sm transition-colors lg:w-full lg:gap-3 lg:px-4 lg:py-2.5 ${
-                  isActive
-                    ? 'border border-[#a23b35] bg-white/10 text-white lg:border-l-4 lg:border-[#a23b35] lg:border-y-0 lg:border-r-0 lg:pl-3'
-                    : 'border border-transparent text-white/70 hover:bg-white/10 hover:text-white lg:border-l-4 lg:border-transparent'
+                className={`flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2.5 text-left text-sm font-medium transition lg:w-full ${
+                  isActive ? 'bg-[#ae2f34] text-white' : 'text-white/80 hover:bg-white/10 hover:text-white'
                 }`}
                 aria-current={isActive ? 'page' : undefined}
               >
-                <AdminIcon name={item.icon} className={isActive ? 'text-[#a23b35]' : 'text-white/50'} />
-                <span className="whitespace-nowrap font-medium lg:flex-1">{item.label}</span>
-                {item.count !== undefined ? (
-                  <span className={`text-xs tabular-nums ${isActive ? 'text-white/90' : 'text-white/40'}`}>
-                    {item.count}
-                  </span>
-                ) : null}
+                <AdminIcon name={item.icon} className={isActive ? 'text-white' : 'text-white/70'} />
+                <span className="whitespace-nowrap">{item.label}</span>
               </button>
             );
           })}
         </nav>
 
-        {/* Footer */}
-        <div className="mt-auto border-t border-white/10 px-4 py-4 sm:px-6">
-          <p className="truncate text-sm font-medium text-white/80">{user?.email ?? 'Admin'}</p>
-          <div className="mt-2 flex flex-wrap gap-4">
-            <Link href="/dashboard" className="text-sm text-[#a23b35] hover:underline">
+        <div className="mt-4 space-y-3 border-t border-white/10 pt-4">
+          <div className="flex items-center gap-3 px-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ae2f34] text-xs font-bold">
+              {(user?.email ?? 'A').slice(0, 1).toUpperCase()}
+            </span>
+            <div className="min-w-0">
+              <p className="truncate text-xs font-medium text-white">{user?.email ?? 'Admin'}</p>
+              <p className="text-[10px] text-white/70">Administrator</p>
+            </div>
+          </div>
+          <div className="grid grid-cols-2 gap-2">
+            <Link
+              href="/dashboard"
+              className="rounded-lg border border-white/20 px-3 py-2 text-center text-xs font-semibold text-white transition hover:bg-white/10"
+            >
               View site
             </Link>
-            <button type="button" onClick={onSignOut} className="text-sm text-white/50 hover:text-white">
+            <button
+              type="button"
+              onClick={onSignOut}
+              className="rounded-lg border border-white/20 px-3 py-2 text-xs font-semibold text-white transition hover:bg-white/10"
+            >
               Log out
             </button>
           </div>
@@ -415,8 +423,8 @@ function SectionHeader({ section, desc }: { section: AdminSection; desc: string 
   const labels: Record<AdminSection, string> = {
     overview: 'Overview',
     orders: 'Orders',
-    'order-detail': 'Order Details',
-    upcoming: 'Upcoming Prep',
+    'order-detail': 'Order details',
+    upcoming: 'Upcoming prep',
     products: 'Products',
     customers: 'Customers',
     subscribers: 'Subscribers',
@@ -427,83 +435,76 @@ function SectionHeader({ section, desc }: { section: AdminSection; desc: string 
     'ai-assist': 'AI Assist',
   };
   return (
-    <div className="border-b border-black/10 pb-4">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight text-black sm:text-3xl">{labels[section]}</h1>
-        <p className="mt-1 text-sm text-black/60">{desc}</p>
-      </div>
+    <div>
+      <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#ae2f34]">Admin</p>
+      <h1 className="mt-0.5 text-2xl font-semibold tracking-tight text-black sm:text-3xl">{labels[section]}</h1>
+      <p className="mt-1 max-w-2xl text-sm leading-6 text-black">{desc}</p>
     </div>
   );
 }
 
 // ─── Overview Sections ──────────────────────────────────────
 
-function MetricsCards({ orders, activeOrders, activeProducts, subscribers }: any) {
-  const items = [
-    ['Total orders', orders.length],
-    ['Active orders', activeOrders],
-    ['Live products', activeProducts],
-    ['Subscribers', subscribers],
-  ];
-  return (
-    <div className="grid grid-cols-2 gap-4 sm:grid-cols-4">
-      {items.map(([label, value]) => (
-        <div key={label as string} className="border border-black/10 rounded-md p-4">
-          <p className="text-xs font-medium uppercase tracking-wider text-black/50">{label}</p>
-          <p className="mt-2 text-3xl font-semibold text-black">{value}</p>
-        </div>
-      ))}
-    </div>
-  );
-}
-
 function RecentOrders({ orders, users, onViewAll, onSelectOrder }: any) {
   const recent = orders.slice(0, 8);
   return (
-    <div>
-      <div className="mb-4 flex items-center justify-between border-b border-black/10 pb-3">
-        <p className="text-xs font-medium uppercase tracking-wider text-black/50">Recent orders</p>
-        <button type="button" onClick={onViewAll} className="text-sm font-medium text-[#a23b35] hover:underline">
+    <AdminPanel
+      title="Recent orders"
+      description="Latest checkout activity"
+      actions={
+        <button type="button" onClick={onViewAll} className="border border-stone-300 px-3 py-1.5 text-xs font-semibold text-[#ae2f34] hover:bg-[#fff5f0]">
           View all
         </button>
-      </div>
-      {recent.length === 0 ? <p className="py-4 text-sm text-black/50">No orders yet.</p> : null}
-      <div className="divide-y divide-black/10">
+      }
+    >
+      {recent.length === 0 ? <p className="py-4 text-sm text-black">No orders yet.</p> : null}
+      <div className="divide-y divide-stone-200">
         {recent.map((order: CustomerOrder) => (
-          <div
+          <button
+            type="button"
             key={order.id}
             onClick={() => onSelectOrder(order)}
-            className="flex items-center gap-3 py-3 text-sm hover:bg-black/5 cursor-pointer -mx-2 px-2 rounded-md"
+            className="flex w-full items-center gap-3 py-3 text-left text-sm transition hover:bg-[#fff5f0]"
           >
-            <span className="w-20 shrink-0 font-mono text-xs text-black/40">#{order.id.slice(0, 8)}</span>
-            <span className="flex-1 truncate font-medium text-black">{getCustomerName(order, users)}</span>
-            <span className="hidden text-xs text-black/40 sm:inline">{getDate(order.createdAt)}</span>
-            <span className={`inline-block w-24 text-center px-2 py-0.5 text-xs font-medium ${getStatusButtonStyle(order.status)} rounded-none`}>
+            <span className="w-16 shrink-0 font-mono text-xs text-black">#{order.id.slice(0, 8)}</span>
+            <span className="min-w-0 flex-1 truncate font-medium text-black">{getCustomerName(order, users)}</span>
+            <span className="hidden text-xs text-black sm:inline">{getDate(order.createdAt)}</span>
+            <span className={`inline-flex min-w-[5.5rem] justify-center px-2.5 py-1 text-[11px] font-semibold ${getStatusButtonStyle(order.status)}`}>
               {getOrderStatusLabel(order.status)}
             </span>
-          </div>
+          </button>
         ))}
       </div>
-    </div>
+    </AdminPanel>
   );
 }
 
 function OverviewSidebar({ revenue, users, admins, subscribers }: any) {
   return (
-    <div className="grid gap-4">
-      <div className="border border-[#a23b35] p-6 rounded-md text-[#a23b35] bg-white">
-        <p className="text-xs font-medium uppercase tracking-wider text-black/50">Paid value to date</p>
-        <p className="mt-2 text-3xl font-semibold">{money(revenue)}</p>
-        <p className="mt-3 text-sm leading-5 text-black/60">Paid, preparing, dispatched, and delivered orders.</p>
+    <div className="grid gap-5">
+      <div className="border border-[#e0bfbd] bg-[#fff5f0] p-5">
+        <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">Paid revenue</p>
+        <p className="mt-2 text-3xl font-semibold text-black">{money(revenue)}</p>
+        <p className="mt-2 text-sm leading-5 text-black">
+          Confirmed paid, preparing, dispatch, and delivered orders.
+        </p>
       </div>
-      <div className="border border-black/10 rounded-md p-5">
-        <p className="mb-3 text-xs font-medium uppercase tracking-wider text-black/50">People</p>
-        <div className="divide-y divide-black/10 text-sm">
-          <div className="flex justify-between py-2.5"><span className="text-black/60">Customers & admins</span><span className="font-medium text-black">{users.length}</span></div>
-          <div className="flex justify-between py-2.5"><span className="text-black/60">Admins</span><span className="font-medium text-black">{admins}</span></div>
-          <div className="flex justify-between py-2.5"><span className="text-black/60">Newsletter emails</span><span className="font-medium text-black">{subscribers}</span></div>
+      <AdminPanel title="People" description="Accounts on the platform." bordered>
+        <div className="divide-y divide-stone-200 text-sm">
+          <div className="flex justify-between py-2.5">
+            <span className="text-black">Accounts</span>
+            <span className="font-semibold text-black">{users.length}</span>
+          </div>
+          <div className="flex justify-between py-2.5">
+            <span className="text-black">Admins</span>
+            <span className="font-semibold text-black">{admins}</span>
+          </div>
+          <div className="flex justify-between py-2.5">
+            <span className="text-black">Newsletter</span>
+            <span className="font-semibold text-black">{subscribers}</span>
+          </div>
         </div>
-      </div>
+      </AdminPanel>
     </div>
   );
 }
@@ -512,58 +513,68 @@ function OverviewSidebar({ revenue, users, admins, subscribers }: any) {
 
 function OrdersList({ orders, users, onDeleteOrder, onSelectOrder }: any) {
   return (
-    <div>
-      <p className="mb-4 text-xs font-medium uppercase tracking-wider text-black/50">{orders.length} total</p>
-      {orders.length === 0 ? <p className="py-6 text-sm text-black/50">No orders have been placed yet.</p> : null}
-      <div className="overflow-x-auto">
-        <table className="w-full text-sm border-collapse">
-          <thead>
-            <tr className="border-b border-black/10 text-left text-xs font-medium uppercase tracking-wider text-black/50">
-              <th className="py-3 pr-4 font-medium">Order ID</th>
-              <th className="py-3 pr-4 font-medium">Customer</th>
-              <th className="py-3 pr-4 font-medium">Location</th>
-              <th className="py-3 pr-4 font-medium text-right">Amount</th>
-              <th className="py-3 pr-4 font-medium">Status</th>
-              <th className="py-3 font-medium">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-black/10">
-            {orders.map((order: CustomerOrder) => {
-              const statusLabel = getOrderStatusLabel(order.status);
-              const statusButtonClass = getStatusButtonStyle(order.status);
-              return (
-                <tr key={order.id} className="hover:bg-black/5 transition">
-                  <td className="py-3 pr-4 font-mono text-xs text-black/60">#{order.id.slice(0, 8)}</td>
-                  <td className="py-3 pr-4 font-medium text-black">{getCustomerName(order, users)}</td>
-                  <td className="py-3 pr-4 text-black/60">{getCustomerLocation(order)}</td>
-                  <td className="py-3 pr-4 text-right font-semibold text-[#a23b35]">{money(order.total ?? 0)}</td>
-                  <td className="py-3 pr-4">
-                    <span className={`inline-block w-24 text-center px-2 py-1 text-xs font-medium ${statusButtonClass} rounded-none`}>
-                      {statusLabel}
-                    </span>
-                  </td>
-                  <td className="py-3">
-                    <div className="flex gap-1.5">
-                      <button
-                        onClick={() => onSelectOrder(order)}
-                        className="inline-block bg-black text-white px-3 py-1 text-xs font-medium hover:bg-gray-800 transition rounded-none"
-                      >
-                        View
-                      </button>
-                      <button
-                        onClick={() => onDeleteOrder(order.id)}
-                        className="inline-block bg-red-600 text-white px-3 py-1 text-xs font-medium hover:bg-red-700 transition rounded-none"
-                      >
-                        Delete
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+    <div className="grid gap-5">
+      <AdminStatStrip
+        items={[
+          { label: 'Total orders', value: orders.length, detail: 'All time' },
+          {
+            label: 'Active',
+            value: orders.filter((o: CustomerOrder) => !['delivered', 'cancelled'].includes(o.status)).length,
+            detail: 'In progress',
+          },
+          {
+            label: 'Delivered',
+            value: orders.filter((o: CustomerOrder) => o.status === 'delivered').length,
+            detail: 'Completed',
+          },
+          {
+            label: 'Revenue',
+            value: money(
+              orders
+                .filter((o: CustomerOrder) => paidStatuses.includes(o.status))
+                .reduce((s: number, o: CustomerOrder) => s + (o.total ?? 0), 0),
+            ),
+            detail: 'Paid flow totals',
+          },
+        ]}
+      />
+      <AdminPanel title="Order queue" description={`${orders.length} total orders`}>
+        {orders.length === 0 ? <p className="py-6 text-sm text-black">No orders have been placed yet.</p> : null}
+        <div className="overflow-x-auto">
+          <div className="min-w-[860px]">
+            <div className="grid grid-cols-[0.9fr_1.2fr_1fr_0.8fr_0.9fr_0.9fr] border-b border-stone-300 bg-[#fff5f0] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-black">
+              <span>Order</span>
+              <span>Customer</span>
+              <span>Location</span>
+              <span>Amount</span>
+              <span>Status</span>
+              <span>Actions</span>
+            </div>
+            {orders.map((order: CustomerOrder) => (
+              <div
+                key={order.id}
+                className="grid grid-cols-[0.9fr_1.2fr_1fr_0.8fr_0.9fr_0.9fr] items-center gap-2 border-b border-stone-200 px-3 py-3 text-sm text-black"
+              >
+                <span className="font-mono text-xs">#{order.id.slice(0, 8)}</span>
+                <span className="truncate font-medium">{getCustomerName(order, users)}</span>
+                <span className="truncate">{getCustomerLocation(order)}</span>
+                <span className="font-semibold text-[#ae2f34]">{money(order.total ?? 0)}</span>
+                <span className={`inline-flex w-fit px-2 py-1 text-[11px] font-semibold ${getStatusButtonStyle(order.status)}`}>
+                  {getOrderStatusLabel(order.status)}
+                </span>
+                <div className="flex gap-1.5">
+                  <button type="button" onClick={() => onSelectOrder(order)} className="bg-black px-3 py-1 text-xs font-semibold text-white hover:bg-[#ae2f34]">
+                    View
+                  </button>
+                  <button type="button" onClick={() => onDeleteOrder(order.id)} className="border border-rose-600 px-3 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50">
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </AdminPanel>
     </div>
   );
 }
@@ -589,11 +600,20 @@ function OrderDetailModal({
   const statuses: OrderStatus[] = ['pending-payment', 'paid', 'preparing', 'out-for-delivery', 'delivered', 'cancelled'];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="bg-white w-full max-w-4xl max-h-[90vh] overflow-y-auto rounded-md shadow-xl">
-        <div className="sticky top-0 bg-white border-b border-black/10 px-6 py-4 flex justify-between items-center">
-          <h2 className="text-xl font-semibold">Order #{order.id.slice(0, 8)}</h2>
-          <button onClick={onClose} className="text-black/50 hover:text-black text-xl">✕</button>
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-[#111827]/50 p-4 backdrop-blur-[2px]">
+      <div className="max-h-[90vh] w-full max-w-4xl overflow-y-auto rounded-2xl border border-stone-200 bg-white shadow-2xl">
+        <div className="sticky top-0 flex items-center justify-between border-b border-stone-100 bg-white/95 px-6 py-4 backdrop-blur">
+          <div>
+            <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-[#ae2f34]">Order detail</p>
+            <h2 className="text-xl font-semibold text-[#111827]">#{order.id.slice(0, 8).toUpperCase()}</h2>
+          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-200 text-stone-500 transition hover:bg-stone-50"
+          >
+            ✕
+          </button>
         </div>
 
         <div className="p-6 space-y-6">
@@ -756,153 +776,139 @@ function UpcomingSection({
   }
 
   const sections = [
-    { id: 1, label: 'Action Required', desc: 'Arriving in 3 days or less', color: 'bg-rose-50 text-rose-700 border-rose-200' },
-    { id: 2, label: 'Preparation Window', desc: 'Arriving in 4-7 days', color: 'bg-orange-50 text-orange-700 border-orange-200' },
-    { id: 3, label: 'Upcoming Cycles', desc: 'Arriving in 8-12 days', color: 'bg-sky-50 text-sky-700 border-sky-200' },
-    { id: 4, label: 'Future Tracking', desc: 'Logged profiles with later dates', color: 'bg-stone-50 text-stone-600 border-stone-200' },
+    { id: 1, label: 'Action required', desc: 'Period in 3 days or less' },
+    { id: 2, label: 'Preparation window', desc: 'Period in 4–7 days' },
+    { id: 3, label: 'Upcoming cycles', desc: 'Period in 8–12 days' },
+    { id: 4, label: 'Future tracking', desc: 'Period more than 12 days out' },
   ];
 
   return (
-    <div className="space-y-10">
-      {/* Metrics Row */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="bg-white border border-black/5 p-6 rounded-xl shadow-sm">
-          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-black/40">Network reach</p>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-4xl font-serif font-bold text-black">{cycleProfiles.length}</span>
-            <span className="text-sm text-black/40">Tracked cycles</span>
-          </div>
-        </div>
-        <div className="bg-[#a23b35] p-6 rounded-xl shadow-sm text-white">
-          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/60">Urgent support</p>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-4xl font-serif font-bold">{rows.filter(r => r.priority === 1).length}</span>
-            <span className="text-sm text-white/70 text-balance">Arriving in next 72 hours</span>
-          </div>
-        </div>
-        <div className="bg-[#006a65] p-6 rounded-xl shadow-sm text-white">
-          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-white/60">Subscription health</p>
-          <div className="mt-2 flex items-baseline gap-2">
-            <span className="text-4xl font-serif font-bold">{subscriptions.filter(s => s.status === 'active').length}</span>
-            <span className="text-sm text-white/70">Active members</span>
-          </div>
-        </div>
-      </div>
+    <div className="grid gap-5">
+      <AdminStatStrip
+        items={[
+          { label: 'Tracked cycles', value: cycleProfiles.length, detail: 'Network reach' },
+          { label: 'Urgent', value: rows.filter((r) => r.priority === 1).length, detail: 'Next 72 hours' },
+          { label: 'Prep window', value: rows.filter((r) => r.priority === 2).length, detail: '4–7 days' },
+          {
+            label: 'Active members',
+            value: subscriptions.filter((s) => s.status === 'active').length,
+            detail: 'Subscriptions',
+          },
+        ]}
+      />
 
-      {/* Main Content Area */}
-      <div className="space-y-12">
-        {sections.map((section) => {
-          const sectionRows = rows.filter(r => r.priority === section.id);
-          if (sectionRows.length === 0 && section.id !== 1) return null;
+      {sections.map((section) => {
+        const sectionRows = rows.filter((r) => r.priority === section.id);
+        if (sectionRows.length === 0 && section.id !== 1) return null;
 
-          return (
-            <section key={section.id} className="space-y-5">
-              <div className="flex items-center gap-4">
-                <h2 className="text-lg font-bold tracking-tight text-black">{section.label}</h2>
-                <span className={`px-2 py-0.5 rounded-full border text-[10px] font-bold uppercase tracking-wider ${section.color}`}>
-                  {sectionRows.length} {sectionRows.length === 1 ? 'User' : 'Users'}
-                </span>
-                <div className="h-px flex-1 bg-black/5" />
+        return (
+          <AdminPanel
+            key={section.id}
+            title={section.label}
+            description={`${section.desc} · ${sectionRows.length} ${sectionRows.length === 1 ? 'user' : 'users'}`}
+          >
+            {sectionRows.length === 0 ? (
+              <div className="border border-dashed border-stone-300 p-6 text-center text-sm text-black">
+                No users in this window right now.
               </div>
-              
-              {sectionRows.length === 0 ? (
-                <div className="py-8 text-center bg-white border border-dashed border-black/10 rounded-xl text-black/30 text-sm italic">
-                  No users in this window right now.
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 xl:grid-cols-2 gap-4">
+            ) : (
+              <div className="overflow-x-auto">
+                <div className="min-w-[920px]">
+                  <div className="grid grid-cols-[1.4fr_0.9fr_1fr_1.1fr_1fr] border-b border-stone-300 bg-[#fff5f0] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-black">
+                    <span>Customer</span>
+                    <span>Next period</span>
+                    <span>Subscription</span>
+                    <span>Location / phone</span>
+                    <span>WhatsApp</span>
+                  </div>
+
                   {sectionRows.map(({ sub, user, nextPeriod, daysToPeriod }, idx) => {
                     const phone = user?.deliveryDetails?.phoneNumber || '';
-                    const customerName = user?.displayName || user?.email || 'Valued Customer';
-                    const location = [user?.deliveryDetails?.town, user?.deliveryDetails?.county].filter(Boolean).join(', ');
+                    const customerName = user?.displayName || user?.email || 'Customer';
+                    const location = [user?.deliveryDetails?.town, user?.deliveryDetails?.county]
+                      .filter(Boolean)
+                      .join(', ');
+                    const urgent = daysToPeriod !== null && daysToPeriod <= 3;
 
                     return (
-                      <article key={user?.uid || idx} className="group bg-white border border-black/10 rounded-xl p-5 hover:border-[#a23b35]/30 hover:shadow-md transition-all">
-                        <div className="flex flex-col sm:flex-row gap-5">
-                          {/* Left: User Initials & Info */}
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-start justify-between gap-3">
-                              <div className="flex items-center gap-3">
-                                <div className="h-10 w-10 shrink-0 flex items-center justify-center rounded-full bg-[#fdf2f2] text-[#a23b35] font-bold text-sm uppercase">
-                                  {customerName.slice(0, 2)}
-                                </div>
-                                <div className="min-w-0">
-                                  <h3 className="font-bold text-black truncate">{customerName}</h3>
-                                  <p className="text-xs text-black/40 truncate">{user?.email}</p>
-                                </div>
-                              </div>
-                              <div className="text-right">
-                                <p className="text-[10px] font-bold uppercase tracking-widest text-black/30">Next Period</p>
-                                <p className="text-sm font-bold text-black mt-0.5">
-                                  {nextPeriod ? formatValueDate(nextPeriod) : 'TBD'}
-                                </p>
-                                {daysToPeriod !== null && (
-                                  <p className={`text-[10px] font-black uppercase mt-1 ${daysToPeriod <= 3 ? 'text-rose-600' : 'text-black/50'}`}>
-                                    In {daysToPeriod} days
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-
-                            <div className="mt-5 grid grid-cols-2 gap-4 border-t border-black/5 pt-4">
-                              <div>
-                                <p className="text-[10px] font-bold uppercase tracking-widest text-black/30">Subscription</p>
-                                <div className="mt-1">
-                                  {sub ? (
-                                    <>
-                                      <p className="text-xs font-bold text-black">{sub.planName}</p>
-                                      <p className="text-[10px] text-[#006a65] font-bold">{money(sub.amount ?? 0)}</p>
-                                    </>
-                                  ) : (
-                                    <p className="text-xs text-black/40 italic">One-time / No sub</p>
-                                  )}
-                                </div>
-                              </div>
-                              <div>
-                                <p className="text-[10px] font-bold uppercase tracking-widest text-black/30">Logistics</p>
-                                <div className="mt-1 min-w-0">
-                                  <p className="text-xs text-black/60 truncate">{location || 'No location saved'}</p>
-                                  <p className="text-[10px] text-black/40 font-mono">{phone || 'No phone number'}</p>
-                                </div>
-                              </div>
-                            </div>
+                      <div
+                        key={user?.uid || idx}
+                        className="grid grid-cols-[1.4fr_0.9fr_1fr_1.1fr_1fr] items-center gap-3 border-b border-stone-200 px-3 py-3 text-sm text-black"
+                      >
+                        <div className="flex min-w-0 items-center gap-3">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#fff5f0] text-xs font-bold uppercase text-[#ae2f34]">
+                            {customerName.slice(0, 2)}
                           </div>
-
-                          {/* Right: Actions */}
-                          <div className="flex flex-row sm:flex-col gap-2 shrink-0 border-t sm:border-t-0 sm:border-l border-black/5 pt-4 sm:pt-0 sm:pl-4">
-                            <a
-                              href={getUpcomingWhatsappHref(phone, customerName, 'remind', daysToPeriod)}
-                              target="_blank"
-                              rel="noreferrer"
-                              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition ${
-                                phone ? 'bg-white border border-[#006a65] text-[#006a65] hover:bg-[#006a65] hover:text-white' : 'bg-black/5 text-black/20 pointer-events-none'
-                              }`}
-                            >
-                              <svg className="w-3 h-3" fill="currentColor" viewBox="0 0 24 24"><path d="M12.031 6.172c-3.181 0-5.767 2.586-5.768 5.766-.001 1.298.38 2.27 1.019 3.287l-.539 2.016 2.126-.54c1.029.59 2.067.928 3.162.929h.001c3.181 0 5.767-2.587 5.768-5.766 0-3.181-2.587-5.766-5.769-5.766z" /></svg>
-                              Remind
-                            </a>
-                            <a
-                              href={getUpcomingWhatsappHref(phone, customerName, 'wish', daysToPeriod)}
-                              target="_blank"
-                              rel="noreferrer"
-                              className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-2 text-[10px] font-bold uppercase tracking-widest rounded-lg transition ${
-                                phone ? 'bg-white border border-[#a23b35] text-[#a23b35] hover:bg-[#a23b35] hover:text-white' : 'bg-black/5 text-black/20 pointer-events-none'
-                              }`}
-                            >
-                              <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-                              Wish Well
-                            </a>
+                          <div className="min-w-0">
+                            <p className="truncate font-semibold text-black">{customerName}</p>
+                            <p className="truncate text-xs text-black">{user?.email || 'No email'}</p>
                           </div>
                         </div>
-                      </article>
+
+                        <div>
+                          <p className="font-semibold text-black">
+                            {nextPeriod ? formatValueDate(nextPeriod) : 'TBD'}
+                          </p>
+                          {daysToPeriod !== null ? (
+                            <p className={`mt-0.5 text-xs font-semibold ${urgent ? 'text-[#ae2f34]' : 'text-black'}`}>
+                              In {daysToPeriod} day{daysToPeriod === 1 ? '' : 's'}
+                            </p>
+                          ) : (
+                            <p className="mt-0.5 text-xs text-black">Date unknown</p>
+                          )}
+                        </div>
+
+                        <div>
+                          {sub ? (
+                            <>
+                              <p className="font-semibold text-black">{sub.planName}</p>
+                              <p className="mt-0.5 text-xs font-semibold text-[#006a65]">{money(sub.amount ?? 0)}</p>
+                            </>
+                          ) : (
+                            <p className="text-xs text-black">One-time / no sub</p>
+                          )}
+                        </div>
+
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-black">{location || 'No location'}</p>
+                          <p className="mt-0.5 truncate text-xs text-black">{phone || 'No phone'}</p>
+                        </div>
+
+                        <div className="flex flex-wrap gap-1.5">
+                          <a
+                            href={getUpcomingWhatsappHref(phone, customerName, 'remind', daysToPeriod)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={`px-3 py-1.5 text-xs font-semibold ${
+                              phone
+                                ? 'border border-[#006a65] text-[#006a65] hover:bg-[#e7fbf8]'
+                                : 'pointer-events-none border border-stone-200 text-black/30'
+                            }`}
+                          >
+                            Remind
+                          </a>
+                          <a
+                            href={getUpcomingWhatsappHref(phone, customerName, 'wish', daysToPeriod)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={`px-3 py-1.5 text-xs font-semibold ${
+                              phone
+                                ? 'border border-[#ae2f34] text-[#ae2f34] hover:bg-[#fff5f0]'
+                                : 'pointer-events-none border border-stone-200 text-black/30'
+                            }`}
+                          >
+                            Wish well
+                          </a>
+                        </div>
+                      </div>
                     );
                   })}
                 </div>
-              )}
-            </section>
-          );
-        })}
-      </div>
+              </div>
+            )}
+          </AdminPanel>
+        );
+      })}
     </div>
   );
 }
@@ -931,11 +937,8 @@ function ProductForm({
   onClear: () => void;
 }) {
   return (
-    <form onSubmit={onSubmit} className="border border-black/10 rounded-md p-6 xl:sticky xl:top-8 xl:self-start">
-      <p className="mb-4 text-xs font-semibold uppercase tracking-wider text-[#a23b35]">
-        {isEditing ? `Editing — ${form.name}` : 'New product'}
-      </p>
-
+    <form onSubmit={onSubmit}>
+      <AdminFormCard eyebrow="Catalog record" title={isEditing ? `Edit product` : 'New product'}>
       <div className="grid gap-4">
         <label className="grid gap-1.5 text-xs font-medium uppercase tracking-wide text-black/50">
           Name
@@ -1032,54 +1035,59 @@ function ProductForm({
           </label>
         </div>
 
-        <div className="flex gap-3 border-t border-black/10 pt-4">
-          <button type="submit" disabled={isSaving} className="flex-1 rounded-md bg-[#a23b35] px-4 py-2.5 text-sm font-medium text-white hover:bg-[#8c302b] disabled:opacity-50">
+        <div className="flex gap-3 border-t border-stone-300 pt-4">
+          <button type="submit" disabled={isSaving} className="flex-1 bg-[#ae2f34] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#8c1520] disabled:opacity-50">
             {isSaving ? 'Saving…' : isEditing ? 'Save changes' : 'Add product'}
           </button>
-          <button type="button" onClick={onClear} className="rounded-md border border-black/20 px-4 py-2.5 text-sm font-medium text-black/70 hover:bg-black/5">
+          <button type="button" onClick={onClear} className="border border-stone-300 px-4 py-2.5 text-sm font-semibold text-black hover:bg-[#fff5f0]">
             Clear
           </button>
         </div>
       </div>
+      </AdminFormCard>
     </form>
   );
 }
 
 function ProductList({ products, onEdit, onToggle, onDelete, updatingId }: any) {
   return (
-    <div>
-      <p className="mb-4 text-xs font-medium uppercase tracking-wider text-black/50">{products.length} products</p>
-      <div className="divide-y divide-black/10">
+    <AdminPanel title="Catalog" description={`${products.length} products`}>
+      <div className="divide-y divide-stone-200">
         {products.map((product: CatalogProduct) => (
-          <div key={product.id} className="-mx-2 flex flex-col gap-3 rounded-md px-2 py-3 hover:bg-black/5 sm:flex-row sm:items-center">
+          <div
+            key={product.id}
+            className="flex flex-col gap-3 py-3 sm:flex-row sm:items-center"
+          >
             <div className="flex min-w-0 items-center gap-3">
-              <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-md border border-black/10">
-                <Image src={product.image || '/bloom1.png'} alt={product.name} fill sizes="48px" className="object-cover" />
+              <div className="relative h-11 w-11 shrink-0 overflow-hidden border border-stone-200">
+                <Image src={product.image || '/bloom1.png'} alt={product.name} fill sizes="44px" className="object-cover" />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-sm font-medium text-black">{product.name}</p>
-                <p className="mt-0.5 truncate text-xs text-black/50">{product.categoryName}</p>
+                <p className="mt-0.5 truncate text-xs text-black">{product.categoryName}</p>
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2 sm:ml-auto sm:shrink-0">
-              <p className="text-sm font-semibold text-[#a23b35]">
+              <p className="text-sm font-semibold text-[#ae2f34]">
                 {product.price === null ? product.priceNote ?? 'Pending' : money(product.price)}
               </p>
-              <span className={`rounded-full px-2.5 py-0.5 text-xs font-medium ${product.isActive === false ? 'bg-black/10 text-black/50' : 'bg-emerald-100 text-emerald-800'}`}>
+              <span
+                className={`border px-2.5 py-0.5 text-[11px] font-semibold ${
+                  product.isActive === false
+                    ? 'border-stone-300 bg-white text-black'
+                    : 'border-emerald-200 bg-emerald-50 text-emerald-900'
+                }`}
+              >
                 {product.isActive === false ? 'Hidden' : 'Live'}
               </span>
               <div className="flex flex-wrap gap-1.5">
-                <button type="button" onClick={() => onEdit(product)} className="rounded-md border border-black/20 px-3 py-1 text-xs font-medium text-black/70 hover:bg-black/5">
+                <button type="button" onClick={() => onEdit(product)} className="border border-stone-300 px-3 py-1 text-xs font-semibold text-black hover:bg-[#fff5f0]">
                   Edit
                 </button>
-                <button type="button" disabled={updatingId === product.id} onClick={() => onToggle(product)} className="rounded-md border border-black/20 px-3 py-1 text-xs font-medium text-black/70 hover:bg-black/5 disabled:opacity-50">
+                <button type="button" disabled={updatingId === product.id} onClick={() => onToggle(product)} className="border border-stone-300 px-3 py-1 text-xs font-semibold text-black hover:bg-[#fff5f0] disabled:opacity-50">
                   {product.isActive === false ? 'Show' : 'Hide'}
                 </button>
-                <button
-                  type="button"
-                  onClick={() => onDelete(product.id)}
-                  className="rounded-md border border-red-600 px-3 py-1 text-xs font-medium text-red-600 transition hover:bg-red-600 hover:text-white"
-                >
+                <button type="button" onClick={() => onDelete(product.id)} className="border border-rose-600 px-3 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50">
                   Delete
                 </button>
               </div>
@@ -1087,7 +1095,7 @@ function ProductList({ products, onEdit, onToggle, onDelete, updatingId }: any) 
           </div>
         ))}
       </div>
-    </div>
+    </AdminPanel>
   );
 }
 
@@ -1096,35 +1104,48 @@ function ProductList({ products, onEdit, onToggle, onDelete, updatingId }: any) 
 function CustomersList({ users, currentUserId, updatingId, onChangeRole }: any) {
   const admins = users.filter((u: UserProfile) => u.role === 'admin').length;
   return (
-    <div>
-      <p className="mb-4 text-xs font-medium uppercase tracking-wider text-black/50">{users.length} users · {admins} admins</p>
-      <div className="divide-y divide-black/10">
-        {users.map((profile: UserProfile) => (
-          <div key={profile.uid} className="flex items-center gap-4 py-3 hover:bg-black/5 -mx-2 px-2 rounded-md">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#a23b35] text-sm font-medium text-white">
-              {(profile.displayName || profile.email || '?').slice(0, 1).toUpperCase()}
+    <div className="grid gap-5">
+      <AdminStatStrip
+        items={[
+          { label: 'Users', value: users.length, detail: 'All accounts' },
+          { label: 'Admins', value: admins, detail: 'Staff access' },
+          { label: 'Customers', value: users.length - admins, detail: 'Shop accounts' },
+          { label: 'With delivery', value: users.filter((u: UserProfile) => u.deliveryDetails?.town).length, detail: 'Town saved' },
+        ]}
+      />
+      <AdminPanel title="Accounts" description={`${users.length} users · ${admins} admins`}>
+        <div className="divide-y divide-stone-200">
+          {users.map((profile: UserProfile) => (
+            <div key={profile.uid} className="flex items-center gap-3 py-3 sm:gap-4">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#ae2f34] text-sm font-semibold text-white">
+                {(profile.displayName || profile.email || '?').slice(0, 1).toUpperCase()}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-sm font-medium text-black">
+                  {profile.displayName || profile.email || 'Unnamed user'}
+                </p>
+                <p className="truncate text-xs text-black">{profile.email ?? profile.uid}</p>
+              </div>
+              <p className="hidden w-28 shrink-0 truncate text-xs text-black sm:block">
+                {profile.deliveryDetails?.town ?? '—'}
+              </p>
+              <select
+                value={profile.role}
+                onChange={(e) => onChangeRole(profile, e.target.value as UserRole)}
+                disabled={updatingId === profile.uid || profile.uid === currentUserId}
+                className={`shrink-0 border px-3 py-1 text-xs font-semibold outline-none disabled:opacity-50 ${
+                  profile.role === 'admin'
+                    ? 'border-[#e0bfbd] bg-[#fff5f0] text-[#ae2f34]'
+                    : 'border-stone-300 bg-white text-black'
+                }`}
+              >
+                <option value="customer">Customer</option>
+                <option value="admin">Admin</option>
+              </select>
             </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-medium text-black">{profile.displayName || profile.email || 'Unnamed user'}</p>
-              <p className="truncate text-xs text-black/50">{profile.email ?? profile.uid}</p>
-            </div>
-            <p className="hidden w-28 shrink-0 truncate text-xs text-black/50 sm:block">
-              {profile.deliveryDetails?.town ?? '—'}
-            </p>
-            <select
-              value={profile.role}
-              onChange={(e) => onChangeRole(profile, e.target.value as UserRole)}
-              disabled={updatingId === profile.uid || profile.uid === currentUserId}
-              className={`shrink-0 rounded-full border-0 px-3 py-1 text-xs font-medium outline-none transition disabled:opacity-50 ${
-                profile.role === 'admin' ? 'bg-[#a23b35]/10 text-[#a23b35]' : 'bg-black/10 text-black/60'
-              }`}
-            >
-              <option value="customer">Customer</option>
-              <option value="admin">Admin</option>
-            </select>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </AdminPanel>
     </div>
   );
 }
@@ -1133,18 +1154,39 @@ function CustomersList({ users, currentUserId, updatingId, onChangeRole }: any) 
 
 function SubscribersList({ subscribers }: { subscribers: NewsletterSubscriber[] }) {
   return (
-    <div>
-      <p className="mb-4 text-xs font-medium uppercase tracking-wider text-black/50">{subscribers.length} community emails</p>
-      {subscribers.length === 0 ? <p className="py-6 text-sm text-black/50">No newsletter subscribers yet.</p> : null}
-      <div className="divide-y divide-black/10">
-        {subscribers.map((subscriber) => (
-          <div key={subscriber.email} className="flex items-center gap-4 py-3 hover:bg-black/5 -mx-2 px-2 rounded-md">
-            <p className="min-w-0 flex-1 truncate text-sm text-black">{subscriber.email}</p>
-            <p className="shrink-0 text-xs text-black/50">{subscriber.source || 'website'}</p>
-            <p className="w-20 shrink-0 text-right text-xs text-black/50">{getDate(subscriber.updatedAt ?? subscriber.createdAt)}</p>
-          </div>
-        ))}
-      </div>
+    <div className="grid gap-5">
+      <AdminStatStrip
+        items={[
+          { label: 'Subscribers', value: subscribers.length, detail: 'Community emails' },
+          {
+            label: 'Website',
+            value: subscribers.filter((s) => (s.source || 'website') === 'website' || s.source?.includes('dashboard') || s.source?.includes('homepage')).length,
+            detail: 'Site sources',
+          },
+          {
+            label: 'Other sources',
+            value: subscribers.filter((s) => s.source && !s.source.includes('website') && !s.source.includes('dashboard') && !s.source.includes('homepage')).length,
+            detail: 'Named sources',
+          },
+          { label: 'Latest', value: subscribers[0] ? getDate(subscribers[0].updatedAt ?? subscribers[0].createdAt) : '—', detail: 'Most recent' },
+        ]}
+      />
+      <AdminPanel title="Subscriber list" description={`${subscribers.length} community emails`}>
+        {subscribers.length === 0 ? <p className="py-6 text-sm text-black">No newsletter subscribers yet.</p> : null}
+        <div className="divide-y divide-stone-200">
+          {subscribers.map((subscriber) => (
+            <div key={subscriber.email} className="flex items-center gap-4 py-3">
+              <p className="min-w-0 flex-1 truncate text-sm text-black">{subscriber.email}</p>
+              <p className="shrink-0 border border-stone-200 px-2 py-0.5 text-xs text-black">
+                {subscriber.source || 'website'}
+              </p>
+              <p className="w-24 shrink-0 text-right text-xs text-black">
+                {getDate(subscriber.updatedAt ?? subscriber.createdAt)}
+              </p>
+            </div>
+          ))}
+        </div>
+      </AdminPanel>
     </div>
   );
 }
@@ -2137,7 +2179,7 @@ const uploadImage = useCallback(async (_productId: string) => {
   };
 
   return (
-    <div className="min-h-screen bg-white text-black lg:grid lg:grid-cols-[220px_1fr]">
+    <div className="min-h-screen bg-white text-black lg:grid lg:grid-cols-[240px_1fr]">
       <Sidebar
         activeSection={activeSection}
         setActiveSection={setActiveSection}
@@ -2146,33 +2188,38 @@ const uploadImage = useCallback(async (_productId: string) => {
         onSignOut={handleSignOut}
       />
 
-      <main className="min-w-0 px-4 py-4 sm:px-6 sm:py-8 lg:pr-8">
-        <div className="mx-auto max-w-7xl">
-          <div className="mb-6 flex flex-col gap-4 sm:mb-8 sm:flex-row sm:items-start sm:justify-between">
+      <main className="min-w-0 bg-white">
+        <div className="sticky top-0 z-20 border-b border-black/10 bg-white px-4 py-5 sm:px-6 lg:px-8">
+          <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <SectionHeader section={activeSection} desc={sectionDesc[activeSection]} />
             {activeSection === 'products' && (
               <button
                 type="button"
                 onClick={resetProductForm}
-                className="w-fit rounded-md bg-[#a23b35] px-5 py-2.5 text-sm font-medium text-white hover:bg-[#8c302b]"
+                className="w-fit rounded-lg bg-[#ae2f34] px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-[#8c1520]"
               >
                 + New product
               </button>
             )}
           </div>
+        </div>
 
-          {error && <div className="mb-6 rounded-md border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">{error}</div>}
-          {notice && <div className="mb-6 rounded-md border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">{notice}</div>}
+        <div className="bg-white px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+          <div className="grid gap-5">
+          {error ? <AdminAlert>{error}</AdminAlert> : null}
+          {notice ? <AdminAlert tone="success">{notice}</AdminAlert> : null}
 
           {activeSection === 'overview' && (
-            <div className="grid gap-6">
-              <MetricsCards
-                orders={orders}
-                activeOrders={metrics.activeOrders}
-                activeProducts={metrics.activeProducts}
-                subscribers={metrics.subscribers}
+            <>
+              <AdminStatStrip
+                items={[
+                  { label: 'Total orders', value: orders.length, detail: 'All time' },
+                  { label: 'Active orders', value: metrics.activeOrders, detail: 'In progress' },
+                  { label: 'Live products', value: metrics.activeProducts, detail: 'Visible in shop' },
+                  { label: 'Subscribers', value: metrics.subscribers, detail: 'Newsletter list' },
+                ]}
               />
-              <div className="grid gap-6 xl:grid-cols-[1fr_280px]">
+              <div className="grid gap-5 xl:grid-cols-[1fr_300px]">
                 <RecentOrders
                   orders={orders}
                   users={users}
@@ -2191,7 +2238,7 @@ const uploadImage = useCallback(async (_productId: string) => {
                   subscribers={subscribers.length}
                 />
               </div>
-            </div>
+            </>
           )}
 
           {activeSection === 'orders' && (
@@ -2230,26 +2277,36 @@ const uploadImage = useCallback(async (_productId: string) => {
           )}
 
           {activeSection === 'products' && (
-            <div className="grid gap-6 lg:grid-cols-[minmax(0,360px)_1fr]">
-              <ProductForm
-                form={productForm}
-                setForm={setFormField}
-                imageFile={imageFile}
-                setImageFile={setImageFile}
-                imagePreview={imageFile ? URL.createObjectURL(imageFile) : productForm.image}
-                isEditing={isEditingProduct}
-                isSaving={Boolean(updatingId)}
-                onSubmit={submitProduct}
-                onClear={resetProductForm}
+            <>
+              <AdminStatStrip
+                items={[
+                  { label: 'Products', value: products.length, detail: 'In catalog' },
+                  { label: 'Live', value: products.filter((p) => p.isActive !== false).length, detail: 'Visible' },
+                  { label: 'Hidden', value: products.filter((p) => p.isActive === false).length, detail: 'Off shelf' },
+                  { label: 'Categories', value: productCategories.length, detail: 'Product groups' },
+                ]}
               />
-              <ProductList
-                products={products}
-                onEdit={editProduct}
-                onToggle={toggleProduct}
-                onDelete={deleteProductHandler}
-                updatingId={updatingId}
-              />
-            </div>
+              <div className="grid gap-6 xl:grid-cols-[380px_1fr]">
+                <ProductForm
+                  form={productForm}
+                  setForm={setFormField}
+                  imageFile={imageFile}
+                  setImageFile={setImageFile}
+                  imagePreview={imageFile ? URL.createObjectURL(imageFile) : productForm.image}
+                  isEditing={isEditingProduct}
+                  isSaving={Boolean(updatingId)}
+                  onSubmit={submitProduct}
+                  onClear={resetProductForm}
+                />
+                <ProductList
+                  products={products}
+                  onEdit={editProduct}
+                  onToggle={toggleProduct}
+                  onDelete={deleteProductHandler}
+                  updatingId={updatingId}
+                />
+              </div>
+            </>
           )}
 
           {activeSection === 'customers' && (
@@ -2290,6 +2347,7 @@ const uploadImage = useCallback(async (_productId: string) => {
               movements={movements}
             />
           )}
+          </div>
         </div>
       </main>
     </div>
