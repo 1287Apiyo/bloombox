@@ -479,17 +479,29 @@ function RecentOrders({ orders, users, onViewAll, onSelectOrder }: any) {
   );
 }
 
-function OverviewSidebar({ revenue, users, admins, subscribers }: any) {
+function OverviewSidebar({
+  revenue,
+  users,
+  admins,
+  memberships,
+  newsletter,
+}: {
+  revenue: number;
+  users: UserProfile[];
+  admins: number;
+  memberships: number;
+  newsletter: number;
+}) {
   return (
     <div className="grid gap-5">
-      <div className="border border-[#e0bfbd] bg-[#fff5f0] p-5">
+      <div className="rounded-md border border-[#e0bfbd] bg-[#fff5f0] p-5">
         <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">Paid revenue</p>
         <p className="mt-2 text-3xl font-semibold text-black">{money(revenue)}</p>
         <p className="mt-2 text-sm leading-5 text-black">
           Confirmed paid, preparing, dispatch, and delivered orders.
         </p>
       </div>
-      <AdminPanel title="People" description="Accounts on the platform." bordered>
+      <AdminPanel title="People" description="Accounts and memberships." bordered>
         <div className="divide-y divide-stone-200 text-sm">
           <div className="flex justify-between py-2.5">
             <span className="text-black">Accounts</span>
@@ -500,8 +512,12 @@ function OverviewSidebar({ revenue, users, admins, subscribers }: any) {
             <span className="font-semibold text-black">{admins}</span>
           </div>
           <div className="flex justify-between py-2.5">
+            <span className="text-black">Paid tiers</span>
+            <span className="font-semibold text-black">{memberships}</span>
+          </div>
+          <div className="flex justify-between py-2.5">
             <span className="text-black">Newsletter</span>
-            <span className="font-semibold text-black">{subscribers}</span>
+            <span className="font-semibold text-black">{newsletter}</span>
           </div>
         </div>
       </AdminPanel>
@@ -699,7 +715,87 @@ function OrderDetailModal({
   );
 }
 
-// ─── Upcoming Section ───────────────────────────────────────
+// ─── Subscription ecosystem helpers ─────────────────────────
+
+function formatShortDate(value: unknown) {
+  if (value instanceof Date) {
+    return value.toLocaleDateString('en-KE', { day: '2-digit', month: 'short', year: 'numeric' });
+  }
+  if (value && typeof value === 'object' && 'toDate' in value && typeof (value as { toDate: () => Date }).toDate === 'function') {
+    return (value as { toDate: () => Date }).toDate().toLocaleDateString('en-KE', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  }
+  if (value && typeof value === 'object' && 'toMillis' in value && typeof (value as { toMillis: () => number }).toMillis === 'function') {
+    return new Date((value as { toMillis: () => number }).toMillis()).toLocaleDateString('en-KE', {
+      day: '2-digit',
+      month: 'short',
+      year: 'numeric',
+    });
+  }
+  return '—';
+}
+
+function subscriptionPriceLabel(sub: CustomerSubscription) {
+  if (sub.amount === null || sub.amount === undefined) {
+    return sub.amountLabel || 'Custom';
+  }
+  return money(sub.amount);
+}
+
+function getPeriodPriority(daysToPeriod: number | null) {
+  if (daysToPeriod === null) return 5; // no cycle data
+  if (daysToPeriod < 0) return 1; // period due / ongoing
+  if (daysToPeriod <= 3) return 1;
+  if (daysToPeriod <= 7) return 2;
+  if (daysToPeriod <= 12) return 3;
+  return 4;
+}
+
+function getPeriodPriorityLabel(priority: number) {
+  if (priority === 1) return { label: 'Ship / care now', tone: 'border-rose-200 bg-rose-50 text-rose-800' };
+  if (priority === 2) return { label: 'Prep this week', tone: 'border-amber-200 bg-amber-50 text-amber-900' };
+  if (priority === 3) return { label: 'Upcoming', tone: 'border-teal-200 bg-[#e7fbf8] text-[#00504c]' };
+  if (priority === 4) return { label: 'On track', tone: 'border-stone-200 bg-stone-50 text-stone-700' };
+  return { label: 'Needs cycle setup', tone: 'border-stone-200 bg-stone-100 text-stone-600' };
+}
+
+function getUpcomingWhatsappHref(
+  phone: string,
+  name: string,
+  type: 'remind' | 'wish' | 'tier',
+  days?: number | null,
+  tierName?: string,
+) {
+  const digits = phone.replace(/\D/g, '');
+  const normalized = digits.startsWith('0') ? `254${digits.slice(1)}` : digits;
+
+  let message = '';
+  if (type === 'tier') {
+    message = `Hi ${name || 'there'}, this is BloomBox. Your ${tierName || 'monthly care'} subscription is ready for the upcoming cycle${days != null && days >= 0 ? ` (period expected in about ${days} day${days === 1 ? '' : 's'})` : ''}. Reply if you want to adjust items or confirm delivery.`;
+  } else if (type === 'remind') {
+    message = `Hi ${name || 'there'}, this is BloomBox. We noticed your period is approaching ${days != null && days >= 0 ? `in about ${days} days` : 'soon'}! Your ${tierName || 'care'} plan is set — would you like anything extra before it arrives?`;
+  } else {
+    message = `Hi ${name || 'there'}, BloomBox is thinking of you as your period approaches. Wishing you a comfortable cycle with your ${tierName || 'BloomBox'} care.`;
+  }
+
+  return normalized ? `https://wa.me/${normalized}?text=${encodeURIComponent(message)}` : '#';
+}
+
+type EcosystemRow = {
+  key: string;
+  userId: string;
+  user?: UserProfile;
+  sub?: CustomerSubscription;
+  cycle?: CycleProfile;
+  nextPeriod: Date | null;
+  daysToPeriod: number | null;
+  priority: number;
+};
+
+// ─── Upcoming Section (subscription + cycle ecosystem) ──────
 
 function UpcomingSection({
   subscriptions,
@@ -710,201 +806,372 @@ function UpcomingSection({
   users: UserProfile[];
   cycleProfiles: CycleProfile[];
 }) {
+  const activeSubs = useMemo(
+    () => subscriptions.filter((s) => s.status === 'active'),
+    [subscriptions],
+  );
+
   const rows = useMemo(() => {
-    return cycleProfiles.map((cycle) => {
-      const user = users.find((u) => u.uid === cycle.userId);
-      const sub = subscriptions.find((s) => s.userId === cycle.userId && s.status === 'active');
-      const nextPeriod = getNextPeriodDate(cycle);
-      
-      const periodMillis = nextPeriod ? nextPeriod.getTime() : null;
-      const daysToPeriod = periodMillis ? Math.ceil((periodMillis - Date.now()) / 86400000) : null;
+    const byUser = new Map<string, EcosystemRow>();
 
-      let priority = 4; // Tracking
-      if (daysToPeriod !== null) {
-        if (daysToPeriod <= 3) priority = 1; // Immediate
-        else if (daysToPeriod <= 7) priority = 2; // Ship Now
-        else if (daysToPeriod <= 12) priority = 3; // Prepare
-      }
+    // 1) Every active paid subscription is the source of truth for membership
+    for (const sub of activeSubs) {
+      const user = users.find((u) => u.uid === sub.userId);
+      const cycle = cycleProfiles.find((c) => c.userId === sub.userId);
+      const nextPeriod = getNextPeriodDate(cycle ?? null);
+      const daysToPeriod =
+        nextPeriod != null ? Math.ceil((nextPeriod.getTime() - Date.now()) / 86400000) : null;
+      const priority = getPeriodPriority(daysToPeriod);
 
-      return {
-        sub,
+      byUser.set(sub.userId, {
+        key: sub.id,
+        userId: sub.userId,
         user,
+        sub,
+        cycle,
+        nextPeriod,
+        daysToPeriod,
+        // Subscribers without cycle still appear — priority 5 unless period data exists
+        priority: cycle ? priority : 5,
+      });
+    }
+
+    // 2) Cycle trackers without an active sub (still useful for outreach)
+    for (const cycle of cycleProfiles) {
+      if (byUser.has(cycle.userId)) continue;
+      const user = users.find((u) => u.uid === cycle.userId);
+      const nextPeriod = getNextPeriodDate(cycle);
+      const daysToPeriod =
+        nextPeriod != null ? Math.ceil((nextPeriod.getTime() - Date.now()) / 86400000) : null;
+      const priority = getPeriodPriority(daysToPeriod);
+
+      byUser.set(cycle.userId, {
+        key: cycle.id || cycle.userId,
+        userId: cycle.userId,
+        user,
+        sub: undefined,
         cycle,
         nextPeriod,
         daysToPeriod,
         priority,
-      };
-    }).sort((a, b) => {
+      });
+    }
+
+    return Array.from(byUser.values()).sort((a, b) => {
       if (a.priority !== b.priority) return a.priority - b.priority;
       const dateA = a.nextPeriod ? a.nextPeriod.getTime() : Infinity;
       const dateB = b.nextPeriod ? b.nextPeriod.getTime() : Infinity;
       return dateA - dateB;
     });
-  }, [subscriptions, users, cycleProfiles]);
-
-  function getTimestampMillis(value: unknown) {
-    if (value && typeof value === 'object' && 'toMillis' in value && typeof value.toMillis === 'function') {
-      return value.toMillis();
-    }
-    if (value instanceof Date) return value.getTime();
-    return 0;
-  }
-
-  function formatValueDate(value: unknown) {
-    const millis = getTimestampMillis(value);
-    if (!millis) return 'Not dated';
-    return new Date(millis).toLocaleDateString('en-KE', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-    });
-  }
-
-  function getUpcomingWhatsappHref(phone: string, name: string, type: 'remind' | 'wish', days?: number | null) {
-    const digits = phone.replace(/\D/g, '');
-    const normalized = digits.startsWith('0') ? `254${digits.slice(1)}` : digits;
-    
-    let message = '';
-    if (type === 'remind') {
-      message = `Hi ${name || 'there'}, this is BloomBox. We noticed your period is approaching ${days ? `in about ${days} days` : 'soon'}! Just a reminder that we have comfort boxes ready to help you through. Would you like to see what's new in our shop?`;
-    } else {
-      message = `Hi ${name || 'there'}, BloomBox is thinking of you as your period approaches. We wish you a comfortable and peaceful cycle. Remember to be patient with yourself this week!`;
-    }
-    
-    const encoded = encodeURIComponent(message);
-    return normalized ? `https://wa.me/${normalized}?text=${encoded}` : '#';
-  }
+  }, [activeSubs, users, cycleProfiles]);
 
   const sections = [
-    { id: 1, label: 'Action required', desc: 'Period in 3 days or less' },
-    { id: 2, label: 'Preparation window', desc: 'Period in 4–7 days' },
+    { id: 1, label: 'Action required', desc: 'Period now or within 3 days — ship care / confirm delivery' },
+    { id: 2, label: 'Preparation window', desc: 'Period in 4–7 days — prepare the box' },
     { id: 3, label: 'Upcoming cycles', desc: 'Period in 8–12 days' },
-    { id: 4, label: 'Future tracking', desc: 'Period more than 12 days out' },
+    { id: 4, label: 'On track', desc: 'Period more than 12 days out' },
+    { id: 5, label: 'Subscribed · no cycle data', desc: 'Active tier but period dates not saved yet' },
   ];
 
   return (
     <div className="grid gap-5">
       <AdminStatStrip
         items={[
-          { label: 'Tracked cycles', value: cycleProfiles.length, detail: 'Network reach' },
-          { label: 'Urgent', value: rows.filter((r) => r.priority === 1).length, detail: 'Next 72 hours' },
-          { label: 'Prep window', value: rows.filter((r) => r.priority === 2).length, detail: '4–7 days' },
           {
-            label: 'Active members',
-            value: subscriptions.filter((s) => s.status === 'active').length,
-            detail: 'Subscriptions',
+            label: 'Active tiers',
+            value: activeSubs.length,
+            detail: 'Paid monthly members',
+          },
+          {
+            label: 'Urgent period',
+            value: rows.filter((r) => r.priority === 1).length,
+            detail: 'Next 3 days',
+          },
+          {
+            label: 'Prep window',
+            value: rows.filter((r) => r.priority === 2).length,
+            detail: '4–7 days',
+          },
+          {
+            label: 'Cycles tracked',
+            value: cycleProfiles.length,
+            detail: 'With period profile',
           },
         ]}
       />
 
+      <AdminPanel
+        title="How this works"
+        description="When a customer activates a monthly tier and saves cycle settings, they appear here with next period + plan so you can prep boxes on time."
+      >
+        <div className="grid gap-2 text-sm text-black sm:grid-cols-3">
+          <p className="rounded-md border border-stone-200 bg-[#fff5f0] p-3">
+            <span className="font-semibold text-[#ae2f34]">1. Subscribe</span>
+            <br />
+            Customer picks a tier and activates card on /subscriptions.
+          </p>
+          <p className="rounded-md border border-stone-200 bg-[#fff5f0] p-3">
+            <span className="font-semibold text-[#ae2f34]">2. Track cycle</span>
+            <br />
+            They save last period + averages on /cycle so next period is predicted.
+          </p>
+          <p className="rounded-md border border-stone-200 bg-[#fff5f0] p-3">
+            <span className="font-semibold text-[#ae2f34]">3. Admin prep</span>
+            <br />
+            You see their tier + countdown here and can WhatsApp remind.
+          </p>
+        </div>
+      </AdminPanel>
+
       {sections.map((section) => {
         const sectionRows = rows.filter((r) => r.priority === section.id);
-        if (sectionRows.length === 0 && section.id !== 1) return null;
+        if (sectionRows.length === 0 && section.id !== 1 && section.id !== 5) return null;
 
         return (
           <AdminPanel
             key={section.id}
             title={section.label}
-            description={`${section.desc} · ${sectionRows.length} ${sectionRows.length === 1 ? 'user' : 'users'}`}
+            description={`${section.desc} · ${sectionRows.length} ${sectionRows.length === 1 ? 'person' : 'people'}`}
           >
             {sectionRows.length === 0 ? (
-              <div className="border border-dashed border-stone-300 p-6 text-center text-sm text-black">
-                No users in this window right now.
+              <div className="rounded-md border border-dashed border-stone-300 p-6 text-center text-sm text-black">
+                No one in this window right now.
               </div>
             ) : (
-              <div className="overflow-x-auto">
-                <div className="min-w-[920px]">
-                  <div className="grid grid-cols-[1.4fr_0.9fr_1fr_1.1fr_1fr] border-b border-stone-300 bg-[#fff5f0] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-black">
-                    <span>Customer</span>
-                    <span>Next period</span>
-                    <span>Subscription</span>
-                    <span>Location / phone</span>
-                    <span>WhatsApp</span>
-                  </div>
-
-                  {sectionRows.map(({ sub, user, nextPeriod, daysToPeriod }, idx) => {
-                    const phone = user?.deliveryDetails?.phoneNumber || '';
-                    const customerName = user?.displayName || user?.email || 'Customer';
-                    const location = [user?.deliveryDetails?.town, user?.deliveryDetails?.county]
-                      .filter(Boolean)
-                      .join(', ');
-                    const urgent = daysToPeriod !== null && daysToPeriod <= 3;
+              <>
+                {/* Mobile cards */}
+                <div className="grid gap-3 lg:hidden">
+                  {sectionRows.map((row) => {
+                    const phone = row.user?.deliveryDetails?.phoneNumber || '';
+                    const customerName =
+                      row.user?.displayName || row.cycle?.displayName || row.user?.email || 'Customer';
+                    const badge = getPeriodPriorityLabel(row.priority);
+                    const tierName = row.sub?.planName;
 
                     return (
-                      <div
-                        key={user?.uid || idx}
-                        className="grid grid-cols-[1.4fr_0.9fr_1fr_1.1fr_1fr] items-center gap-3 border-b border-stone-200 px-3 py-3 text-sm text-black"
+                      <article
+                        key={row.key}
+                        className="rounded-md border border-stone-200 bg-white p-3.5 shadow-sm"
                       >
-                        <div className="flex min-w-0 items-center gap-3">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#fff5f0] text-xs font-bold uppercase text-[#ae2f34]">
-                            {customerName.slice(0, 2)}
-                          </div>
+                        <div className="flex items-start justify-between gap-2">
                           <div className="min-w-0">
                             <p className="truncate font-semibold text-black">{customerName}</p>
-                            <p className="truncate text-xs text-black">{user?.email || 'No email'}</p>
+                            <p className="truncate text-xs text-stone-500">{row.user?.email || 'No email'}</p>
+                          </div>
+                          <span className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase ${badge.tone}`}>
+                            {badge.label}
+                          </span>
+                        </div>
+
+                        <div className="mt-3 rounded-md border border-[#e0bfbd] bg-[#fff5f0] p-3">
+                          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#ae2f34]">
+                            Period tier
+                          </p>
+                          {row.sub ? (
+                            <>
+                              <p className="mt-1 font-serif text-lg font-semibold text-[#191c1d]">{row.sub.planName}</p>
+                              <p className="mt-0.5 text-sm font-semibold text-[#006a65]">
+                                {subscriptionPriceLabel(row.sub)} / mo · {row.sub.status}
+                              </p>
+                              <p className="mt-1 text-xs text-stone-600">
+                                Next billing: {formatShortDate(row.sub.nextBillingAt)}
+                              </p>
+                            </>
+                          ) : (
+                            <p className="mt-1 text-sm text-stone-600">No active subscription — cycle tracking only</p>
+                          )}
+                        </div>
+
+                        <div className="mt-3 grid grid-cols-2 gap-2 text-sm">
+                          <div className="rounded-md border border-stone-200 bg-stone-50 p-2.5">
+                            <p className="text-[10px] font-bold uppercase tracking-wide text-stone-500">Next period</p>
+                            <p className="mt-0.5 font-semibold text-black">
+                              {row.nextPeriod ? formatShortDate(row.nextPeriod) : 'Not set'}
+                            </p>
+                            {row.daysToPeriod != null ? (
+                              <p className={`text-xs font-semibold ${row.daysToPeriod <= 3 ? 'text-[#ae2f34]' : 'text-stone-600'}`}>
+                                {row.daysToPeriod < 0
+                                  ? 'Due / ongoing'
+                                  : `In ${row.daysToPeriod} day${row.daysToPeriod === 1 ? '' : 's'}`}
+                              </p>
+                            ) : (
+                              <p className="text-xs text-stone-500">Ask them to open /cycle</p>
+                            )}
+                          </div>
+                          <div className="rounded-md border border-stone-200 bg-stone-50 p-2.5">
+                            <p className="text-[10px] font-bold uppercase tracking-wide text-stone-500">Contact</p>
+                            <p className="mt-0.5 truncate text-xs font-medium text-black">
+                              {phone || 'No phone'}
+                            </p>
+                            <p className="truncate text-xs text-stone-500">
+                              {[row.user?.deliveryDetails?.town, row.user?.deliveryDetails?.county]
+                                .filter(Boolean)
+                                .join(', ') || 'No location'}
+                            </p>
                           </div>
                         </div>
 
-                        <div>
-                          <p className="font-semibold text-black">
-                            {nextPeriod ? formatValueDate(nextPeriod) : 'TBD'}
-                          </p>
-                          {daysToPeriod !== null ? (
-                            <p className={`mt-0.5 text-xs font-semibold ${urgent ? 'text-[#ae2f34]' : 'text-black'}`}>
-                              In {daysToPeriod} day{daysToPeriod === 1 ? '' : 's'}
-                            </p>
-                          ) : (
-                            <p className="mt-0.5 text-xs text-black">Date unknown</p>
-                          )}
-                        </div>
-
-                        <div>
-                          {sub ? (
-                            <>
-                              <p className="font-semibold text-black">{sub.planName}</p>
-                              <p className="mt-0.5 text-xs font-semibold text-[#006a65]">{money(sub.amount ?? 0)}</p>
-                            </>
-                          ) : (
-                            <p className="text-xs text-black">One-time / no sub</p>
-                          )}
-                        </div>
-
-                        <div className="min-w-0">
-                          <p className="truncate font-medium text-black">{location || 'No location'}</p>
-                          <p className="mt-0.5 truncate text-xs text-black">{phone || 'No phone'}</p>
-                        </div>
-
-                        <div className="flex flex-wrap gap-1.5">
+                        <div className="mt-3 flex flex-wrap gap-1.5">
                           <a
-                            href={getUpcomingWhatsappHref(phone, customerName, 'remind', daysToPeriod)}
+                            href={getUpcomingWhatsappHref(phone, customerName, 'tier', row.daysToPeriod, tierName)}
                             target="_blank"
                             rel="noreferrer"
-                            className={`px-3 py-1.5 text-xs font-semibold ${
+                            className={`rounded-md px-3 py-1.5 text-xs font-semibold ${
                               phone
-                                ? 'border border-[#006a65] text-[#006a65] hover:bg-[#e7fbf8]'
+                                ? 'bg-[#006a65] text-white'
                                 : 'pointer-events-none border border-stone-200 text-black/30'
+                            }`}
+                          >
+                            Confirm tier
+                          </a>
+                          <a
+                            href={getUpcomingWhatsappHref(phone, customerName, 'remind', row.daysToPeriod, tierName)}
+                            target="_blank"
+                            rel="noreferrer"
+                            className={`rounded-md border px-3 py-1.5 text-xs font-semibold ${
+                              phone
+                                ? 'border-[#006a65] text-[#006a65]'
+                                : 'pointer-events-none border-stone-200 text-black/30'
                             }`}
                           >
                             Remind
                           </a>
                           <a
-                            href={getUpcomingWhatsappHref(phone, customerName, 'wish', daysToPeriod)}
+                            href={getUpcomingWhatsappHref(phone, customerName, 'wish', row.daysToPeriod, tierName)}
                             target="_blank"
                             rel="noreferrer"
-                            className={`px-3 py-1.5 text-xs font-semibold ${
+                            className={`rounded-md border px-3 py-1.5 text-xs font-semibold ${
                               phone
-                                ? 'border border-[#ae2f34] text-[#ae2f34] hover:bg-[#fff5f0]'
-                                : 'pointer-events-none border border-stone-200 text-black/30'
+                                ? 'border-[#ae2f34] text-[#ae2f34]'
+                                : 'pointer-events-none border-stone-200 text-black/30'
                             }`}
                           >
                             Wish well
                           </a>
                         </div>
-                      </div>
+                      </article>
                     );
                   })}
                 </div>
-              </div>
+
+                {/* Desktop table */}
+                <div className="hidden overflow-x-auto lg:block">
+                  <div className="min-w-[980px]">
+                    <div className="grid grid-cols-[1.3fr_1.15fr_1fr_0.95fr_1fr] border-b border-stone-300 bg-[#fff5f0] px-3 py-2 text-[10px] font-bold uppercase tracking-[0.14em] text-black">
+                      <span>Customer</span>
+                      <span>Period tier</span>
+                      <span>Next period</span>
+                      <span>Billing / contact</span>
+                      <span>WhatsApp</span>
+                    </div>
+
+                    {sectionRows.map((row) => {
+                      const phone = row.user?.deliveryDetails?.phoneNumber || '';
+                      const customerName =
+                        row.user?.displayName || row.cycle?.displayName || row.user?.email || 'Customer';
+                      const location = [row.user?.deliveryDetails?.town, row.user?.deliveryDetails?.county]
+                        .filter(Boolean)
+                        .join(', ');
+                      const badge = getPeriodPriorityLabel(row.priority);
+                      const tierName = row.sub?.planName;
+                      const urgent = row.daysToPeriod != null && row.daysToPeriod <= 3;
+
+                      return (
+                        <div
+                          key={row.key}
+                          className="grid grid-cols-[1.3fr_1.15fr_1fr_0.95fr_1fr] items-center gap-3 border-b border-stone-200 px-3 py-3 text-sm text-black"
+                        >
+                          <div className="flex min-w-0 items-center gap-3">
+                            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#fff5f0] text-xs font-bold uppercase text-[#ae2f34]">
+                              {customerName.slice(0, 2)}
+                            </div>
+                            <div className="min-w-0">
+                              <p className="truncate font-semibold text-black">{customerName}</p>
+                              <p className="truncate text-xs text-stone-500">{row.user?.email || 'No email'}</p>
+                              <span className={`mt-1 inline-flex rounded-full border px-2 py-0.5 text-[10px] font-bold uppercase ${badge.tone}`}>
+                                {badge.label}
+                              </span>
+                            </div>
+                          </div>
+
+                          <div className="min-w-0 rounded-md border border-[#e0bfbd] bg-[#fff5f0] px-2.5 py-2">
+                            {row.sub ? (
+                              <>
+                                <p className="truncate font-semibold text-[#191c1d]">{row.sub.planName}</p>
+                                <p className="text-xs font-semibold text-[#006a65]">
+                                  {subscriptionPriceLabel(row.sub)} / mo
+                                </p>
+                                <p className="mt-0.5 text-[11px] text-stone-500">
+                                  {row.sub.planId} · {row.sub.status}
+                                </p>
+                              </>
+                            ) : (
+                              <p className="text-xs text-stone-600">No active tier</p>
+                            )}
+                          </div>
+
+                          <div>
+                            <p className="font-semibold text-black">
+                              {row.nextPeriod ? formatShortDate(row.nextPeriod) : 'Not set'}
+                            </p>
+                            {row.daysToPeriod != null ? (
+                              <p className={`mt-0.5 text-xs font-semibold ${urgent ? 'text-[#ae2f34]' : 'text-stone-600'}`}>
+                                {row.daysToPeriod < 0
+                                  ? 'Due / ongoing'
+                                  : `In ${row.daysToPeriod} day${row.daysToPeriod === 1 ? '' : 's'}`}
+                              </p>
+                            ) : (
+                              <p className="mt-0.5 text-xs text-stone-500">Cycle profile incomplete</p>
+                            )}
+                            {row.cycle ? (
+                              <p className="mt-0.5 text-[11px] text-stone-500">
+                                Avg {row.cycle.averageCycleLength}d · period {row.cycle.averagePeriodLength}d
+                              </p>
+                            ) : null}
+                          </div>
+
+                          <div className="min-w-0">
+                            {row.sub ? (
+                              <p className="text-xs font-medium text-black">
+                                Bill: {formatShortDate(row.sub.nextBillingAt)}
+                              </p>
+                            ) : null}
+                            <p className="truncate text-xs text-stone-600">{location || 'No location'}</p>
+                            <p className="truncate text-xs text-stone-500">{phone || 'No phone'}</p>
+                          </div>
+
+                          <div className="flex flex-wrap gap-1.5">
+                            <a
+                              href={getUpcomingWhatsappHref(phone, customerName, 'tier', row.daysToPeriod, tierName)}
+                              target="_blank"
+                              rel="noreferrer"
+                              className={`rounded-md px-3 py-1.5 text-xs font-semibold ${
+                                phone
+                                  ? 'bg-[#006a65] text-white hover:bg-[#004b48]'
+                                  : 'pointer-events-none border border-stone-200 text-black/30'
+                              }`}
+                            >
+                              Tier
+                            </a>
+                            <a
+                              href={getUpcomingWhatsappHref(phone, customerName, 'remind', row.daysToPeriod, tierName)}
+                              target="_blank"
+                              rel="noreferrer"
+                              className={`rounded-md border px-3 py-1.5 text-xs font-semibold ${
+                                phone
+                                  ? 'border-[#006a65] text-[#006a65] hover:bg-[#e7fbf8]'
+                                  : 'pointer-events-none border-stone-200 text-black/30'
+                              }`}
+                            >
+                              Remind
+                            </a>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </>
             )}
           </AdminPanel>
         );
@@ -1101,86 +1368,212 @@ function ProductList({ products, onEdit, onToggle, onDelete, updatingId }: any) 
 
 // ─── Customers ─────────────────────────────────────────────
 
-function CustomersList({ users, currentUserId, updatingId, onChangeRole }: any) {
-  const admins = users.filter((u: UserProfile) => u.role === 'admin').length;
+function CustomersList({
+  users,
+  currentUserId,
+  updatingId,
+  onChangeRole,
+  subscriptions,
+  cycleProfiles,
+}: {
+  users: UserProfile[];
+  currentUserId?: string;
+  updatingId: string;
+  onChangeRole: (profile: UserProfile, role: UserRole) => void;
+  subscriptions: CustomerSubscription[];
+  cycleProfiles: CycleProfile[];
+}) {
+  const admins = users.filter((u) => u.role === 'admin').length;
+  const activeSubs = subscriptions.filter((s) => s.status === 'active');
+
   return (
     <div className="grid gap-5">
       <AdminStatStrip
         items={[
           { label: 'Users', value: users.length, detail: 'All accounts' },
           { label: 'Admins', value: admins, detail: 'Staff access' },
-          { label: 'Customers', value: users.length - admins, detail: 'Shop accounts' },
-          { label: 'With delivery', value: users.filter((u: UserProfile) => u.deliveryDetails?.town).length, detail: 'Town saved' },
+          { label: 'Paid tiers', value: activeSubs.length, detail: 'Active memberships' },
+          { label: 'Cycles tracked', value: cycleProfiles.length, detail: 'Period profiles' },
         ]}
       />
-      <AdminPanel title="Accounts" description={`${users.length} users · ${admins} admins`}>
+      <AdminPanel title="Accounts" description={`${users.length} users · ${activeSubs.length} on a monthly tier`}>
         <div className="divide-y divide-stone-200">
-          {users.map((profile: UserProfile) => (
-            <div key={profile.uid} className="flex items-center gap-3 py-3 sm:gap-4">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#ae2f34] text-sm font-semibold text-white">
-                {(profile.displayName || profile.email || '?').slice(0, 1).toUpperCase()}
-              </div>
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-black">
-                  {profile.displayName || profile.email || 'Unnamed user'}
+          {users.map((profile) => {
+            const sub = activeSubs.find((s) => s.userId === profile.uid);
+            const cycle = cycleProfiles.find((c) => c.userId === profile.uid);
+            const nextPeriod = getNextPeriodDate(cycle ?? null);
+            const daysToPeriod =
+              nextPeriod != null ? Math.ceil((nextPeriod.getTime() - Date.now()) / 86400000) : null;
+
+            return (
+              <div key={profile.uid} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:gap-4">
+                <div className="flex min-w-0 flex-1 items-center gap-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#ae2f34] text-sm font-semibold text-white">
+                    {(profile.displayName || profile.email || '?').slice(0, 1).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-medium text-black">
+                      {profile.displayName || profile.email || 'Unnamed user'}
+                    </p>
+                    <p className="truncate text-xs text-stone-500">{profile.email ?? profile.uid}</p>
+                    <div className="mt-1 flex flex-wrap gap-1.5">
+                      {sub ? (
+                        <span className="rounded-full border border-[#e0bfbd] bg-[#fff5f0] px-2 py-0.5 text-[10px] font-bold text-[#8c1520]">
+                          {sub.planName} · {subscriptionPriceLabel(sub)}
+                        </span>
+                      ) : (
+                        <span className="rounded-full border border-stone-200 bg-stone-50 px-2 py-0.5 text-[10px] font-semibold text-stone-500">
+                          No tier
+                        </span>
+                      )}
+                      {nextPeriod ? (
+                        <span className="rounded-full border border-teal-200 bg-[#e7fbf8] px-2 py-0.5 text-[10px] font-semibold text-[#00504c]">
+                          Period {formatShortDate(nextPeriod)}
+                          {daysToPeriod != null ? ` · ${daysToPeriod}d` : ''}
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
+                <p className="hidden w-24 shrink-0 truncate text-xs text-black sm:block">
+                  {profile.deliveryDetails?.town ?? '—'}
                 </p>
-                <p className="truncate text-xs text-black">{profile.email ?? profile.uid}</p>
+                <select
+                  value={profile.role}
+                  onChange={(e) => onChangeRole(profile, e.target.value as UserRole)}
+                  disabled={updatingId === profile.uid || profile.uid === currentUserId}
+                  className={`w-fit shrink-0 rounded-md border px-3 py-1 text-xs font-semibold outline-none disabled:opacity-50 ${
+                    profile.role === 'admin'
+                      ? 'border-[#e0bfbd] bg-[#fff5f0] text-[#ae2f34]'
+                      : 'border-stone-300 bg-white text-black'
+                  }`}
+                >
+                  <option value="customer">Customer</option>
+                  <option value="admin">Admin</option>
+                </select>
               </div>
-              <p className="hidden w-28 shrink-0 truncate text-xs text-black sm:block">
-                {profile.deliveryDetails?.town ?? '—'}
-              </p>
-              <select
-                value={profile.role}
-                onChange={(e) => onChangeRole(profile, e.target.value as UserRole)}
-                disabled={updatingId === profile.uid || profile.uid === currentUserId}
-                className={`shrink-0 border px-3 py-1 text-xs font-semibold outline-none disabled:opacity-50 ${
-                  profile.role === 'admin'
-                    ? 'border-[#e0bfbd] bg-[#fff5f0] text-[#ae2f34]'
-                    : 'border-stone-300 bg-white text-black'
-                }`}
-              >
-                <option value="customer">Customer</option>
-                <option value="admin">Admin</option>
-              </select>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </AdminPanel>
     </div>
   );
 }
 
-// ─── Subscribers ─────────────────────────────────────────────
+// ─── Subscribers (paid members + newsletter) ─────────────────
 
-function SubscribersList({ subscribers }: { subscribers: NewsletterSubscriber[] }) {
+function SubscribersList({
+  subscribers,
+  subscriptions,
+  users,
+  cycleProfiles,
+}: {
+  subscribers: NewsletterSubscriber[];
+  subscriptions: CustomerSubscription[];
+  users: UserProfile[];
+  cycleProfiles: CycleProfile[];
+}) {
+  const activeSubs = useMemo(
+    () => subscriptions.filter((s) => s.status === 'active'),
+    [subscriptions],
+  );
+
+  const membershipRows = useMemo(() => {
+    return activeSubs
+      .map((sub) => {
+        const user = users.find((u) => u.uid === sub.userId);
+        const cycle = cycleProfiles.find((c) => c.userId === sub.userId);
+        const nextPeriod = getNextPeriodDate(cycle ?? null);
+        const daysToPeriod =
+          nextPeriod != null ? Math.ceil((nextPeriod.getTime() - Date.now()) / 86400000) : null;
+        return { sub, user, cycle, nextPeriod, daysToPeriod };
+      })
+      .sort((a, b) => {
+        const da = a.daysToPeriod ?? 999;
+        const db = b.daysToPeriod ?? 999;
+        return da - db;
+      });
+  }, [activeSubs, users, cycleProfiles]);
+
   return (
     <div className="grid gap-5">
       <AdminStatStrip
         items={[
-          { label: 'Subscribers', value: subscribers.length, detail: 'Community emails' },
+          { label: 'Paid members', value: activeSubs.length, detail: 'Active monthly tiers' },
           {
-            label: 'Website',
-            value: subscribers.filter((s) => (s.source || 'website') === 'website' || s.source?.includes('dashboard') || s.source?.includes('homepage')).length,
-            detail: 'Site sources',
+            label: 'Period this week',
+            value: membershipRows.filter((r) => r.daysToPeriod != null && r.daysToPeriod <= 7).length,
+            detail: 'Within 7 days',
           },
+          { label: 'Newsletter', value: subscribers.length, detail: 'Email list' },
           {
-            label: 'Other sources',
-            value: subscribers.filter((s) => s.source && !s.source.includes('website') && !s.source.includes('dashboard') && !s.source.includes('homepage')).length,
-            detail: 'Named sources',
+            label: 'Latest email',
+            value: subscribers[0] ? getDate(subscribers[0].updatedAt ?? subscribers[0].createdAt) : '—',
+            detail: 'Most recent signup',
           },
-          { label: 'Latest', value: subscribers[0] ? getDate(subscribers[0].updatedAt ?? subscribers[0].createdAt) : '—', detail: 'Most recent' },
         ]}
       />
-      <AdminPanel title="Subscriber list" description={`${subscribers.length} community emails`}>
+
+      <AdminPanel
+        title="Monthly memberships"
+        description={`${activeSubs.length} active tier${activeSubs.length === 1 ? '' : 's'} · period + plan for ops`}
+      >
+        {membershipRows.length === 0 ? (
+          <p className="py-6 text-sm text-black">
+            No active paid subscriptions yet. When someone activates a tier on /subscriptions, they appear here with plan and next period.
+          </p>
+        ) : (
+          <div className="divide-y divide-stone-200">
+            {membershipRows.map(({ sub, user, nextPeriod, daysToPeriod, cycle }) => {
+              const name = user?.displayName || user?.email || 'Member';
+              const urgent = daysToPeriod != null && daysToPeriod <= 3;
+              return (
+                <div key={sub.id} className="flex flex-col gap-2 py-3 sm:flex-row sm:items-center sm:gap-4">
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-black">{name}</p>
+                    <p className="truncate text-xs text-stone-500">{user?.email || sub.userId}</p>
+                  </div>
+                  <div className="min-w-0 rounded-md border border-[#e0bfbd] bg-[#fff5f0] px-3 py-2 sm:w-52">
+                    <p className="truncate text-sm font-semibold text-[#191c1d]">{sub.planName}</p>
+                    <p className="text-xs font-semibold text-[#006a65]">{subscriptionPriceLabel(sub)} / mo</p>
+                  </div>
+                  <div className="sm:w-36">
+                    <p className="text-xs font-semibold text-black">
+                      {nextPeriod ? formatShortDate(nextPeriod) : 'Period not set'}
+                    </p>
+                    {daysToPeriod != null ? (
+                      <p className={`text-xs font-semibold ${urgent ? 'text-[#ae2f34]' : 'text-stone-600'}`}>
+                        {daysToPeriod < 0 ? 'Due now' : `In ${daysToPeriod}d`}
+                      </p>
+                    ) : cycle ? (
+                      <p className="text-xs text-stone-500">Check cycle dates</p>
+                    ) : (
+                      <p className="text-xs text-stone-500">No /cycle profile</p>
+                    )}
+                  </div>
+                  <div className="text-xs text-stone-500 sm:w-32 sm:text-right">
+                    Bill {formatShortDate(sub.nextBillingAt)}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+        <p className="mt-4 border-t border-stone-200 pt-3 text-xs text-stone-500">
+          Full prep queues with WhatsApp live under <span className="font-semibold text-[#ae2f34]">Upcoming</span>.
+        </p>
+      </AdminPanel>
+
+      <AdminPanel title="Newsletter list" description={`${subscribers.length} community emails`}>
         {subscribers.length === 0 ? <p className="py-6 text-sm text-black">No newsletter subscribers yet.</p> : null}
         <div className="divide-y divide-stone-200">
           {subscribers.map((subscriber) => (
             <div key={subscriber.email} className="flex items-center gap-4 py-3">
               <p className="min-w-0 flex-1 truncate text-sm text-black">{subscriber.email}</p>
-              <p className="rounded-md shrink-0 border border-stone-200 px-2 py-0.5 text-xs text-black">
+              <p className="shrink-0 rounded-md border border-stone-200 px-2 py-0.5 text-xs text-black">
                 {subscriber.source || 'website'}
               </p>
-              <p className="w-24 shrink-0 text-right text-xs text-black">
+              <p className="hidden w-28 shrink-0 text-right text-xs text-black sm:block">
                 {getDate(subscriber.updatedAt ?? subscriber.createdAt)}
               </p>
             </div>
@@ -2009,14 +2402,17 @@ export default function AdminPage() {
   const metrics = useMemo(() => {
     const activeOrders = orders.filter((o) => !['delivered', 'cancelled'].includes(o.status)).length;
     const activeProducts = products.filter((p) => p.isActive !== false).length;
+    const activeMemberships = subscriptions.filter((s) => s.status === 'active').length;
     return {
       activeOrders,
       activeProducts,
-      subscribers: subscribers.length,
+      subscribers: activeMemberships || subscribers.length,
+      memberships: activeMemberships,
+      newsletter: subscribers.length,
       leads: leads.filter((l) => !['won', 'nurture'].includes(l.stage)).length,
       partners: partners.filter((p) => p.status === 'new' || p.status === 'reviewing').length,
     };
-  }, [orders, products, subscribers, leads, partners]);
+  }, [orders, products, subscribers, subscriptions, leads, partners]);
 
   // ── Product Form ──
 
@@ -2167,10 +2563,10 @@ const uploadImage = useCallback(async (_productId: string) => {
     overview: 'A snapshot of how the shop is doing right now.',
     orders: 'Track and move every order through delivery.',
     'order-detail': 'Review and manage order details.',
-    upcoming: 'Prepare for next subscription cycles and period dates.',
+    upcoming: 'Active tiers + next period dates so you can prep boxes on time.',
     products: 'Manage what is live in the catalog.',
-    customers: 'Manage accounts and admin access.',
-    subscribers: 'Everyone signed up to hear from BloomBox.',
+    customers: 'Accounts with membership tier and period status.',
+    subscribers: 'Paid monthly members and the newsletter email list.',
     access: 'How permissions work behind the scenes.',
     inventory: 'Track inventory against revenue.',
     leads: 'Qualify BloomBox leads and move them through the funnel.',
@@ -2216,7 +2612,7 @@ const uploadImage = useCallback(async (_productId: string) => {
                   { label: 'Total orders', value: orders.length, detail: 'All time' },
                   { label: 'Active orders', value: metrics.activeOrders, detail: 'In progress' },
                   { label: 'Live products', value: metrics.activeProducts, detail: 'Visible in shop' },
-                  { label: 'Subscribers', value: metrics.subscribers, detail: 'Newsletter list' },
+                  { label: 'Paid tiers', value: metrics.memberships, detail: 'Active memberships' },
                 ]}
               />
               <div className="grid gap-5 xl:grid-cols-[1fr_300px]">
@@ -2235,7 +2631,8 @@ const uploadImage = useCallback(async (_productId: string) => {
                     .reduce((s, o) => s + (o.total ?? 0), 0)}
                   users={users}
                   admins={users.filter((u) => u.role === 'admin').length}
-                  subscribers={subscribers.length}
+                  memberships={metrics.memberships}
+                  newsletter={metrics.newsletter}
                 />
               </div>
             </>
@@ -2315,10 +2712,19 @@ const uploadImage = useCallback(async (_productId: string) => {
               currentUserId={user?.uid}
               updatingId={updatingId}
               onChangeRole={changeUserRole}
+              subscriptions={subscriptions}
+              cycleProfiles={cycleProfiles}
             />
           )}
 
-          {activeSection === 'subscribers' && <SubscribersList subscribers={subscribers} />}
+          {activeSection === 'subscribers' && (
+            <SubscribersList
+              subscribers={subscribers}
+              subscriptions={subscriptions}
+              users={users}
+              cycleProfiles={cycleProfiles}
+            />
+          )}
 
           {activeSection === 'access' && <AccessSection />}
 
