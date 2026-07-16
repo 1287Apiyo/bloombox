@@ -100,7 +100,7 @@ const packages = [
     text: 'A simple monthly base for pads or tampons, flowers, and a small treat.',
     image: mockupImages.openBox,
     href: '/subscriptions',
-    includes: ['Monthly delivery', 'Care base', 'Small treat'],
+   
   },
   {
     title: 'Comfort Subscription',
@@ -108,7 +108,7 @@ const packages = [
     text: 'Period essentials with room for comfort add-ons as the customer learns what works.',
     image: '/products/waterbottles.jpg',
     href: '/subscriptions',
-    includes: ['Essentials', 'Comfort item', 'Flexible add-ons'],
+   
   },
   {
     title: 'Custom Monthly Plan',
@@ -116,7 +116,7 @@ const packages = [
     text: 'A flexible subscription path for clients who want to choose products each month.',
     image: '/products/candle.jpg',
     href: '/subscriptions',
-    includes: ['Custom add-ons', 'Monthly record', 'Checkout'],
+   
   },
 ];
 
@@ -754,11 +754,7 @@ export default function DashboardPage() {
                   <h3 className="mt-3 font-sans text-3xl font-semibold text-[#191c1d]">{item.title}</h3>
                   <p className="mt-3 text-sm leading-6 text-[#584140]">{item.text}</p>
                   <div className="mt-5 flex flex-wrap gap-2">
-                    {item.includes.map((include) => (
-                      <span key={include} className="border border-[#e0bfbd] bg-[#f8f9fa] px-3 py-1 text-xs font-semibold text-[#584140]">
-                        {include}
-                      </span>
-                    ))}
+                   
                   </div>
                   <div className="mt-auto pt-6">
                     <Link href={item.href} className="inline-flex w-full items-center justify-between bg-[#ae2f34] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#8c1520]">
