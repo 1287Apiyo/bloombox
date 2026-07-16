@@ -330,22 +330,30 @@ export default function ShopPage() {
         userId={user?.uid}
       />
 
-      <main className="pb-20 sm:pb-16">
-        {/* ---------- COMPACT MOBILE SHOP BAR ---------- */}
+      <main className="pb-4 sm:pb-8">
+        {/* ---------- COMPACT MOBILE INTRO + STICKY SHOP BAR ---------- */}
+        <section className="bb-mobile-hero lg:hidden">
+          <div className="bb-mobile-hero-inner !pb-3">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">Shop BloomBox</p>
+            <h1 className="bb-mobile-h1">Build this month&apos;s box</h1>
+            <p className="bb-mobile-lead">Essentials, comfort add-ons, and small gifts — dense 2-column catalog.</p>
+          </div>
+        </section>
+
         <section className="sticky top-[var(--bb-header-offset,60px)] z-30 border-b border-stone-200 bg-white lg:static lg:z-auto">
-          <div className="mx-auto max-w-7xl px-3 py-2.5 sm:px-8 sm:py-4 lg:hidden">
+          <div className="mx-auto max-w-7xl px-4 py-2.5 sm:px-8 sm:py-4 lg:hidden">
             <div className="flex items-center gap-2">
               <input
                 type="search"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 placeholder="Search products..."
-                className="min-w-0 flex-1 rounded-full border border-stone-200 bg-[#fafaf9] px-3.5 py-2.5 text-sm text-stone-900 outline-none transition focus:border-[#ae2f34]"
+                className="min-w-0 flex-1 rounded-md border border-stone-200 bg-[#fafaf9] px-3.5 py-2.5 text-sm text-stone-900 outline-none transition focus:border-[#ae2f34]"
               />
               <button
                 type="button"
                 onClick={() => setIsCartOpen(true)}
-                className="relative shrink-0 rounded-full bg-[#ae2f34] px-3.5 py-2.5 text-sm font-semibold text-white"
+                className="relative shrink-0 rounded-md bg-[#ae2f34] px-3.5 py-2.5 text-sm font-semibold text-white"
               >
                 Cart
                 {cart.itemCount > 0 ? (
@@ -415,7 +423,7 @@ export default function ShopPage() {
         </section>
 
         {/* ---------- FILTER + PRODUCT GRID ---------- */}
-        <section className="mx-auto grid max-w-7xl gap-4 px-2 py-3 sm:gap-8 sm:px-8 sm:py-10 lg:grid-cols-[280px_1fr]">
+        <section className="bb-page-pad grid gap-4 !pt-3 lg:grid-cols-[280px_1fr] lg:gap-8">
 
           {/* Desktop sidebar */}
           <aside className="hidden lg:sticky lg:top-28 lg:block lg:self-start">

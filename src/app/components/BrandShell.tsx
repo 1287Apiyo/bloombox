@@ -10,6 +10,7 @@ import { getAuthErrorMessage } from '@/lib/authErrors';
 import { getFirebaseAuth } from '@/lib/firebase';
 import { useAuth } from './AuthProvider';
 
+/** Compact primary nav — same on desktop bar and mobile menu */
 const accountNavigation = [
   { href: '/subscriptions', label: 'Subscriptions' },
   { href: '/shop', label: 'Shop' },
@@ -72,8 +73,8 @@ function navLinkClass(isActive: boolean) {
 
 function mobileNavLinkClass(isActive: boolean) {
   return isActive
-    ? 'border-rose-700 bg-rose-700 text-white'
-    : 'border-stone-300 bg-white text-stone-700 hover:border-rose-700 hover:text-rose-700';
+    ? 'text-[#ae2f34] font-bold'
+    : 'text-stone-800 font-semibold hover:text-[#ae2f34]';
 }
 
 function MenuIcon({ open }: { open: boolean }) {
@@ -129,7 +130,11 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const accountHref = user ? (isAdmin ? '/admin' : '/partner') : '/login';
   const accountLabel = user ? (isAdmin ? 'Admin' : 'Partner') : 'Sign in';
-  const visibleNavigation = user ? (isAdmin ? [...accountNavigation, { href: '/admin', label: 'Admin' }] : accountNavigation) : publicNavigation;
+  const primaryNavigation = user
+    ? isAdmin
+      ? [...accountNavigation, { href: '/admin', label: 'Admin' }]
+      : accountNavigation
+    : publicNavigation;
 
   useEffect(() => {
     setMobileMenuOpen(false);
@@ -166,13 +171,17 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
 
   return (
     <>
-    <header data-site-header className="fixed left-0 right-0 top-0 z-[1000] translate-y-0 transform-gpu border-b border-stone-300 bg-white shadow-sm">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-2.5 sm:gap-3 sm:px-6 sm:py-4 lg:px-8">
-        <div className="flex min-w-0 items-center gap-1.5 sm:gap-4">
+    <header data-site-header className="fixed left-0 right-0 top-0 z-[1000] translate-y-0 transform-gpu border-b border-stone-200 bg-white/95 shadow-[0_1px_0_rgba(28,25,23,0.06)] backdrop-blur-md">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-2 sm:gap-3 sm:px-6 sm:py-3.5 lg:px-8">
+        <div className="flex min-w-0 items-center gap-2 sm:gap-4">
           <button
             type="button"
             onClick={() => setMobileMenuOpen((current) => !current)}
-            className="inline-flex h-10 w-10 shrink-0 items-center justify-center border border-stone-300 bg-white text-stone-700 transition hover:border-rose-700 hover:text-rose-700 lg:hidden"
+            className={`inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-md border transition lg:hidden ${
+              mobileMenuOpen
+                ? 'border-[#ae2f34] bg-[#ae2f34] text-white'
+                : 'border-stone-200 bg-white text-stone-700 hover:border-[#ae2f34] hover:text-[#ae2f34]'
+            }`}
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-primary-nav"
             aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
@@ -183,7 +192,7 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
         </div>
 
         <nav className="hidden min-w-0 flex-1 items-center justify-center gap-4 overflow-x-auto px-4 lg:flex xl:gap-8 [&::-webkit-scrollbar]:hidden" aria-label="Primary navigation">
-          {visibleNavigation.map((item) => {
+          {primaryNavigation.map((item) => {
             const isActive = isActiveRoute(pathname, item.href);
 
             return (
@@ -205,7 +214,7 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
               className={`relative inline-flex h-9 w-9 items-center justify-center rounded-full border-2 shadow-sm transition sm:h-11 sm:w-11 ${
                 isActiveRoute(pathname, '/cycle')
                   ? 'border-[#ae2f34] bg-[#ae2f34] text-white'
-                  : 'border-stone-300 bg-[#fff5f0] text-[#ae2f34] hover:border-[#ae2f34] hover:bg-[#fed4c8]'
+                  : 'border-stone-200 bg-[#fff5f0] text-[#ae2f34] hover:border-[#ae2f34] hover:bg-[#fed4c8]'
               }`}
               aria-label="Open cycle tracker"
               title="Cycle tracker"
@@ -216,14 +225,14 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
 
           <Link
             href="/donate"
-            className="rounded-md hidden border border-[#006a65] bg-[#006a65] px-4 py-2 text-sm font-semibold text-white transition hover:border-[#004b48] hover:bg-[#004b48] sm:inline-flex sm:px-6"
+            className="hidden rounded-md border border-[#006a65] bg-[#006a65] px-4 py-2 text-sm font-semibold text-white transition hover:border-[#004b48] hover:bg-[#004b48] sm:inline-flex sm:px-6"
           >
             Donate
           </Link>
 
           <Link
             href={accountHref}
-            className="rounded-md bg-[#ae2f34] px-3 py-2 text-sm font-semibold text-white transition hover:bg-stone-950 sm:px-6"
+            className="rounded-md bg-[#ae2f34] px-3 py-2 text-sm font-semibold text-white transition hover:bg-[#8c1520] sm:px-6"
           >
             {accountLabel}
           </Link>
@@ -233,7 +242,7 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
               type="button"
               onClick={handleLogout}
               disabled={isLoggingOut}
-              className="rounded-md hidden border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-800 transition hover:border-[#ae2f34] hover:text-[#ae2f34] disabled:cursor-not-allowed disabled:opacity-60 sm:inline-flex"
+              className="hidden rounded-md border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-800 transition hover:border-[#ae2f34] hover:text-[#ae2f34] disabled:cursor-not-allowed disabled:opacity-60 sm:inline-flex"
             >
               {isLoggingOut ? '...' : 'Logout'}
             </button>
@@ -251,55 +260,62 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
       <>
         <button
           type="button"
-          className="fixed inset-0 z-[999] bg-black/40 lg:hidden"
+          className="fixed inset-0 z-[999] bg-[#14090c]/40 lg:hidden"
           aria-label="Close menu"
           onClick={() => setMobileMenuOpen(false)}
         />
         <nav
           id="mobile-primary-nav"
-          className="fixed left-0 right-0 top-[var(--bb-header-offset,60px)] z-[1001] max-h-[calc(100dvh-var(--bb-header-offset,60px))] overflow-y-auto border-b border-stone-200 bg-white px-4 py-4 shadow-lg lg:hidden"
+          className="fixed left-0 right-0 top-[var(--bb-header-offset,60px)] z-[1001] max-h-[min(78dvh,calc(100dvh-var(--bb-header-offset,60px)-0.5rem))] overflow-y-auto border-b border-stone-200 bg-white lg:hidden"
           aria-label="Primary navigation"
         >
-          <div className="mx-auto grid max-w-7xl gap-2">
-            {visibleNavigation.map((item) => {
-              const isActive = isActiveRoute(pathname, item.href);
+          <div className="mx-auto max-w-7xl px-4 pb-3 pt-1 sm:px-6">
+            {/* Same compact set as desktop — flat list on panel bg */}
+            <ul className="divide-y divide-stone-100">
+              {primaryNavigation.map((item) => {
+                const isActive = isActiveRoute(pathname, item.href);
 
-              return (
+                return (
+                  <li key={item.href}>
+                    <Link
+                      href={item.href}
+                      onClick={() => setMobileMenuOpen(false)}
+                      className={`flex items-center justify-between py-3.5 text-[15px] transition ${mobileNavLinkClass(isActive)}`}
+                    >
+                      <span className="flex items-center gap-2.5">
+                        {isActive ? (
+                          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-[#ae2f34]" aria-hidden="true" />
+                        ) : (
+                          <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-transparent" aria-hidden="true" />
+                        )}
+                        {item.label}
+                      </span>
+                      <span className={`text-lg leading-none ${isActive ? 'text-[#ae2f34]' : 'text-stone-300'}`} aria-hidden="true">
+                        ›
+                      </span>
+                    </Link>
+                  </li>
+                );
+              })}
+            </ul>
+
+            <div className="mt-1 border-t border-stone-200 pt-3 pb-1">
+              <div className="flex flex-wrap items-center gap-x-4 gap-y-2 text-sm font-semibold">
                 <Link
-                  key={item.href}
-                  href={item.href}
+                  href="/donate"
                   onClick={() => setMobileMenuOpen(false)}
-                  className={`border px-4 py-3 text-sm font-semibold transition ${mobileNavLinkClass(isActive)}`}
+                  className="text-[#006a65] hover:underline"
                 >
-                  {item.label}
+                  Donate
                 </Link>
-              );
-            })}
-
-            <div className="mt-2 grid gap-2 border-t border-stone-200 pt-3">
-              <Link
-                href="/donate"
-                onClick={() => setMobileMenuOpen(false)}
-                className="rounded-md border border-[#006a65] bg-[#006a65] px-4 py-3 text-center text-sm font-semibold text-white"
-              >
-                Donate
-              </Link>
-              <Link
-                href={accountHref}
-                onClick={() => setMobileMenuOpen(false)}
-                className="rounded-md bg-[#ae2f34] px-4 py-3 text-center text-sm font-semibold text-white"
-              >
-                {accountLabel}
-              </Link>
-              {user ? (
-                <>
-                  <Link
-                    href="/cycle"
-                    onClick={() => setMobileMenuOpen(false)}
-                    className={`border px-4 py-3 text-center text-sm font-semibold transition ${mobileNavLinkClass(isActiveRoute(pathname, '/cycle'))}`}
-                  >
-                    Cycle tracker
-                  </Link>
+                <Link
+                  href={accountHref}
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-[#ae2f34] hover:underline"
+                >
+                  {accountLabel}
+                </Link>
+                {user ? (
                   <button
                     type="button"
                     onClick={() => {
@@ -307,19 +323,27 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
                       void handleLogout();
                     }}
                     disabled={isLoggingOut}
-                    className="rounded-md border border-stone-300 bg-white px-4 py-3 text-sm font-semibold text-stone-800 transition hover:border-[#ae2f34] hover:text-[#ae2f34] disabled:opacity-60"
+                    className="text-stone-600 hover:text-[#ae2f34] disabled:opacity-60"
                   >
-                    {isLoggingOut ? 'Signing out...' : 'Logout'}
+                    {isLoggingOut ? 'Signing out…' : 'Log out'}
                   </button>
-                </>
-              ) : null}
+                ) : (
+                  <Link
+                    href="/signup"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="text-stone-700 hover:text-[#ae2f34]"
+                  >
+                    Create account
+                  </Link>
+                )}
+              </div>
             </div>
           </div>
         </nav>
       </>
     ) : null}
 
-    <div className="h-[60px] sm:h-[80px] lg:h-[72px]" aria-hidden="true" />
+    <div className="h-[var(--bb-header-offset,60px)]" aria-hidden="true" />
     </>
   );
 }
@@ -334,32 +358,32 @@ export function SiteFooter() {
   ];
 
   return (
-    <footer className="border-t border-stone-200 bg-[#14090c] text-white">
-      <div className="mx-auto max-w-7xl px-4 py-8 sm:px-8 lg:py-14">
-        <div className="grid gap-6 border-b border-white/10 pb-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-end lg:gap-8 lg:pb-10">
+    <footer className="mt-0 border-t border-stone-200 bg-[#14090c] text-white">
+      <div className="mx-auto max-w-7xl px-4 py-6 sm:px-8 sm:py-10 lg:py-14">
+        <div className="grid gap-4 border-b border-white/10 pb-5 sm:gap-6 sm:pb-8 lg:grid-cols-[1.15fr_0.85fr] lg:items-end lg:gap-8 lg:pb-10">
           <div>
             <BrandMark dark />
             <h2 className="mt-4 hidden max-w-2xl font-serif text-3xl font-semibold leading-tight text-white md:block sm:text-4xl">
               Care that arrives with softness, usefulness, and a little ceremony.
             </h2>
-            <p className="mt-3 max-w-xl text-sm leading-6 text-[#fed4c8] md:mt-4">
+            <p className="mt-2.5 max-w-xl text-sm leading-6 text-[#fed4c8] md:mt-4">
               Monthly period care subscriptions with comfort add-ons, cycle-aware reminders, and community support.
             </p>
           </div>
 
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Link href="/signup?next=/subscriptions" className="rounded-md bg-[#ae2f34] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520]">
+          <div className="grid grid-cols-2 gap-2 sm:gap-3">
+            <Link href="/signup?next=/subscriptions" className="rounded-md bg-[#ae2f34] px-4 py-2.5 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520] sm:px-5 sm:py-3">
               Start subscription
             </Link>
-            <Link href="/donate" className="rounded-md border border-[#fed4c8] px-5 py-3 text-center text-sm font-semibold text-[#fed4c8] transition hover:bg-[#fed4c8] hover:text-[#14090c]">
+            <Link href="/donate" className="rounded-md border border-[#fed4c8] px-4 py-2.5 text-center text-sm font-semibold text-[#fed4c8] transition hover:bg-[#fed4c8] hover:text-[#14090c] sm:px-5 sm:py-3">
               Donate
             </Link>
           </div>
         </div>
 
-        <div className="py-6 lg:hidden">
+        <div className="py-5 lg:hidden">
           <h3 className="border-l-4 border-[#ae2f34] pl-3 text-xs font-bold uppercase tracking-[0.16em] text-[#fed4c8]">Quick links</h3>
-          <ul className="mt-4 grid grid-cols-2 gap-3">
+          <ul className="mt-3 grid grid-cols-2 gap-2.5">
             {mobileQuickLinks.map((link) => (
               <li key={link.label}>
                 <Link href={link.href} className="text-sm font-medium text-stone-300 transition hover:text-white">

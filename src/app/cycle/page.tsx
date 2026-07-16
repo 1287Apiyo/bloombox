@@ -543,49 +543,45 @@ export default function CyclePage() {
         userId={user?.uid}
       />
 
-      <main className="pb-24 lg:pb-16">
-        {/* ---------- MOBILE STATUS HERO ---------- */}
-        <section className="border-b border-stone-200 bg-white lg:hidden">
-          <div className="mx-auto max-w-7xl px-4 py-5">
+      <main className="pb-[4.25rem] lg:pb-10">
+        {/* ---------- MOBILE STATUS HERO (landing-aligned) ---------- */}
+        <section className="bb-mobile-hero lg:hidden">
+          <div className="bb-mobile-hero-inner">
             <div className="flex items-center gap-4">
-              <div className="w-[118px] shrink-0">
+              <div className="w-[110px] shrink-0">
                 <PhaseCircle cycleDay={todayCycleDay} currentPhase={currentPhase} size={200} />
               </div>
               <div className="min-w-0 flex-1">
                 <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">Today</p>
-                <h1 className="mt-1 font-serif text-2xl font-semibold leading-tight text-[#191c1d]">
-                  {getPhaseLabel(currentPhase)}
-                </h1>
-                <p className="mt-1 text-sm text-stone-600">
+                <h1 className="bb-mobile-h1">{getPhaseLabel(currentPhase)}</h1>
+                <p className="bb-mobile-lead">
                   {todayCycleDay ? `Cycle day ${todayCycleDay}` : 'Set last period to start'}
                 </p>
-                <div className="mt-3 grid grid-cols-1 gap-1.5">
-                  <div className="rounded-lg border border-stone-200 bg-[#fff5f0] px-3 py-2">
-                    <p className="text-[10px] font-bold uppercase tracking-wide text-[#ae2f34]">Next period</p>
-                    <p className="mt-0.5 text-sm font-semibold text-[#191c1d]">{formatDisplayDate(nextPeriodDate)}</p>
-                  </div>
+                <div className="mt-2.5 rounded-md border border-stone-200 bg-[#fff5f0] px-3 py-2">
+                  <p className="text-[10px] font-bold uppercase tracking-wide text-[#ae2f34]">Next period</p>
+                  <p className="mt-0.5 text-sm font-semibold text-[#191c1d]">{formatDisplayDate(nextPeriodDate)}</p>
                 </div>
               </div>
             </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-2">
+            <div className="bb-mobile-cta-row">
               <button
                 type="button"
                 onClick={() => setSettingsOpen(true)}
-                className="rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-center text-sm font-semibold text-stone-800"
+                className="rounded-md border border-stone-300 bg-white px-3 py-2.5 text-center text-sm font-semibold text-stone-800"
               >
                 Edit settings
               </button>
               <Link
                 href="/shop"
-                className="rounded-lg bg-[#ae2f34] px-3 py-2.5 text-center text-sm font-semibold text-white"
+                className="rounded-md bg-[#ae2f34] px-3 py-2.5 text-center text-sm font-semibold text-white"
               >
                 Shop care
               </Link>
             </div>
 
             {!profile ? (
-              <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
+              <p className="mt-3 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
                 Tip: set your last period start and average cycle length so the calendar can colour your phases.
               </p>
             ) : null}
@@ -634,7 +630,7 @@ export default function CyclePage() {
         </section>
 
         {/* ---------- MAIN CONTENT ---------- */}
-        <section className="mx-auto grid max-w-7xl gap-5 px-3 py-4 sm:gap-7 sm:px-8 sm:py-10 lg:grid-cols-[360px_1fr]">
+        <section className="bb-page-pad grid gap-5 lg:grid-cols-[360px_1fr] lg:gap-7">
           {/* Desktop sidebar */}
           <aside className="hidden gap-5 lg:sticky lg:top-28 lg:grid lg:self-start">
             <div className="border border-stone-200 bg-white p-5">
@@ -682,7 +678,7 @@ export default function CyclePage() {
             ) : null}
 
             {/* Calendar — primary mobile surface */}
-            <section className="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] sm:rounded-md sm:shadow-sm">
+            <section className="overflow-hidden rounded-md border border-stone-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] sm:shadow-sm">
               <div className="flex items-center justify-between gap-2 border-b border-stone-200 px-3 py-3 sm:flex-row sm:p-5">
                 <div className="min-w-0">
                   <p className="hidden text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34] sm:block">Calendar</p>
@@ -899,20 +895,20 @@ export default function CyclePage() {
           <button
             type="button"
             onClick={() => setSettingsOpen(true)}
-            className="flex-1 rounded-lg border border-stone-300 py-2.5 text-sm font-semibold text-stone-800"
+            className="flex-1 rounded-md border border-stone-300 py-2.5 text-sm font-semibold text-stone-800"
           >
             Settings
           </button>
           <button
             type="button"
             onClick={openCart}
-            className="flex-1 rounded-lg border border-stone-300 py-2.5 text-sm font-semibold text-stone-800"
+            className="flex-1 rounded-md border border-stone-300 py-2.5 text-sm font-semibold text-stone-800"
           >
             Cart ({cart.itemCount})
           </button>
           <Link
             href="/shop"
-            className="flex-1 rounded-lg bg-[#ae2f34] py-2.5 text-center text-sm font-semibold text-white"
+            className="flex-1 rounded-md bg-[#ae2f34] py-2.5 text-center text-sm font-semibold text-white"
           >
             Shop
           </Link>

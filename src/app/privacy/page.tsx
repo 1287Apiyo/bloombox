@@ -40,38 +40,38 @@ export default function PrivacyPage() {
       <SiteHeader />
 
       <main>
-        <section className="border-b border-stone-300 bg-white">
-          <div className="mx-auto max-w-5xl px-5 py-14 sm:px-8">
+        <section className="bb-mobile-hero">
+          <div className="bb-mobile-hero-inner max-w-5xl">
             <Eyebrow>Privacy</Eyebrow>
-            <h1 className="mt-6 font-serif text-5xl font-semibold leading-none text-[#191c1d]">BloomBox Privacy Policy</h1>
-            <p className="mt-5 max-w-3xl text-sm leading-6 text-[#584140]">
-              This policy explains how BloomBox handles information across shopping, subscriptions, cycle tracking, checkout, lead capture, and partnerships.
+            <h1 className="bb-mobile-h1 sm:mt-4 sm:text-5xl">BloomBox Privacy Policy</h1>
+            <p className="bb-mobile-lead max-w-3xl sm:mt-5 sm:text-sm sm:leading-6">
+              How BloomBox handles information across shopping, subscriptions, cycle tracking, checkout, leads, and partnerships.
             </p>
-            <p className="mt-3 text-xs text-stone-500">Last updated: June 2, 2026</p>
+            <p className="mt-2 text-xs text-stone-500">Last updated: June 2, 2026</p>
           </div>
         </section>
 
-        <section className="mx-auto max-w-5xl px-5 py-10 sm:px-8">
-          <div className="grid gap-4">
+        <section className="bb-page-pad max-w-5xl">
+          <div className="grid gap-3 sm:gap-4">
             {sections.map((section) => (
-              <article key={section.title} className="border border-stone-300 bg-white p-5">
-                <h2 className="font-serif text-3xl font-semibold text-[#ae2f34]">{section.title}</h2>
-                <p className="mt-3 text-sm leading-6 text-stone-700">{section.text}</p>
+              <article key={section.title} className="rounded-md border border-stone-300 bg-white p-4 shadow-sm sm:p-5">
+                <h2 className="font-serif text-lg font-semibold text-[#ae2f34] sm:text-3xl">{section.title}</h2>
+                <p className="mt-2 text-sm leading-6 text-stone-700 sm:mt-3">{section.text}</p>
               </article>
             ))}
           </div>
 
-          <div className="mt-8 border border-[#e0bfbd] bg-[#fff5f0] p-5">
-            <h2 className="font-serif text-3xl font-semibold text-[#191c1d]">Contact</h2>
-            <p className="mt-3 text-sm leading-6 text-[#584140]">
+          <div className="mt-6 rounded-md border border-[#e0bfbd] bg-[#fff5f0] p-4 sm:mt-8 sm:p-5">
+            <h2 className="font-serif text-xl font-semibold text-[#191c1d] sm:text-3xl">Contact</h2>
+            <p className="mt-2 text-sm leading-6 text-[#584140] sm:mt-3">
               For privacy requests, contact BloomBox through the partnership or support channels on the site.
             </p>
-            <div className="mt-5 flex flex-wrap gap-3">
-              <Link href="/terms" className="rounded-md border border-[#ae2f34] px-4 py-2 text-sm font-semibold text-[#ae2f34] hover:bg-white">
-                Terms and Conditions
+            <div className="mt-4 grid grid-cols-2 gap-2 sm:mt-5 sm:flex sm:flex-wrap sm:gap-3">
+              <Link href="/terms" className="rounded-md border border-[#ae2f34] px-4 py-2.5 text-center text-sm font-semibold text-[#ae2f34] hover:bg-white">
+                Terms
               </Link>
-              <Link href="/partner" className="rounded-md bg-[#ae2f34] px-4 py-2 text-sm font-semibold text-white hover:bg-[#8c1520]">
-                Contact BloomBox
+              <Link href="/partner" className="rounded-md bg-[#ae2f34] px-4 py-2.5 text-center text-sm font-semibold text-white hover:bg-[#8c1520]">
+                Contact
               </Link>
             </div>
           </div>

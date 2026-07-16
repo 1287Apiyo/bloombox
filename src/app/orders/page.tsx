@@ -470,14 +470,13 @@ export default function OrdersPage() {
     <div className="min-h-screen bg-[#f8f9fa] text-stone-950">
       <SiteHeader />
 
-      <main className="pb-16">
-        {/* Mobile compact hero */}
-        <section className="border-b border-stone-200 bg-white sm:hidden">
-          <div className="mx-auto max-w-7xl px-4 py-5">
+      <main className="pb-4">
+        {/* Mobile compact hero — matches landing structure */}
+        <section className="bb-mobile-hero sm:hidden">
+          <div className="bb-mobile-hero-inner">
             <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">Orders</p>
-            <h1 className="mt-1 font-serif text-2xl font-semibold leading-tight text-[#191c1d]">
-              Your parcels
-            </h1>
+            <h1 className="bb-mobile-h1">Your parcels</h1>
+            <p className="bb-mobile-lead">Track payment, packing, and delivery in one place.</p>
             <div className="mt-3 grid grid-cols-4 gap-1.5">
               {[
                 { label: 'All', value: String(orders.length) },
@@ -485,17 +484,17 @@ export default function OrdersPage() {
                 { label: 'Done', value: String(orderStats.deliveredOrders) },
                 { label: 'Spent', value: money(orderStats.totalSpend).replace('KSh', '').trim() },
               ].map((stat) => (
-                <div key={stat.label} className="rounded-xl border border-stone-200/80 bg-[#fff5f0] px-1.5 py-2 text-center">
+                <div key={stat.label} className="rounded-md border border-stone-200/80 bg-[#fff5f0] px-1.5 py-2 text-center">
                   <p className="truncate text-xs font-bold text-[#191c1d]">{stat.value}</p>
                   <p className="mt-0.5 text-[9px] font-semibold uppercase tracking-wide text-[#ae2f34]">{stat.label}</p>
                 </div>
               ))}
             </div>
-            <div className="mt-3 grid grid-cols-2 gap-2">
-              <Link href="/shop" className="rounded-lg bg-[#ae2f34] px-3 py-2.5 text-center text-sm font-semibold text-white">
+            <div className="bb-mobile-cta-row">
+              <Link href="/shop" className="rounded-md bg-[#ae2f34] px-3 py-2.5 text-center text-sm font-semibold text-white">
                 Shop
               </Link>
-              <Link href="/checkout" className="rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-center text-sm font-semibold text-stone-800">
+              <Link href="/checkout" className="rounded-md border border-stone-300 bg-white px-3 py-2.5 text-center text-sm font-semibold text-stone-800">
                 Checkout
               </Link>
             </div>
@@ -552,15 +551,15 @@ export default function OrdersPage() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-3 py-4 sm:px-8 sm:py-10">
+        <section className="bb-page-pad">
           {error && (
-            <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm leading-6 text-rose-800 sm:mb-6 sm:p-4">
+            <div className="mb-4 rounded-md border border-rose-200 bg-rose-50 p-3 text-sm leading-6 text-rose-800 sm:mb-6 sm:p-4">
               {error}
             </div>
           )}
 
           {loading && (
-            <div className="rounded-xl border border-stone-200 bg-white p-6 text-sm text-stone-600 sm:p-8">
+            <div className="rounded-md border border-stone-200 bg-white p-6 text-sm text-stone-600 sm:p-8">
               Loading your orders…
             </div>
           )}

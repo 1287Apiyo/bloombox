@@ -5,6 +5,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { createPartnerInquiry } from '@/lib/firestore';
 import { Eyebrow, SiteFooter, SiteHeader } from '../components/BrandShell';
+import { MobilePairCarousel } from '../components/MobilePairCarousel';
 
 const partnershipModels = [
   {
@@ -158,33 +159,31 @@ export default function PartnerPage() {
     <div className="min-h-screen bg-[#f8f9fa] text-stone-950">
       <SiteHeader />
 
-      <main className="pb-24 lg:pb-0">
-        {/* Mobile compact hero */}
-        <section className="border-b border-stone-200 bg-white lg:hidden">
-          <div className="mx-auto max-w-7xl px-4 py-5">
+      <main className="pb-[4.25rem] lg:pb-0">
+        {/* Mobile compact hero — matches landing structure */}
+        <section className="bb-mobile-hero lg:hidden">
+          <div className="bb-mobile-hero-inner">
             <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">Partner with us</p>
-            <h1 className="mt-1.5 font-serif text-2xl font-semibold leading-tight text-[#191c1d]">
-              Build with BloomBox
-            </h1>
-            <p className="mt-2 text-sm leading-6 text-[#584140]">
+            <h1 className="bb-mobile-h1">Build with BloomBox</h1>
+            <p className="bb-mobile-lead">
               Products, delivery, schools, NGOs, corporates, and community campaigns — one intake for collaboration.
             </p>
-            <div className="mt-3.5 grid grid-cols-2 gap-2">
+            <div className="bb-mobile-cta-row">
               <button
                 type="button"
                 onClick={() => setFormOpen(true)}
-                className="rounded-lg bg-[#ae2f34] px-3 py-2.5 text-center text-sm font-semibold text-white"
+                className="rounded-md bg-[#ae2f34] px-3 py-2.5 text-center text-sm font-semibold text-white"
               >
                 Start partnership
               </button>
               <Link
                 href="/shop"
-                className="rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-center text-sm font-semibold text-stone-800"
+                className="rounded-md border border-stone-300 bg-white px-3 py-2.5 text-center text-sm font-semibold text-stone-800"
               >
                 View catalog
               </Link>
             </div>
-            <div className="relative mt-4 h-36 overflow-hidden rounded-xl border border-stone-200 bg-stone-100">
+            <div className="relative mt-4 h-40 overflow-hidden rounded-md border border-stone-200 bg-stone-100">
               <Image
                 src="/mockups/bloombox-open-box.png"
                 alt="Open BloomBox package for partnership ideas"
@@ -232,14 +231,14 @@ export default function PartnerPage() {
         </section>
 
         {/* Partnership models */}
-        <section className="mx-auto max-w-7xl px-3 py-5 sm:px-8 sm:py-12">
-          <div className="mb-3 px-1 md:hidden">
+        <section className="bb-page-pad">
+          <div className="mb-3 md:hidden">
             <h2 className="font-serif text-xl font-semibold text-[#ae2f34]">How partners work with us</h2>
-            <p className="mt-1 text-sm text-stone-600">Swipe to explore models, then send a request.</p>
+            <p className="mt-1 text-sm text-stone-600">Swipe pairs to explore models, then send a request.</p>
           </div>
 
-          {/* Mobile horizontal rail */}
-          <div className="bb-mobile-scroll -mx-3 flex snap-x snap-mandatory gap-3 px-3 pb-1 md:hidden">
+          {/* Mobile 2-up model pages */}
+          <MobilePairCarousel label="Partnership models">
             {partnershipModels.map((model, index) => {
               const isActive = activeModel === model.title;
               return (
@@ -250,22 +249,22 @@ export default function PartnerPage() {
                     setActiveModel(model.title);
                     setFormOpen(true);
                   }}
-                  className={`w-[78vw] max-w-[300px] shrink-0 snap-start rounded-xl border p-4 text-left transition ${
-                    isActive ? 'border-[#ae2f34] bg-[#fff5f0] ring-2 ring-[#fed4c8]' : 'border-stone-200 bg-white'
+                  className={`bb-card-tile w-full text-left transition ${
+                    isActive ? 'border-[#ae2f34] bg-[#fff5f0] ring-2 ring-[#fed4c8]' : ''
                   }`}
                 >
-                  <span className="inline-flex h-8 w-8 items-center justify-center rounded-full bg-[#ae2f34] text-xs font-bold text-white">
+                  <span className="inline-flex h-7 w-7 items-center justify-center rounded-full bg-[#ae2f34] text-[10px] font-bold text-white">
                     {String(index + 1).padStart(2, '0')}
                   </span>
-                  <h3 className="mt-3 font-serif text-xl font-semibold leading-snug text-[#191c1d]">{model.title}</h3>
-                  <p className="mt-2 line-clamp-4 text-xs leading-5 text-stone-600">{model.text}</p>
-                  <span className="mt-3.5 flex w-full items-center justify-center rounded-lg bg-[#ae2f34] py-2.5 text-sm font-semibold text-white">
-                    Partner on this
+                  <h3 className="mt-2 font-serif text-sm font-semibold leading-snug text-[#191c1d]">{model.title}</h3>
+                  <p className="mt-1.5 line-clamp-4 flex-1 text-[11px] leading-4 text-stone-600">{model.text}</p>
+                  <span className="mt-2.5 flex w-full items-center justify-center rounded-md bg-[#ae2f34] py-2 text-xs font-semibold text-white">
+                    Partner
                   </span>
                 </button>
               );
             })}
-          </div>
+          </MobilePairCarousel>
 
           {/* Desktop grid */}
           <div className="hidden gap-5 md:grid md:grid-cols-2 xl:grid-cols-4">
@@ -280,7 +279,7 @@ export default function PartnerPage() {
 
         {/* Form — desktop always; mobile via sheet + optional inline section */}
         <section id="partner-form" className="scroll-mt-28 border-y border-stone-200 bg-white sm:border-stone-300">
-          <div className="mx-auto grid max-w-7xl gap-5 px-3 py-6 sm:gap-8 sm:px-8 sm:py-14 lg:grid-cols-[0.72fr_1fr]">
+          <div className="bb-page-pad grid gap-5 lg:grid-cols-[0.72fr_1fr]">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34] sm:text-xs sm:tracking-[0.16em]">
                 Partner intake
@@ -294,12 +293,12 @@ export default function PartnerPage() {
               <button
                 type="button"
                 onClick={() => setFormOpen(true)}
-                className="mt-4 w-full rounded-lg bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white lg:hidden"
+                className="mt-4 w-full rounded-md bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white lg:hidden"
               >
                 Open partnership form
               </button>
               {notice ? (
-                <p className="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900 lg:hidden">
+                <p className="mt-3 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900 lg:hidden">
                   {notice}
                 </p>
               ) : null}
@@ -349,14 +348,14 @@ export default function PartnerPage() {
         <div className="mx-auto flex max-w-7xl gap-2">
           <Link
             href="/shop"
-            className="flex-1 rounded-lg border border-stone-300 py-2.5 text-center text-sm font-semibold text-stone-800"
+            className="flex-1 rounded-md border border-stone-300 py-2.5 text-center text-sm font-semibold text-stone-800"
           >
             Catalog
           </Link>
           <button
             type="button"
             onClick={() => setFormOpen(true)}
-            className="flex-1 rounded-lg bg-[#ae2f34] py-2.5 text-center text-sm font-semibold text-white"
+            className="flex-1 rounded-md bg-[#ae2f34] py-2.5 text-center text-sm font-semibold text-white"
           >
             Partner with us
           </button>

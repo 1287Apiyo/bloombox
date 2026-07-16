@@ -232,13 +232,37 @@ export default function CheckoutPage() {
     <div className="min-h-screen bg-[#fffaf7] text-stone-950">
       <SiteHeader cartCount={cart.itemCount} />
 
-      <main>
-        <section className="border-b border-stone-300 bg-[#f4ddd7]">
-          <div className="mx-auto max-w-7xl px-4 py-10 sm:px-8 sm:py-12 lg:py-16">
+      <main className="pb-4 sm:pb-0">
+        {/* Mobile compact hero */}
+        <section className="bb-mobile-hero lg:hidden">
+          <div className="bb-mobile-hero-inner">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">Checkout</p>
+            <h1 className="bb-mobile-h1">Confirm & place order</h1>
+            <p className="bb-mobile-lead">
+              Delivery details, payment, then submit — like a calm parcel checkout.
+            </p>
+            <div className="mt-3 rounded-md border border-stone-200 bg-[#fff5f0] px-3 py-2.5">
+              <div className="flex items-end justify-between gap-3">
+                <div>
+                  <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#ae2f34]">Current total</p>
+                  <p className="mt-0.5 text-xs text-stone-600">
+                    {displayCart.itemCount} item{displayCart.itemCount === 1 ? '' : 's'}{' '}
+                    {orderId ? 'submitted' : 'in cart'}
+                  </p>
+                </div>
+                <p className="text-xl font-bold text-[#191c1d]">{money(displayTotals.total)}</p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Desktop hero */}
+        <section className="hidden border-b border-stone-300 bg-[#f4ddd7] lg:block">
+          <div className="mx-auto max-w-7xl px-8 py-12 lg:py-16">
             <Eyebrow>Checkout</Eyebrow>
-            <div className="mt-5 grid gap-6 sm:mt-6 sm:gap-8 lg:grid-cols-[0.85fr_0.65fr] lg:items-end">
+            <div className="mt-6 grid gap-8 lg:grid-cols-[0.85fr_0.65fr] lg:items-end">
               <div>
-                <h1 className="text-4xl font-semibold leading-[0.98] tracking-tight text-stone-950 sm:text-6xl">
+                <h1 className="text-5xl font-semibold leading-[0.98] tracking-tight text-stone-950 sm:text-6xl">
                   Confirm delivery, choose payment, place the order.
                 </h1>
                 <p className="mt-5 max-w-2xl text-base leading-7 text-stone-700">
@@ -256,7 +280,7 @@ export default function CheckoutPage() {
           </div>
         </section>
 
-        <section className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:gap-8 sm:px-8 sm:py-10 lg:grid-cols-[1fr_380px]">
+        <section className="bb-page-pad grid gap-5 lg:grid-cols-[1fr_380px] lg:gap-8">
           <form onSubmit={handlePlaceOrder} className="space-y-8">
             {error ? (
               <div className="rounded-md border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-800">

@@ -11,6 +11,7 @@ import {
 } from '@/lib/firestore';
 import { useAuth } from '../components/AuthProvider';
 import { Eyebrow, SiteFooter, SiteHeader } from '../components/BrandShell';
+import { MobilePairCarousel } from '../components/MobilePairCarousel';
 
 const tiers = [
   {
@@ -218,19 +219,15 @@ export default function SubscriptionsPage() {
     <div className="min-h-screen bg-[#f8f9fa] text-stone-950">
       <SiteHeader />
 
-      <main className="pb-24 lg:pb-0">
-        {/* Compact mobile hero */}
-        <section className="border-b border-stone-200 bg-white lg:hidden">
-          <div className="mx-auto max-w-7xl px-4 py-5">
+      <main className="pb-[4.25rem] lg:pb-0">
+        {/* Compact mobile hero — matches landing structure */}
+        <section className="bb-mobile-hero lg:hidden">
+          <div className="bb-mobile-hero-inner">
             <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">Subscriptions</p>
-            <h1 className="mt-1.5 font-serif text-2xl font-semibold leading-tight text-[#191c1d]">
-              Monthly care from KSh 300
-            </h1>
-            <p className="mt-2 text-sm leading-6 text-[#584140]">
-              Pick a tier, add your card, and keep period care on schedule.
-            </p>
+            <h1 className="bb-mobile-h1">Monthly care from KSh 300</h1>
+            <p className="bb-mobile-lead">Pick a tier, add your card, and keep period care on schedule.</p>
             {activeSubscriptions.length > 0 ? (
-              <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2.5">
+              <div className="mt-3 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2.5">
                 <p className="text-xs font-semibold text-emerald-900">
                   {activeSubscriptions.length} active plan{activeSubscriptions.length === 1 ? '' : 's'}
                 </p>
@@ -240,16 +237,16 @@ export default function SubscriptionsPage() {
                 </p>
               </div>
             ) : null}
-            <div className="mt-4 grid grid-cols-2 gap-2">
+            <div className="bb-mobile-cta-row">
               <a
                 href="#subscription-tiers"
-                className="rounded-lg bg-[#ae2f34] px-3 py-2.5 text-center text-sm font-semibold text-white"
+                className="rounded-md bg-[#ae2f34] px-3 py-2.5 text-center text-sm font-semibold text-white"
               >
                 Choose tier
               </a>
               <a
                 href="#subscription-card"
-                className="rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-center text-sm font-semibold text-stone-800"
+                className="rounded-md border border-stone-300 bg-white px-3 py-2.5 text-center text-sm font-semibold text-stone-800"
               >
                 Card setup
               </a>
@@ -297,23 +294,21 @@ export default function SubscriptionsPage() {
         </section>
 
         {/* Tiers first on mobile flow */}
-        <section id="subscription-tiers" className="mx-auto max-w-7xl scroll-mt-28 px-3 py-5 sm:px-8 sm:py-14">
-          <div className="mb-3 flex items-end justify-between gap-3 px-1 sm:mb-9">
-            <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34] sm:text-xs sm:tracking-[0.16em]">
-                Monthly plans
-              </p>
-              <h2 className="mt-1 font-serif text-xl font-semibold text-[#191c1d] sm:mt-3 sm:text-4xl">
-                Choose your tier
-              </h2>
-              <p className="mt-1 hidden max-w-2xl text-sm leading-6 text-stone-600 sm:mt-2 sm:block">
-                Pick a ready monthly tier, or use the custom plan when you want more control over add-ons.
-              </p>
-            </div>
+        <section id="subscription-tiers" className="bb-page-pad scroll-mt-28">
+          <div className="mb-3 sm:mb-9">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34] sm:text-xs sm:tracking-[0.16em]">
+              Monthly plans
+            </p>
+            <h2 className="mt-1 font-serif text-xl font-semibold text-[#191c1d] sm:mt-3 sm:text-4xl">
+              Choose your tier
+            </h2>
+            <p className="mt-1 hidden max-w-2xl text-sm leading-6 text-stone-600 sm:mt-2 sm:block">
+              Pick a ready monthly tier, or use the custom plan when you want more control over add-ons.
+            </p>
           </div>
 
-          {/* Mobile horizontal tier rail */}
-          <div className="bb-mobile-scroll -mx-3 flex snap-x snap-mandatory gap-3 px-3 pb-1 lg:hidden">
+          {/* Mobile 2-up tier pages (landing-style) */}
+          <MobilePairCarousel label="Subscription tiers">
             {pricedTiers.map((tier) => {
               const isSelected = selectedTierId === tier.tier;
               return (
@@ -321,49 +316,29 @@ export default function SubscriptionsPage() {
                   key={tier.tier}
                   type="button"
                   onClick={() => chooseTier(tier)}
-                  className={`w-[78vw] max-w-[300px] shrink-0 snap-start overflow-hidden rounded-xl border bg-white text-left shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition ${
-                    isSelected ? 'border-[#ae2f34] ring-2 ring-[#fed4c8]' : 'border-stone-200'
+                  className={`bb-card-tile w-full text-left transition ${
+                    isSelected ? 'border-[#ae2f34] ring-2 ring-[#fed4c8]' : ''
                   }`}
                 >
-                  <div className={`h-1 ${tier.accent}`} />
-                  <div className="p-3.5">
-                    <div className="flex items-start gap-3">
-                      <div className="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border border-stone-200 bg-stone-100">
-                        <Image src={tier.image} alt={tier.name} fill sizes="56px" className="object-cover" />
-                      </div>
-                      <div className="min-w-0 flex-1">
-                        <div className="flex items-center justify-between gap-2">
-                          <p className="text-[10px] font-bold uppercase tracking-[0.12em] text-[#ae2f34]">{tier.tier}</p>
-                          {isSelected ? (
-                            <span className="rounded-full bg-[#ae2f34] px-2 py-0.5 text-[9px] font-bold uppercase text-white">
-                              Selected
-                            </span>
-                          ) : null}
-                        </div>
-                        <h3 className="mt-1 font-serif text-lg font-semibold leading-snug text-[#191c1d]">{tier.name}</h3>
-                        <p className="mt-1 text-base font-bold text-[#ae2f34]">{tier.price}</p>
-                      </div>
-                    </div>
-                    <p className="mt-3 line-clamp-2 text-xs leading-5 text-stone-600">{tier.summary}</p>
-                    <ul className="mt-3 flex flex-wrap gap-1.5">
-                      {tier.items.map((item) => (
-                        <li key={item} className="rounded-full bg-[#fff5f0] px-2 py-1 text-[10px] font-semibold text-[#8c1520]">
-                          {item}
-                        </li>
-                      ))}
-                    </ul>
-                    <span
-                      className={`mt-3.5 flex w-full items-center justify-center rounded-lg py-2.5 text-sm font-semibold ${
-                        isSelected ? 'bg-[#191c1d] text-white' : 'bg-[#ae2f34] text-white'
-                      }`}
-                    >
-                      {isSelected ? 'Selected · set up card' : 'Select this tier'}
-                    </span>
+                  <div className={`-mx-3 -mt-3 mb-2 h-1 ${tier.accent}`} />
+                  <div className="relative mx-auto h-12 w-12 overflow-hidden rounded-md border border-stone-200 bg-stone-100">
+                    <Image src={tier.image} alt={tier.name} fill sizes="48px" className="object-cover" />
                   </div>
+                  <p className="mt-2 text-[9px] font-bold uppercase tracking-[0.12em] text-[#ae2f34]">{tier.tier}</p>
+                  <h3 className="mt-0.5 font-serif text-sm font-semibold leading-snug text-[#191c1d]">{tier.name}</h3>
+                  <p className="mt-1 text-sm font-bold text-[#ae2f34]">{tier.price}</p>
+                  <p className="mt-1.5 line-clamp-2 flex-1 text-[11px] leading-4 text-stone-600">{tier.summary}</p>
+                  <span
+                    className={`mt-2.5 flex w-full items-center justify-center rounded-md py-2 text-xs font-semibold ${
+                      isSelected ? 'bg-[#191c1d] text-white' : 'bg-[#ae2f34] text-white'
+                    }`}
+                  >
+                    {isSelected ? 'Selected' : 'Select'}
+                  </span>
                 </button>
               );
             })}
-          </div>
+          </MobilePairCarousel>
 
           {/* Desktop tier grid */}
           <div className="hidden gap-4 lg:grid lg:grid-cols-4">
@@ -467,8 +442,8 @@ export default function SubscriptionsPage() {
         </section>
 
         <section id="subscription-card" className="scroll-mt-28 border-y border-stone-200 bg-[#f8f9fa] sm:border-stone-300">
-          <div className="mx-auto grid max-w-7xl gap-4 px-3 py-5 sm:gap-6 sm:px-8 sm:py-14 lg:grid-cols-[0.9fr_1.1fr] lg:items-stretch">
-            <div className="rounded-xl border border-[#241314] bg-[#191c1d] p-4 text-white shadow-sm sm:rounded-md sm:p-8">
+          <div className="bb-page-pad grid gap-4 lg:grid-cols-[0.9fr_1.1fr] lg:items-stretch">
+            <div className="rounded-md border border-[#241314] bg-[#191c1d] p-4 text-white shadow-sm sm:p-8">
               <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#fed4c8] sm:hidden">Card subscription</p>
               <div className="hidden sm:block">
                 <Eyebrow>Card subscription</Eyebrow>
@@ -480,7 +455,7 @@ export default function SubscriptionsPage() {
                 Only brand, expiry, and last four digits are stored — not the full card number.
               </p>
 
-              <div className="mt-4 rounded-xl border border-white/10 bg-white/10 p-3.5 sm:mt-7 sm:rounded-md sm:p-5">
+              <div className="mt-4 rounded-md border border-white/10 bg-white/10 p-3.5 sm:mt-7 sm:p-5">
                 <div className="flex items-start justify-between gap-3">
                   <div className="min-w-0">
                     <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#fed4c8]">Selected tier</p>
@@ -507,7 +482,7 @@ export default function SubscriptionsPage() {
               </div>
 
               {activeSubscriptions.length > 0 ? (
-                <div className="mt-4 rounded-xl border border-white/10 bg-white p-3.5 text-stone-950 sm:mt-5 sm:rounded-md sm:p-4">
+                <div className="mt-4 rounded-md border border-white/10 bg-white p-3.5 text-stone-950 sm:mt-5 sm:p-4">
                   <div className="border-b border-stone-200 pb-2">
                     <h3 className="text-sm font-semibold text-[#191c1d] sm:text-base">Your active subscriptions</h3>
                     <p className="mt-0.5 text-xs text-stone-500 sm:text-sm">
@@ -538,7 +513,7 @@ export default function SubscriptionsPage() {
               ) : null}
             </div>
 
-            <form onSubmit={activateSubscription} className="rounded-xl border border-stone-300 bg-white p-4 shadow-sm sm:rounded-md sm:p-6">
+            <form onSubmit={activateSubscription} className="rounded-md border border-stone-300 bg-white p-4 shadow-sm sm:p-6">
               <div className="mb-4 flex flex-wrap items-start justify-between gap-2 border-b border-stone-200 pb-3 sm:mb-5 sm:gap-3 sm:pb-4">
                 <div>
                   <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34] sm:text-xs sm:tracking-[0.16em]">
@@ -546,7 +521,7 @@ export default function SubscriptionsPage() {
                   </p>
                   <h3 className="mt-1 font-serif text-xl font-semibold text-[#191c1d] sm:mt-2 sm:text-3xl">Secure setup</h3>
                 </div>
-                <span className="rounded-full bg-[#fff5f0] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#8c1520] sm:rounded-md sm:px-3 sm:py-1.5 sm:text-xs">
+                <span className="rounded-md bg-[#fff5f0] px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#8c1520] sm:px-3 sm:py-1.5 sm:text-xs">
                   No full card saved
                 </span>
               </div>
@@ -556,7 +531,7 @@ export default function SubscriptionsPage() {
                   <input
                     value={cardholderName}
                     onChange={(event) => setCardholderName(event.target.value)}
-                    className="rounded-lg border border-stone-300 bg-white px-3 py-3 text-base font-normal outline-none transition focus:border-[#ae2f34] focus:ring-2 focus:ring-[#fed4c8] sm:rounded-md sm:px-4 sm:text-sm"
+                    className="rounded-md border border-stone-300 bg-white px-3 py-3 text-base font-normal outline-none transition focus:border-[#ae2f34] focus:ring-2 focus:ring-[#fed4c8] sm:px-4 sm:text-sm"
                     placeholder="Name on card"
                   />
                 </label>
@@ -566,7 +541,7 @@ export default function SubscriptionsPage() {
                     value={cardNumber}
                     onChange={(event) => setCardNumber(event.target.value)}
                     inputMode="numeric"
-                    className="rounded-lg border border-stone-300 bg-white px-3 py-3 text-base font-normal outline-none transition focus:border-[#ae2f34] focus:ring-2 focus:ring-[#fed4c8] sm:rounded-md sm:px-4 sm:text-sm"
+                    className="rounded-md border border-stone-300 bg-white px-3 py-3 text-base font-normal outline-none transition focus:border-[#ae2f34] focus:ring-2 focus:ring-[#fed4c8] sm:px-4 sm:text-sm"
                     placeholder="4242 4242 4242 4242"
                   />
                 </label>
@@ -576,7 +551,7 @@ export default function SubscriptionsPage() {
                     <input
                       value={cardExpiry}
                       onChange={(event) => setCardExpiry(event.target.value)}
-                      className="rounded-lg border border-stone-300 bg-white px-3 py-3 text-base font-normal outline-none transition focus:border-[#ae2f34] focus:ring-2 focus:ring-[#fed4c8] sm:rounded-md sm:px-4 sm:text-sm"
+                      className="rounded-md border border-stone-300 bg-white px-3 py-3 text-base font-normal outline-none transition focus:border-[#ae2f34] focus:ring-2 focus:ring-[#fed4c8] sm:px-4 sm:text-sm"
                       placeholder="MM/YY"
                     />
                   </label>
@@ -586,16 +561,16 @@ export default function SubscriptionsPage() {
                       value={cardCvv}
                       onChange={(event) => setCardCvv(event.target.value)}
                       inputMode="numeric"
-                      className="rounded-lg border border-stone-300 bg-white px-3 py-3 text-base font-normal outline-none transition focus:border-[#ae2f34] focus:ring-2 focus:ring-[#fed4c8] sm:rounded-md sm:px-4 sm:text-sm"
+                      className="rounded-md border border-stone-300 bg-white px-3 py-3 text-base font-normal outline-none transition focus:border-[#ae2f34] focus:ring-2 focus:ring-[#fed4c8] sm:px-4 sm:text-sm"
                       placeholder="123"
                     />
                   </label>
                 </div>
-                {error ? <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2.5 text-sm text-rose-800 sm:rounded-md sm:px-4 sm:py-3">{error}</p> : null}
-                {notice ? <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-900 sm:rounded-md sm:px-4 sm:py-3">{notice}</p> : null}
+                {error ? <p className="rounded-md border border-rose-200 bg-rose-50 px-3 py-2.5 text-sm text-rose-800 sm:px-4 sm:py-3">{error}</p> : null}
+                {notice ? <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-900 sm:px-4 sm:py-3">{notice}</p> : null}
                 <button
                   disabled={isActivating || selectedTier.amount === null}
-                  className="rounded-lg bg-[#ae2f34] px-5 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#8c1520] disabled:cursor-not-allowed disabled:opacity-60 sm:rounded-md sm:py-3"
+                  className="rounded-md bg-[#ae2f34] px-5 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-[#8c1520] disabled:cursor-not-allowed disabled:opacity-60 sm:py-3"
                 >
                   {isActivating ? 'Activating...' : `Activate ${selectedTier.name}`}
                 </button>
@@ -605,33 +580,36 @@ export default function SubscriptionsPage() {
         </section>
 
         <section className="border-b border-stone-200 bg-white sm:border-stone-300">
-          <div className="mx-auto max-w-7xl px-3 py-6 sm:px-8 sm:py-14">
-            <div className="mb-4 flex items-end justify-between gap-3 px-1 sm:mb-8">
+          <div className="bb-page-pad">
+            <div className="mb-4 flex items-end justify-between gap-3 sm:mb-8">
               <div className="min-w-0">
                 <h2 className="font-serif text-xl font-semibold text-[#191c1d] sm:text-4xl">Common add-ons</h2>
-                <p className="mt-1 hidden text-sm leading-6 text-stone-600 sm:mt-2 sm:block">
-                  Add comfort, self-care, small treats, or gift moments to any monthly tier.
+                <p className="mt-1 text-sm leading-6 text-stone-600 sm:mt-2">
+                  <span className="sm:hidden">Swipe pairs · shop any comfort item.</span>
+                  <span className="hidden sm:inline">
+                    Add comfort, self-care, small treats, or gift moments to any monthly tier.
+                  </span>
                 </p>
               </div>
-              <Link href="/gifting" className="shrink-0 text-sm font-semibold text-[#ae2f34] sm:border sm:border-[#ae2f34] sm:px-5 sm:py-3 sm:transition sm:hover:bg-[#fff5f0]">
+              <Link href="/gifting" className="shrink-0 text-sm font-semibold text-[#ae2f34] sm:rounded-md sm:border sm:border-[#ae2f34] sm:px-5 sm:py-3 sm:transition sm:hover:bg-[#fff5f0]">
                 Gifting
               </Link>
             </div>
-            {/* Mobile horizontal add-ons */}
-            <div className="bb-mobile-scroll -mx-3 flex snap-x snap-mandatory gap-2.5 px-3 pb-1 sm:hidden">
+            {/* Mobile 2-up add-ons */}
+            <MobilePairCarousel label="Common add-ons">
               {addOns.map((item) => (
                 <Link
                   key={item.name}
                   href={item.href}
-                  className="w-[42vw] max-w-[160px] shrink-0 snap-start overflow-hidden rounded-xl border border-stone-200 bg-[#f8f9fa]"
+                  className="overflow-hidden rounded-md border border-stone-200 bg-[#f8f9fa]"
                 >
                   <span className="relative block aspect-square overflow-hidden bg-stone-100">
-                    <Image src={item.image} alt={item.name} fill sizes="160px" className="object-cover" />
+                    <Image src={item.image} alt={item.name} fill sizes="50vw" className="object-cover" />
                   </span>
-                  <span className="block px-2.5 py-2 text-xs font-semibold leading-snug text-stone-950">{item.name}</span>
+                  <span className="block px-2 py-2 text-xs font-semibold leading-snug text-stone-950">{item.name}</span>
                 </Link>
               ))}
-            </div>
+            </MobilePairCarousel>
             <div className="hidden gap-5 sm:grid sm:grid-cols-2 lg:grid-cols-4">
               {addOns.map((item) => (
                 <Link key={item.name} href={item.href} className="group overflow-hidden rounded-md border border-stone-300 bg-[#f8f9fa] shadow-sm">
@@ -645,7 +623,7 @@ export default function SubscriptionsPage() {
           </div>
         </section>
 
-        <section className="mx-auto grid max-w-7xl gap-4 px-3 py-6 sm:gap-10 sm:px-8 sm:py-14 lg:grid-cols-[0.8fr_1.2fr]">
+        <section className="bb-page-pad grid gap-4 lg:grid-cols-[0.8fr_1.2fr] lg:gap-10">
           <div>
             <Eyebrow>Questions</Eyebrow>
             <h2 className="mt-2 font-serif text-xl font-semibold tracking-tight text-stone-950 sm:mt-4 sm:text-4xl">
@@ -654,7 +632,7 @@ export default function SubscriptionsPage() {
           </div>
           <div className="space-y-2 sm:space-y-3">
             {faqs.map(([question, answer], index) => (
-              <div key={question} className="rounded-xl border border-stone-300 bg-white sm:rounded-md">
+              <div key={question} className="rounded-md border border-stone-300 bg-white">
                 <button
                   type="button"
                   onClick={() => setOpenFaq(openFaq === index ? -1 : index)}
@@ -683,7 +661,7 @@ export default function SubscriptionsPage() {
           </div>
           <a
             href="#subscription-card"
-            className="shrink-0 rounded-lg bg-[#ae2f34] px-4 py-2.5 text-sm font-semibold text-white"
+            className="shrink-0 rounded-md bg-[#ae2f34] px-4 py-2.5 text-sm font-semibold text-white"
           >
             Set up card
           </a>

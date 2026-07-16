@@ -72,13 +72,36 @@ const quickLinks = [
 ];
 
 export default function FAQsPage() {
+  const topics = Array.from(new Set(faqs.map((faq) => faq.category)));
+
   return (
     <div className="min-h-screen bg-[#f8f9fa] text-stone-950">
       <SiteHeader />
 
       <main>
-        <section className="border-b border-stone-300 bg-white">
-          <div className="mx-auto grid max-w-7xl gap-8 px-5 py-14 sm:px-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-end lg:py-20">
+        {/* Mobile compact hero */}
+        <section className="bb-mobile-hero lg:hidden">
+          <div className="bb-mobile-hero-inner">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">Help center</p>
+            <h1 className="bb-mobile-h1">BloomBox FAQs</h1>
+            <p className="bb-mobile-lead">Ordering, gifting, subscriptions, privacy, delivery, and community.</p>
+            <div className="bb-mobile-scroll mt-3 flex gap-2 pb-0.5">
+              {quickLinks.map((link) => (
+                <Link
+                  key={link.href}
+                  href={link.href}
+                  className="shrink-0 rounded-full border border-[#e0bfbd] bg-white px-3 py-1.5 text-xs font-semibold text-[#191c1d]"
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Desktop hero */}
+        <section className="hidden border-b border-stone-300 bg-white lg:block">
+          <div className="mx-auto grid max-w-7xl gap-8 px-8 py-20 lg:grid-cols-[0.82fr_1.18fr] lg:items-end">
             <div>
               <Eyebrow>Help center</Eyebrow>
               <h1 className="mt-6 font-serif text-5xl font-semibold leading-none text-[#191c1d] sm:text-6xl">
@@ -93,7 +116,11 @@ export default function FAQsPage() {
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">Need something faster?</p>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 {quickLinks.map((link) => (
-                  <Link key={link.href} href={link.href} className="rounded-md border border-[#e0bfbd] bg-white px-4 py-3 text-sm font-semibold text-[#191c1d] transition hover:border-[#ae2f34] hover:text-[#ae2f34]">
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="rounded-md border border-[#e0bfbd] bg-white px-4 py-3 text-sm font-semibold text-[#191c1d] transition hover:border-[#ae2f34] hover:text-[#ae2f34]"
+                  >
                     {link.label}
                   </Link>
                 ))}
@@ -102,31 +129,34 @@ export default function FAQsPage() {
           </div>
         </section>
 
-        <section className="mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:gap-8 sm:px-8 sm:py-14 lg:grid-cols-[280px_1fr]">
-          <aside className="h-fit rounded-md border border-stone-300 bg-white p-4 shadow-sm sm:p-5">
-            <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">Topics</p>
-            <div className="bb-mobile-scroll mt-4 flex gap-2 lg:grid lg:gap-2 lg:overflow-visible">
-              {Array.from(new Set(faqs.map((faq) => faq.category))).map((category) => (
-                <span key={category} className="shrink-0 rounded-md border border-stone-200 bg-[#f8f9fa] px-3 py-2 text-sm font-semibold text-stone-700">
+        <section className="bb-page-pad grid gap-5 lg:grid-cols-[280px_1fr] lg:gap-8">
+          <aside className="h-fit rounded-md border border-stone-300 bg-white p-3 shadow-sm sm:p-5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34] sm:text-xs sm:tracking-[0.16em]">Topics</p>
+            <div className="bb-mobile-scroll mt-3 flex gap-2 lg:mt-4 lg:grid lg:gap-2 lg:overflow-visible">
+              {topics.map((category) => (
+                <span
+                  key={category}
+                  className="shrink-0 rounded-full border border-stone-200 bg-[#f8f9fa] px-3 py-1.5 text-xs font-semibold text-stone-700 sm:rounded-md sm:py-2 sm:text-sm"
+                >
                   {category}
                 </span>
               ))}
             </div>
           </aside>
 
-          <div className="grid gap-3">
+          <div className="grid gap-2.5 sm:gap-3">
             {faqs.map((faq, index) => (
               <details key={faq.question} className="group overflow-hidden rounded-md border border-stone-300 bg-white shadow-sm" open={index === 0}>
-                <summary className="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3.5 text-sm font-semibold text-stone-950 sm:items-center sm:gap-4 sm:px-5 sm:py-4">
-                  <span className="min-w-0 leading-6">{faq.question}</span>
+                <summary className="flex cursor-pointer list-none items-start justify-between gap-3 px-3.5 py-3.5 text-sm font-semibold text-stone-950 sm:items-center sm:gap-4 sm:px-5 sm:py-4">
+                  <span className="min-w-0 leading-snug">{faq.question}</span>
                   <span className="shrink-0 text-lg leading-none text-[#ae2f34] group-open:hidden">+</span>
-                  <span className="hidden shrink-0 text-lg leading-none text-[#ae2f34] group-open:inline">-</span>
+                  <span className="hidden shrink-0 text-lg leading-none text-[#ae2f34] group-open:inline">−</span>
                 </summary>
-                <div className="border-t border-stone-200 px-4 py-4 sm:px-5">
-                  <span className="inline-flex bg-[#fff5f0] px-2 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#ae2f34]">
+                <div className="border-t border-stone-200 px-3.5 py-3.5 sm:px-5 sm:py-4">
+                  <span className="inline-flex rounded-full bg-[#fff5f0] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#ae2f34] sm:text-[11px]">
                     {faq.category}
                   </span>
-                  <p className="mt-3 text-sm leading-6 text-stone-600">{faq.answer}</p>
+                  <p className="mt-2.5 text-sm leading-6 text-stone-600 sm:mt-3">{faq.answer}</p>
                 </div>
               </details>
             ))}

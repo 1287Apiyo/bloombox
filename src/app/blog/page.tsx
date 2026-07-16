@@ -287,33 +287,31 @@ export default function BlogPage() {
     <div className="min-h-screen bg-[#f8f9fa] text-stone-950">
       <SiteHeader />
 
-      <main className="pb-20 sm:pb-0">
-        {/* Mobile compact hero */}
-        <section className="border-b border-stone-200 bg-[#14090c] lg:hidden">
-          <div className="mx-auto max-w-7xl px-4 py-5">
+      <main className="pb-[4.25rem] sm:pb-0">
+        {/* Mobile compact hero — landing rhythm, dark editorial surface */}
+        <section className="border-b border-white/10 bg-[#14090c] lg:hidden">
+          <div className="bb-mobile-hero-inner">
             <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#fed4c8]">BloomBox blog</p>
-            <h1 className="mt-1.5 font-serif text-2xl font-semibold leading-tight text-white">
-              Stories & care guides
-            </h1>
-            <p className="mt-2 text-sm leading-6 text-[#fff5f0]">
+            <h1 className="bb-mobile-h1 text-white">Stories & care guides</h1>
+            <p className="bb-mobile-lead text-[#fff5f0]">
               Cups, first-period kits, comfort rituals, and community notes.
             </p>
-            <div className="mt-3.5 grid grid-cols-2 gap-2">
-              <a href="#community-posts" className="rounded-lg bg-[#ae2f34] px-3 py-2.5 text-center text-sm font-semibold text-white">
+            <div className="bb-mobile-cta-row">
+              <a href="#community-posts" className="rounded-md bg-[#ae2f34] px-3 py-2.5 text-center text-sm font-semibold text-white">
                 Browse posts
               </a>
               {user ? (
                 <button
                   type="button"
                   onClick={() => setWriteOpen(true)}
-                  className="rounded-lg border border-[#fed4c8] px-3 py-2.5 text-center text-sm font-semibold text-[#fed4c8]"
+                  className="rounded-md border border-[#fed4c8] px-3 py-2.5 text-center text-sm font-semibold text-[#fed4c8]"
                 >
                   Write a post
                 </button>
               ) : (
                 <Link
                   href="/signup?next=/blog"
-                  className="rounded-lg border border-[#fed4c8] px-3 py-2.5 text-center text-sm font-semibold text-[#fed4c8]"
+                  className="rounded-md border border-[#fed4c8] px-3 py-2.5 text-center text-sm font-semibold text-[#fed4c8]"
                 >
                   Join to write
                 </Link>
@@ -321,7 +319,7 @@ export default function BlogPage() {
             </div>
 
             {/* Featured video — collapsed until tapped on mobile */}
-            <div className="mt-4 overflow-hidden rounded-xl border border-white/20 bg-black/40">
+            <div className="mt-4 overflow-hidden rounded-md border border-white/20 bg-black/40">
               {videoOpenIds.includes('featured') ? (
                 <div className="aspect-video bg-black">
                   <iframe
@@ -413,7 +411,7 @@ export default function BlogPage() {
           </div>
         </section>
 
-        <section id="community-posts" className="mx-auto max-w-7xl scroll-mt-28 px-3 py-5 sm:px-8 sm:py-14">
+        <section id="community-posts" className="bb-page-pad scroll-mt-28">
           <div className="mb-3 flex items-end justify-between gap-3 px-1 sm:mb-8">
             <div className="min-w-0">
               <h2 className="font-serif text-xl font-semibold text-[#ae2f34] sm:text-4xl">Community reads</h2>
@@ -578,7 +576,7 @@ export default function BlogPage() {
 
         {/* Share section — desktop always; mobile uses bottom sheet */}
         <section id="share-story" className="border-y border-stone-300 bg-white">
-          <div className="mx-auto grid max-w-7xl gap-5 px-3 py-6 sm:gap-8 sm:px-8 sm:py-12 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
+          <div className="bb-page-pad grid gap-5 lg:grid-cols-[0.85fr_1.15fr] lg:items-start">
             <div>
               <Eyebrow>Write with us</Eyebrow>
               <h2 className="mt-3 font-serif text-xl font-semibold text-[#191c1d] sm:mt-5 sm:text-4xl">
@@ -591,13 +589,13 @@ export default function BlogPage() {
                 <div className="mt-4 flex flex-col gap-2 sm:mt-6 sm:flex-row sm:gap-3">
                   <Link
                     href="/signup?next=/blog"
-                    className="rounded-lg bg-[#ae2f34] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520] sm:rounded-md"
+                    className="rounded-md bg-[#ae2f34] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520]"
                   >
                     Create account
                   </Link>
                   <Link
                     href="/login?next=/blog"
-                    className="rounded-lg border border-[#ae2f34] px-5 py-3 text-center text-sm font-semibold text-[#ae2f34] transition hover:bg-[#fff5f0] sm:rounded-md"
+                    className="rounded-md border border-[#ae2f34] px-5 py-3 text-center text-sm font-semibold text-[#ae2f34] transition hover:bg-[#fff5f0]"
                   >
                     Log in
                   </Link>
@@ -606,7 +604,7 @@ export default function BlogPage() {
                 <button
                   type="button"
                   onClick={() => setWriteOpen(true)}
-                  className="mt-4 w-full rounded-lg bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white sm:hidden"
+                  className="mt-4 w-full rounded-md bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white sm:hidden"
                 >
                   Open write form
                 </button>

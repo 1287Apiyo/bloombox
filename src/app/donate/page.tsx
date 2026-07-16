@@ -5,6 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { createSalesLead, subscribeToNewsletter } from '@/lib/firestore';
 import { Eyebrow, SiteFooter, SiteHeader } from '../components/BrandShell';
+import { MobilePairCarousel } from '../components/MobilePairCarousel';
 
 const donationOptions = [
   {
@@ -161,26 +162,24 @@ export default function DonatePage() {
     <div className="min-h-screen bg-[#f8f9fa] text-stone-950">
       <SiteHeader />
 
-      <main className="pb-24 lg:pb-0">
-        {/* Mobile compact hero */}
-        <section className="border-b border-stone-200 bg-white lg:hidden">
-          <div className="mx-auto max-w-7xl px-4 py-5">
+      <main className="pb-[4.25rem] lg:pb-0">
+        {/* Mobile compact hero — matches landing structure */}
+        <section className="bb-mobile-hero lg:hidden">
+          <div className="bb-mobile-hero-inner">
             <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#006a65]">Donate</p>
-            <h1 className="mt-1.5 font-serif text-2xl font-semibold leading-tight text-[#191c1d]">
-              Sponsor period care
-            </h1>
-            <p className="mt-2 text-sm leading-6 text-[#584140]">
+            <h1 className="bb-mobile-h1">Sponsor period care</h1>
+            <p className="bb-mobile-lead">
               Fund care bundles for girls, schools, NGOs, and community partners. Add an M-Changa reference if you already paid.
             </p>
-            <div className="mt-3.5 grid grid-cols-2 gap-2">
-              <a href="#donation-paths" className="rounded-lg bg-[#006a65] px-3 py-2.5 text-center text-sm font-semibold text-white">
+            <div className="bb-mobile-cta-row">
+              <a href="#donation-paths" className="rounded-md bg-[#006a65] px-3 py-2.5 text-center text-sm font-semibold text-white">
                 Choose path
               </a>
-              <a href="#donate-form" className="rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-center text-sm font-semibold text-stone-800">
+              <a href="#donate-form" className="rounded-md border border-stone-300 bg-white px-3 py-2.5 text-center text-sm font-semibold text-stone-800">
                 Record pledge
               </a>
             </div>
-            <div className="relative mt-4 h-36 overflow-hidden rounded-xl border border-stone-200 bg-stone-100">
+            <div className="relative mt-4 h-40 overflow-hidden rounded-md border border-stone-200 bg-stone-100">
               <Image
                 src="/mockups/bloombox-gift-flowers.png"
                 alt="BloomBox donation care bundle"
@@ -228,16 +227,19 @@ export default function DonatePage() {
         </section>
 
         {/* Donation paths */}
-        <section id="donation-paths" className="mx-auto max-w-7xl scroll-mt-28 px-3 py-5 sm:px-8 sm:py-12">
-          <div className="mb-3 px-1 sm:mb-8">
+        <section id="donation-paths" className="bb-page-pad scroll-mt-28">
+          <div className="mb-3 sm:mb-8">
             <h2 className="font-serif text-xl font-semibold text-[#006a65] sm:text-4xl sm:text-[#ae2f34]">Donation paths</h2>
-            <p className="mt-1 hidden max-w-2xl text-sm leading-6 text-stone-600 sm:mt-2 sm:block">
-              Choose a starting point, then BloomBox can reconcile your pledge, M-Changa reference, and delivery plan.
+            <p className="mt-1 text-sm leading-6 text-stone-600 sm:mt-2">
+              <span className="sm:hidden">Swipe pairs to pick a path, then pledge below.</span>
+              <span className="hidden sm:inline">
+                Choose a starting point, then BloomBox can reconcile your pledge, M-Changa reference, and delivery plan.
+              </span>
             </p>
           </div>
 
-          {/* Mobile horizontal rail */}
-          <div className="bb-mobile-scroll -mx-3 flex snap-x snap-mandatory gap-3 px-3 pb-1 md:hidden">
+          {/* Mobile 2-up path pages */}
+          <MobilePairCarousel label="Donation paths">
             {donationOptions.map((option) => {
               const isSelected = selectedPath === option.title;
               return (
@@ -245,26 +247,24 @@ export default function DonatePage() {
                   key={option.title}
                   type="button"
                   onClick={() => selectPath(option)}
-                  className={`w-[78vw] max-w-[300px] shrink-0 snap-start rounded-xl border p-4 text-left transition ${
-                    isSelected
-                      ? 'border-[#006a65] bg-[#e7fbf8] ring-2 ring-[#b5d4d2]'
-                      : 'border-stone-200 bg-white'
+                  className={`bb-card-tile w-full text-left transition ${
+                    isSelected ? 'border-[#006a65] bg-[#e7fbf8] ring-2 ring-[#b5d4d2]' : ''
                   }`}
                 >
-                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#006a65]">{option.amount}</p>
-                  <h3 className="mt-2 font-serif text-xl font-semibold leading-snug text-[#191c1d]">{option.title}</h3>
-                  <p className="mt-2 line-clamp-3 text-xs leading-5 text-stone-600">{option.detail}</p>
+                  <p className="text-[9px] font-bold uppercase tracking-[0.12em] text-[#006a65]">{option.amount}</p>
+                  <h3 className="mt-1.5 font-serif text-sm font-semibold leading-snug text-[#191c1d]">{option.title}</h3>
+                  <p className="mt-1.5 line-clamp-3 flex-1 text-[11px] leading-4 text-stone-600">{option.detail}</p>
                   <span
-                    className={`mt-3.5 flex w-full items-center justify-center rounded-lg py-2.5 text-sm font-semibold ${
+                    className={`mt-2.5 flex w-full items-center justify-center rounded-md py-2 text-xs font-semibold ${
                       isSelected ? 'bg-[#006a65] text-white' : 'bg-[#e7fbf8] text-[#00504c]'
                     }`}
                   >
-                    {isSelected ? 'Selected · fill form' : 'Select this path'}
+                    {isSelected ? 'Selected' : 'Select'}
                   </span>
                 </button>
               );
             })}
-          </div>
+          </MobilePairCarousel>
 
           {/* Desktop grid */}
           <div className="hidden gap-5 md:grid md:grid-cols-3">
@@ -292,7 +292,7 @@ export default function DonatePage() {
 
         {/* Form */}
         <section id="donate-form" className="scroll-mt-28 border-y border-stone-200 bg-white sm:border-stone-300">
-          <div className="mx-auto grid max-w-7xl gap-5 px-3 py-6 sm:gap-8 sm:px-8 sm:py-14 lg:grid-cols-[0.72fr_1fr]">
+          <div className="bb-page-pad grid gap-5 lg:grid-cols-[0.72fr_1fr]">
             <div>
               <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#006a65] sm:text-xs sm:tracking-[0.16em]">
                 Donation pledge
@@ -310,7 +310,7 @@ export default function DonatePage() {
               </div>
             </div>
 
-            <div className="rounded-xl border border-stone-300 bg-[#fff5f0] p-4 shadow-sm sm:rounded-md sm:p-5">
+            <div className="rounded-md border border-stone-300 bg-[#fff5f0] p-4 shadow-sm sm:p-5">
               <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.14em] text-[#006a65] sm:hidden">
                 Your details · {amount}
               </p>
@@ -327,7 +327,7 @@ export default function DonatePage() {
             <p className="truncate text-xs font-semibold text-stone-500">{selectedPath}</p>
             <p className="truncate text-sm font-bold text-[#191c1d]">{amount}</p>
           </div>
-          <a href="#donate-form" className="shrink-0 rounded-lg bg-[#006a65] px-4 py-2.5 text-sm font-semibold text-white">
+          <a href="#donate-form" className="shrink-0 rounded-md bg-[#006a65] px-4 py-2.5 text-sm font-semibold text-white">
             Pledge
           </a>
         </div>
