@@ -54,8 +54,17 @@ const phaseDot: Record<CyclePhase, string> = {
   unknown: 'bg-stone-300',
 };
 
+/** Soft fill for calendar cells by phase */
+const phaseCellBg: Record<CyclePhase, string> = {
+  menstrual: 'bg-[#fff0ee]',
+  follicular: 'bg-[#e7fbf8]',
+  ovulatory: 'bg-[#fff8df]',
+  luteal: 'bg-[#f3ebe8]',
+  unknown: 'bg-white',
+};
+
 const inputClass =
-  'w-full border border-stone-300 bg-white px-3 py-2 text-sm outline-none focus:border-[#ae2f34] focus:ring-1 focus:ring-[#ae2f34]';
+  'w-full border border-stone-300 bg-white px-3 py-2.5 text-base sm:text-sm outline-none focus:border-[#ae2f34] focus:ring-1 focus:ring-[#ae2f34]';
 
 // ---------- Helpers ----------
 function money(value: number) {
@@ -129,9 +138,7 @@ function PhaseCircle({
   return (
     <svg
       viewBox={`0 0 ${size} ${size}`}
-      width={size}
-      height={size}
-      className="mx-auto block max-w-full"
+      className="mx-auto block h-auto w-full max-w-full"
       role="img"
       aria-label={`Current phase: ${activeLabel}. Cycle day ${cycleDay ?? 'unknown'}.`}
     >
@@ -200,8 +207,8 @@ function CartDrawer({
   return (
     <div className="fixed inset-0 z-50">
       <button type="button" aria-label="Close cart" onClick={onClose} className="absolute inset-0 bg-stone-900/30" />
-      <aside className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col border-l border-stone-200 bg-white">
-        <div className="flex items-center justify-between border-b border-stone-200 px-6 py-5">
+      <aside className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col border-l border-stone-200 bg-white pb-[env(safe-area-inset-bottom,0px)]">
+        <div className="flex items-center justify-between border-b border-stone-200 px-4 py-4 sm:px-6 sm:py-5">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#ae2f34]">Cart</p>
             <h2 className="mt-1 text-xl font-semibold text-stone-900">{cart.itemCount} items ready</h2>
@@ -215,9 +222,9 @@ function CartDrawer({
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
           {cart.items.length === 0 ? (
-            <div className="border border-[#e0bfbd] bg-[#fff5f0] p-6 text-sm leading-6 text-stone-700">
+            <div className="border border-[#e0bfbd] bg-[#fff5f0] p-5 text-sm leading-6 text-stone-700 sm:p-6">
               Your cart is empty.
               <Link href="/shop" className="mt-3 block font-semibold text-[#ae2f34] hover:underline">
                 Open shop →
@@ -226,8 +233,8 @@ function CartDrawer({
           ) : (
             <div className="space-y-4">
               {cart.items.map((item) => (
-                <div key={item.id} className="border border-stone-200 bg-white p-4">
-                  <div className="grid grid-cols-[76px_1fr] gap-4">
+                <div key={item.id} className="border border-stone-200 bg-white p-3 sm:p-4">
+                  <div className="grid grid-cols-[64px_1fr] gap-3 sm:grid-cols-[76px_1fr] sm:gap-4">
                     <div className="relative aspect-square overflow-hidden border border-stone-200 bg-stone-100">
                       <Image
                         src={item.image || '/bloom1.png'}
@@ -276,7 +283,7 @@ function CartDrawer({
           )}
         </div>
 
-        <div className="border-t border-stone-200 px-6 py-5">
+        <div className="border-t border-stone-200 px-4 py-4 sm:px-6 sm:py-5">
           <div className="flex items-center justify-between text-sm text-stone-600">
             <span>Subtotal</span>
             <span className="text-lg font-semibold text-stone-900">{money(cart.subtotal)}</span>
@@ -315,11 +322,21 @@ export default function CyclePage() {
   const [isSavingProfile, setIsSavingProfile] = useState(false);
   const [cart, setCart] = useState<CartSummary>(emptyCart);
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     return subscribeToCycleProfile(user.uid, setProfile, (err) => setError(err.message));
   }, [user]);
+
+  useEffect(() => {
+    if (!settingsOpen) return;
+    const previous = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = previous;
+    };
+  }, [settingsOpen]);
 
   useEffect(() => {
     if (!user) {
@@ -356,7 +373,30 @@ export default function CyclePage() {
     [calendarMonth, profile],
   );
 
-  const saveProfile = async (event: FormEvent<HTMLFormElement>) => {
+  const selectedDay = useMemo(
+    () => calendarDays.find((day) => day.dateKey === selectedDate) ?? null,
+    [calendarDays, selectedDate],
+  );
+
+  const openCart = () => setIsCartOpen(true);
+
+  const handleCheckout = () => {
+    if (!user) {
+      router.push('/login?next=/checkout');
+      return;
+    }
+    if (cart.items.length === 0) {
+      setNotice('Your cart is empty.');
+      return;
+    }
+    router.push('/checkout');
+  };
+
+  const changeCalendarMonth = (amount: number) => {
+    setCalendarMonth((current) => new Date(current.getFullYear(), current.getMonth() + amount, 1));
+  };
+
+  const handleSaveProfile = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError('');
     setNotice('');
@@ -382,6 +422,7 @@ export default function CyclePage() {
         notes: cycleNotes,
       });
       setNotice('Cycle profile saved. Your calendar and weekly reminder preview have updated.');
+      setSettingsOpen(false);
     } catch (err) {
       setError(getMessage(err) || 'Could not save your cycle profile.');
     } finally {
@@ -389,23 +430,107 @@ export default function CyclePage() {
     }
   };
 
-  const openCart = () => setIsCartOpen(true);
+  const renderSettingsForm = () => (
+    <form onSubmit={handleSaveProfile} className="grid gap-4">
+      <label className="grid gap-1.5 text-sm font-semibold text-stone-700">
+        Preferred name
+        <input value={displayName} onChange={(e) => setDisplayName(e.target.value)} className={inputClass} />
+      </label>
 
-  const handleCheckout = () => {
-    if (!user) {
-      router.push('/login?next=/checkout');
-      return;
-    }
-    if (cart.items.length === 0) {
-      setNotice('Your cart is empty.');
-      return;
-    }
-    router.push('/checkout');
-  };
+      <label className="grid gap-1.5 text-sm font-semibold text-stone-700">
+        Tracking context
+        <select
+          value={trackingMode}
+          onChange={(e) => setTrackingMode(e.target.value as CycleTrackingMode)}
+          className={inputClass}
+        >
+          {trackingModes.map((mode) => (
+            <option key={mode.value} value={mode.value}>
+              {mode.label}
+            </option>
+          ))}
+        </select>
+        <span className="text-xs font-normal leading-5 text-stone-500">
+          {trackingModes.find((mode) => mode.value === trackingMode)?.detail}
+        </span>
+      </label>
 
-  const changeCalendarMonth = (amount: number) => {
-    setCalendarMonth((current) => new Date(current.getFullYear(), current.getMonth() + amount, 1));
-  };
+      <div className="grid grid-cols-2 gap-3">
+        <label className="grid gap-1.5 text-sm font-semibold text-stone-700">
+          Avg cycle (days)
+          <input
+            type="number"
+            min={15}
+            max={90}
+            value={averageCycleLength}
+            onChange={(e) => setAverageCycleLength(Number(e.target.value))}
+            className={inputClass}
+          />
+        </label>
+        <label className="grid gap-1.5 text-sm font-semibold text-stone-700">
+          Avg period (days)
+          <input
+            type="number"
+            min={1}
+            max={14}
+            value={averagePeriodLength}
+            onChange={(e) => setAveragePeriodLength(Number(e.target.value))}
+            className={inputClass}
+          />
+        </label>
+      </div>
+
+      <label className="grid gap-1.5 text-sm font-semibold text-stone-700">
+        Last period start
+        <input
+          type="date"
+          value={lastPeriodStart}
+          onChange={(e) => setLastPeriodStart(e.target.value)}
+          className={inputClass}
+        />
+      </label>
+
+      <label className="grid gap-1.5 text-sm font-semibold text-stone-700">
+        Weekly reminder day
+        <select value={notificationDay} onChange={(e) => setNotificationDay(e.target.value)} className={inputClass}>
+          {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
+            <option key={day} value={day}>
+              {day}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="flex items-start gap-3 rounded-lg border border-[#e0bfbd] bg-[#fff5f0] p-3 text-sm leading-5 text-[#584140]">
+        <input
+          type="checkbox"
+          checked={reminderOptIn}
+          onChange={(e) => setReminderOptIn(e.target.checked)}
+          className="mt-0.5 h-4 w-4 accent-[#ae2f34]"
+        />
+        Opt in for weekly BloomBox reminders
+      </label>
+
+      <label className="grid gap-1.5 text-sm font-semibold text-stone-700">
+        Notes
+        <textarea
+          value={cycleNotes}
+          onChange={(e) => setCycleNotes(e.target.value)}
+          rows={2}
+          className={`${inputClass} resize-none`}
+          placeholder="Optional notes for yourself"
+        />
+      </label>
+
+      <button
+        type="submit"
+        disabled={isSavingProfile}
+        className="rounded-lg bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white hover:bg-[#8c1520] disabled:opacity-60"
+      >
+        {isSavingProfile ? 'Saving...' : 'Save cycle profile'}
+      </button>
+    </form>
+  );
 
   return (
     <div className="min-h-screen bg-[#f8f9fa] text-stone-950">
@@ -418,10 +543,58 @@ export default function CyclePage() {
         userId={user?.uid}
       />
 
-      <main className="pb-16">
-        {/* Hero — solid white like shop/about */}
-        <section className="border-b border-stone-200 bg-white">
-          <div className="mx-auto grid max-w-7xl gap-8 px-5 py-12 sm:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-end lg:py-14">
+      <main className="pb-24 lg:pb-16">
+        {/* ---------- MOBILE STATUS HERO ---------- */}
+        <section className="border-b border-stone-200 bg-white lg:hidden">
+          <div className="mx-auto max-w-7xl px-4 py-5">
+            <div className="flex items-center gap-4">
+              <div className="w-[118px] shrink-0">
+                <PhaseCircle cycleDay={todayCycleDay} currentPhase={currentPhase} size={200} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">Today</p>
+                <h1 className="mt-1 font-serif text-2xl font-semibold leading-tight text-[#191c1d]">
+                  {getPhaseLabel(currentPhase)}
+                </h1>
+                <p className="mt-1 text-sm text-stone-600">
+                  {todayCycleDay ? `Cycle day ${todayCycleDay}` : 'Set last period to start'}
+                </p>
+                <div className="mt-3 grid grid-cols-1 gap-1.5">
+                  <div className="rounded-lg border border-stone-200 bg-[#fff5f0] px-3 py-2">
+                    <p className="text-[10px] font-bold uppercase tracking-wide text-[#ae2f34]">Next period</p>
+                    <p className="mt-0.5 text-sm font-semibold text-[#191c1d]">{formatDisplayDate(nextPeriodDate)}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <button
+                type="button"
+                onClick={() => setSettingsOpen(true)}
+                className="rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-center text-sm font-semibold text-stone-800"
+              >
+                Edit settings
+              </button>
+              <Link
+                href="/shop"
+                className="rounded-lg bg-[#ae2f34] px-3 py-2.5 text-center text-sm font-semibold text-white"
+              >
+                Shop care
+              </Link>
+            </div>
+
+            {!profile ? (
+              <p className="mt-3 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-xs leading-5 text-amber-900">
+                Tip: set your last period start and average cycle length so the calendar can colour your phases.
+              </p>
+            ) : null}
+          </div>
+        </section>
+
+        {/* ---------- DESKTOP HERO ---------- */}
+        <section className="hidden border-b border-stone-200 bg-white lg:block">
+          <div className="mx-auto grid max-w-7xl gap-8 px-8 py-14 lg:grid-cols-[0.95fr_1.05fr] lg:items-end">
             <div>
               <Eyebrow>Cycle tracking</Eyebrow>
               <h1 className="mt-5 font-serif text-5xl font-semibold leading-none text-[#191c1d] sm:text-6xl">
@@ -447,9 +620,11 @@ export default function CyclePage() {
               </div>
             </div>
 
-            <div className="flex flex-col items-center justify-center">
-              <PhaseCircle cycleDay={todayCycleDay} currentPhase={currentPhase} size={280} />
-              <p className="mt-4 text-center text-sm text-[#584140]">
+            <div className="flex flex-col items-center justify-center px-2">
+              <div className="w-full max-w-[280px]">
+                <PhaseCircle cycleDay={todayCycleDay} currentPhase={currentPhase} size={280} />
+              </div>
+              <p className="mt-4 text-center text-sm leading-6 text-[#584140]">
                 Phase: <span className="font-semibold text-[#191c1d]">{getPhaseLabel(currentPhase)}</span>
                 {' · '}
                 Next period: <span className="font-semibold text-[#191c1d]">{formatDisplayDate(nextPeriodDate)}</span>
@@ -458,123 +633,15 @@ export default function CyclePage() {
           </div>
         </section>
 
-        {/* Content */}
-        <section className="mx-auto grid max-w-7xl gap-7 px-5 py-10 sm:px-8 lg:grid-cols-[360px_1fr]">
-          {/* Sidebar */}
-          <aside className="grid gap-5 lg:sticky lg:top-28 lg:self-start">
-            {/* Settings form */}
-            <form onSubmit={saveProfile} className="border border-stone-200 bg-white p-5">
+        {/* ---------- MAIN CONTENT ---------- */}
+        <section className="mx-auto grid max-w-7xl gap-5 px-3 py-4 sm:gap-7 sm:px-8 sm:py-10 lg:grid-cols-[360px_1fr]">
+          {/* Desktop sidebar */}
+          <aside className="hidden gap-5 lg:sticky lg:top-28 lg:grid lg:self-start">
+            <div className="border border-stone-200 bg-white p-5">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">Profile</p>
               <h2 className="mt-2 font-serif text-3xl font-semibold text-[#191c1d]">Cycle settings</h2>
-
-              <div className="mt-5 grid gap-4">
-                <label className="grid gap-2 text-sm font-semibold text-stone-700">
-                  Preferred name
-                  <input
-                    value={displayName}
-                    onChange={(e) => setDisplayName(e.target.value)}
-                    className={inputClass}
-                  />
-                </label>
-
-                <label className="grid gap-2 text-sm font-semibold text-stone-700">
-                  Tracking context
-                  <select
-                    value={trackingMode}
-                    onChange={(e) => setTrackingMode(e.target.value as CycleTrackingMode)}
-                    className={inputClass}
-                  >
-                    {trackingModes.map((mode) => (
-                      <option key={mode.value} value={mode.value}>
-                        {mode.label}
-                      </option>
-                    ))}
-                  </select>
-                  <span className="text-xs font-normal leading-5 text-stone-500">
-                    {trackingModes.find((mode) => mode.value === trackingMode)?.detail}
-                  </span>
-                </label>
-
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <label className="grid gap-2 text-sm font-semibold text-stone-700">
-                    Avg cycle
-                    <input
-                      type="number"
-                      min={15}
-                      max={90}
-                      value={averageCycleLength}
-                      onChange={(e) => setAverageCycleLength(Number(e.target.value))}
-                      className={inputClass}
-                    />
-                  </label>
-                  <label className="grid gap-2 text-sm font-semibold text-stone-700">
-                    Avg period
-                    <input
-                      type="number"
-                      min={1}
-                      max={14}
-                      value={averagePeriodLength}
-                      onChange={(e) => setAveragePeriodLength(Number(e.target.value))}
-                      className={inputClass}
-                    />
-                  </label>
-                </div>
-
-                <label className="grid gap-2 text-sm font-semibold text-stone-700">
-                  Last period start
-                  <input
-                    type="date"
-                    value={lastPeriodStart}
-                    onChange={(e) => setLastPeriodStart(e.target.value)}
-                    className={inputClass}
-                  />
-                </label>
-
-                <label className="grid gap-2 text-sm font-semibold text-stone-700">
-                  Weekly notification day
-                  <select
-                    value={notificationDay}
-                    onChange={(e) => setNotificationDay(e.target.value)}
-                    className={inputClass}
-                  >
-                    {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map((day) => (
-                      <option key={day} value={day}>
-                        {day}
-                      </option>
-                    ))}
-                  </select>
-                </label>
-
-                <label className="flex items-start gap-3 border border-[#e0bfbd] bg-[#fff5f0] p-3 text-sm leading-5 text-[#584140]">
-                  <input
-                    type="checkbox"
-                    checked={reminderOptIn}
-                    onChange={(e) => setReminderOptIn(e.target.checked)}
-                    className="mt-1 h-4 w-4 accent-[#ae2f34]"
-                  />
-                  Save me as opted in for weekly BloomBox reminders.
-                </label>
-
-                <label className="grid gap-2 text-sm font-semibold text-stone-700">
-                  Notes
-                  <textarea
-                    value={cycleNotes}
-                    onChange={(e) => setCycleNotes(e.target.value)}
-                    rows={3}
-                    className={`${inputClass} resize-none`}
-                    placeholder="Optional context for yourself"
-                  />
-                </label>
-
-                <button
-                  type="submit"
-                  disabled={isSavingProfile}
-                  className="bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white hover:bg-[#8c1520] disabled:opacity-60"
-                >
-                  {isSavingProfile ? 'Saving...' : 'Save cycle profile'}
-                </button>
-              </div>
-            </form>
+              <div className="mt-5">{renderSettingsForm()}</div>
+            </div>
 
             <div className="border border-stone-200 bg-white p-5">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">Cart</p>
@@ -602,125 +669,255 @@ export default function CyclePage() {
             </div>
           </aside>
 
-          {/* Right column */}
-          <div className="grid gap-7">
-            {error && (
-              <div className="border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-800">{error}</div>
-            )}
-            {notice && (
-              <div className="border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-900">{notice}</div>
-            )}
+          <div className="grid gap-4 sm:gap-7">
+            {error ? (
+              <div className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm leading-6 text-rose-800 sm:p-4">
+                {error}
+              </div>
+            ) : null}
+            {notice ? (
+              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm leading-6 text-emerald-900 sm:p-4">
+                {notice}
+              </div>
+            ) : null}
 
-            {/* Calendar */}
-            <section className="border border-stone-200 bg-white">
-              <div className="flex flex-col justify-between gap-4 border-b border-stone-200 p-5 md:flex-row md:items-center">
-                <div>
-                  <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">Calendar</p>
-                  <h2 className="mt-2 font-serif text-3xl font-semibold text-[#191c1d]">
+            {/* Calendar — primary mobile surface */}
+            <section className="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] sm:rounded-none sm:shadow-none">
+              <div className="flex items-center justify-between gap-2 border-b border-stone-200 px-3 py-3 sm:flex-row sm:p-5">
+                <div className="min-w-0">
+                  <p className="hidden text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34] sm:block">Calendar</p>
+                  <h2 className="font-serif text-lg font-semibold text-[#191c1d] sm:mt-2 sm:text-3xl">
                     {calendarMonth.toLocaleDateString('en-KE', { month: 'long', year: 'numeric' })}
                   </h2>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex shrink-0 items-center gap-1.5">
                   <button
                     type="button"
                     onClick={() => changeCalendarMonth(-1)}
-                    className="border border-stone-300 px-3 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50"
+                    aria-label="Previous month"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-300 text-stone-700 hover:bg-stone-50 sm:h-auto sm:w-auto sm:rounded-none sm:px-3 sm:py-2 sm:text-sm sm:font-semibold"
                   >
-                    Prev
+                    <span className="sm:hidden">‹</span>
+                    <span className="hidden sm:inline">Prev</span>
                   </button>
                   <button
                     type="button"
-                    onClick={() => setCalendarMonth(new Date())}
-                    className="border border-[#ae2f34] px-3 py-2 text-sm font-semibold text-[#ae2f34] hover:bg-[#fff5f0]"
+                    onClick={() => {
+                      const now = new Date();
+                      setCalendarMonth(now);
+                      setSelectedDate(toDateKey(now));
+                    }}
+                    className="rounded-full border border-[#ae2f34] px-3 py-1.5 text-xs font-semibold text-[#ae2f34] hover:bg-[#fff5f0] sm:rounded-none sm:px-3 sm:py-2 sm:text-sm"
                   >
                     Today
                   </button>
                   <button
                     type="button"
                     onClick={() => changeCalendarMonth(1)}
-                    className="border border-stone-300 px-3 py-2 text-sm font-semibold text-stone-700 hover:bg-stone-50"
+                    aria-label="Next month"
+                    className="flex h-9 w-9 items-center justify-center rounded-full border border-stone-300 text-stone-700 hover:bg-stone-50 sm:h-auto sm:w-auto sm:rounded-none sm:px-3 sm:py-2 sm:text-sm sm:font-semibold"
                   >
-                    Next
+                    <span className="sm:hidden">›</span>
+                    <span className="hidden sm:inline">Next</span>
                   </button>
                 </div>
               </div>
 
-              <div className="flex flex-wrap gap-2 border-b border-stone-200 bg-[#fff5f0] px-5 py-3">
+              {/* Legend — compact chips */}
+              <div className="bb-mobile-scroll flex gap-1.5 border-b border-stone-200 bg-[#fffaf7] px-3 py-2 sm:flex-wrap sm:gap-2 sm:px-5 sm:py-3">
                 {(['menstrual', 'follicular', 'ovulatory', 'luteal'] as CyclePhase[]).map((phase) => (
-                  <span key={phase} className={`border px-2 py-1 text-[10px] font-bold uppercase ${phaseStyles[phase]}`}>
+                  <span
+                    key={phase}
+                    className={`inline-flex shrink-0 items-center gap-1.5 rounded-full border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide ${phaseStyles[phase]}`}
+                  >
+                    <span className={`h-1.5 w-1.5 rounded-full ${phaseDot[phase]}`} />
                     {getPhaseLabel(phase)}
                   </span>
                 ))}
               </div>
 
-              <div className="grid grid-cols-7 border-b border-stone-200 bg-white text-center text-xs font-bold uppercase tracking-[0.12em] text-[#584140]">
-                {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map((day) => (
-                  <div key={day} className="border-r border-stone-200 px-2 py-2 last:border-r-0">
-                    {day}
+              <div className="grid grid-cols-7 border-b border-stone-100 bg-white text-center text-[10px] font-bold uppercase tracking-wide text-stone-500 sm:text-xs">
+                {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((day, index) => (
+                  <div key={`${day}-${index}`} className="py-2 sm:border-r sm:border-stone-200 sm:py-2.5 sm:last:border-r-0">
+                    <span className="sm:hidden">{day}</span>
+                    <span className="hidden sm:inline">{['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][index]}</span>
                   </div>
                 ))}
               </div>
 
               <div className="grid grid-cols-7">
-                {calendarDays.map((day) => (
-                  <button
-                    type="button"
-                    key={day.dateKey}
-                    onClick={() => setSelectedDate(day.dateKey)}
-                    className={`min-h-[88px] border-b border-r border-stone-200 p-2 text-left last:border-r-0 hover:bg-[#fff5f0] sm:min-h-[100px] ${
-                      day.isCurrentMonth ? 'bg-white' : 'bg-stone-50 text-stone-400'
-                    } ${selectedDate === day.dateKey ? 'ring-2 ring-inset ring-[#ae2f34]' : ''}`}
-                  >
-                    <span
-                      className={`inline-flex h-7 w-7 items-center justify-center text-xs font-semibold ${
-                        day.isToday ? 'bg-[#ae2f34] text-white' : ''
-                      }`}
+                {calendarDays.map((day) => {
+                  const isSelected = selectedDate === day.dateKey;
+                  const phaseBg =
+                    day.isCurrentMonth && day.phase !== 'unknown' ? phaseCellBg[day.phase] : day.isCurrentMonth ? 'bg-white' : 'bg-stone-50';
+
+                  return (
+                    <button
+                      type="button"
+                      key={day.dateKey}
+                      onClick={() => setSelectedDate(day.dateKey)}
+                      className={`relative flex min-h-[48px] flex-col items-center justify-start gap-0.5 border-b border-r border-stone-100 p-1 last:border-r-0 sm:min-h-[100px] sm:items-start sm:p-2 ${phaseBg} ${
+                        !day.isCurrentMonth ? 'text-stone-300' : 'text-stone-800'
+                      } ${isSelected ? 'z-[1] ring-2 ring-inset ring-[#ae2f34]' : ''}`}
                     >
-                      {day.dayNumber}
-                    </span>
-                    {day.isCurrentMonth && day.phase !== 'unknown' && (
-                      <div className={`mt-2 border px-2 py-1 text-[10px] font-semibold ${phaseStyles[day.phase]}`}>
-                        {getPhaseLabel(day.phase)}
-                      </div>
-                    )}
-                    {day.cycleDay && day.isCurrentMonth && (
-                      <p className="mt-1 text-[11px] text-stone-500">Cycle day {day.cycleDay}</p>
-                    )}
-                    {day.isCurrentMonth && day.phase !== 'unknown' && (
-                      <span className={`mt-1 block h-1.5 w-1.5 sm:hidden ${phaseDot[day.phase]}`} />
-                    )}
-                  </button>
-                ))}
+                      <span
+                        className={`inline-flex h-7 w-7 items-center justify-center rounded-full text-xs font-semibold sm:h-7 sm:w-7 ${
+                          day.isToday ? 'bg-[#ae2f34] text-white' : ''
+                        }`}
+                      >
+                        {day.dayNumber}
+                      </span>
+
+                      {/* Desktop phase label */}
+                      {day.isCurrentMonth && day.phase !== 'unknown' ? (
+                        <div className={`bb-cal-phase-label mt-1 hidden border px-1.5 py-0.5 text-[10px] font-semibold sm:block ${phaseStyles[day.phase]}`}>
+                          {getPhaseLabel(day.phase)}
+                        </div>
+                      ) : null}
+                      {day.cycleDay && day.isCurrentMonth ? (
+                        <p className="bb-cal-cycle-day hidden text-[11px] text-stone-500 sm:block">Day {day.cycleDay}</p>
+                      ) : null}
+
+                      {/* Mobile phase bar */}
+                      {day.isCurrentMonth && day.phase !== 'unknown' ? (
+                        <span className={`mt-auto h-1 w-5 rounded-full sm:hidden ${phaseDot[day.phase]}`} />
+                      ) : null}
+                    </button>
+                  );
+                })}
               </div>
+
+              {/* Selected day detail — always useful on mobile */}
+              {selectedDay ? (
+                <div className="border-t border-stone-200 bg-white px-3 py-3.5 sm:px-5 sm:py-4">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">Selected day</p>
+                      <h3 className="mt-1 font-serif text-lg font-semibold text-[#191c1d] sm:text-xl">
+                        {selectedDay.date.toLocaleDateString('en-KE', {
+                          weekday: 'short',
+                          day: 'numeric',
+                          month: 'short',
+                        })}
+                      </h3>
+                      <div className="mt-2 flex flex-wrap items-center gap-2">
+                        <span className={`rounded-full border px-2.5 py-1 text-[11px] font-bold uppercase ${phaseStyles[selectedDay.phase]}`}>
+                          {getPhaseLabel(selectedDay.phase)}
+                        </span>
+                        {selectedDay.cycleDay ? (
+                          <span className="text-xs font-medium text-stone-600">Cycle day {selectedDay.cycleDay}</span>
+                        ) : (
+                          <span className="text-xs text-stone-500">Outside predicted cycle window</span>
+                        )}
+                      </div>
+                    </div>
+                    <Link
+                      href="/shop"
+                      className="shrink-0 rounded-lg border border-[#ae2f34] px-3 py-2 text-xs font-semibold text-[#ae2f34] hover:bg-[#fff5f0] sm:text-sm"
+                    >
+                      Restock
+                    </Link>
+                  </div>
+                  <p className="mt-3 text-sm leading-6 text-[#584140]">
+                    {selectedDay.phase === 'menstrual'
+                      ? 'Period phase — keep pads, cups, and comfort items close.'
+                      : selectedDay.phase === 'follicular'
+                        ? 'Energy often rises here — a good window to plan care routines.'
+                        : selectedDay.phase === 'ovulatory'
+                          ? 'Fertile window for many people — hydrate and rest as needed.'
+                          : selectedDay.phase === 'luteal'
+                            ? 'PMS can show up — soft care extras help before your next period.'
+                            : 'Save your cycle settings to predict phases on this day.'}
+                  </p>
+                </div>
+              ) : null}
             </section>
 
-            {/* Notification + pattern */}
-            <div className="grid gap-5 lg:grid-cols-[1fr_0.88fr]">
-              <div className="border border-stone-200 bg-[#fff5f0] p-5">
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">Weekly notification preview</p>
-                <h2 className="mt-3 font-serif text-3xl font-semibold text-[#191c1d]">
-                  {getPhaseLabel(currentPhase)} message
-                </h2>
-                <p className="mt-4 text-base leading-7 text-[#584140]">&quot;{reminderMessage}&quot;</p>
-                <p className="mt-4 text-xs leading-5 text-stone-600">
-                  Saved reminder preference: {reminderOptIn ? `weekly on ${notificationDay}` : 'not opted in'}.
-                </p>
-              </div>
+            {/* Today's care message — compact on mobile */}
+            <div className="rounded-xl border border-stone-200 bg-[#fff5f0] p-4 sm:rounded-none sm:p-5">
+              <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34] sm:text-xs sm:tracking-[0.16em]">
+                Care note
+              </p>
+              <h2 className="mt-1.5 font-serif text-xl font-semibold text-[#191c1d] sm:mt-3 sm:text-3xl">
+                {getPhaseLabel(currentPhase)}
+              </h2>
+              <p className="mt-2 text-sm leading-6 text-[#584140] sm:mt-4 sm:text-base sm:leading-7">
+                &quot;{reminderMessage}&quot;
+              </p>
+              <p className="mt-2 text-[11px] text-stone-500 sm:mt-4 sm:text-xs">
+                Reminders: {reminderOptIn ? `weekly on ${notificationDay}` : 'off'} · Not medical advice
+              </p>
+            </div>
 
-              <div className="border border-stone-200 bg-white p-5">
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">Pattern note</p>
-                <h2 className="mt-3 font-serif text-3xl font-semibold text-[#191c1d]">
-                  Regular, irregular, and future modes.
-                </h2>
-                <p className="mt-4 text-sm leading-6 text-stone-600">{getModeNote(trackingMode)}</p>
-                <p className="mt-3 text-sm leading-6 text-stone-600">
-                  This feature is for planning and comfort support, not diagnosis or medical advice.
-                </p>
-              </div>
+            {/* Pattern note — desktop only (reduces mobile scroll) */}
+            <div className="hidden border border-stone-200 bg-white p-5 lg:block">
+              <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">Pattern note</p>
+              <h2 className="mt-3 font-serif text-3xl font-semibold text-[#191c1d]">
+                Regular, irregular, and future modes.
+              </h2>
+              <p className="mt-4 text-sm leading-6 text-stone-600">{getModeNote(trackingMode)}</p>
+              <p className="mt-3 text-sm leading-6 text-stone-600">
+                This feature is for planning and comfort support, not diagnosis or medical advice.
+              </p>
             </div>
           </div>
         </section>
       </main>
+
+      {/* Mobile settings bottom sheet */}
+      {settingsOpen ? (
+        <div className="fixed inset-0 z-[60] lg:hidden">
+          <button
+            type="button"
+            className="absolute inset-0 bg-stone-900/40"
+            aria-label="Close settings"
+            onClick={() => setSettingsOpen(false)}
+          />
+          <div className="absolute inset-x-0 bottom-0 max-h-[88dvh] overflow-y-auto rounded-t-2xl border border-stone-200 bg-white px-4 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-3 shadow-2xl">
+            <div className="mx-auto mb-3 h-1 w-10 rounded-full bg-stone-300" />
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">Profile</p>
+                <h2 className="font-serif text-xl font-semibold text-[#191c1d]">Cycle settings</h2>
+              </div>
+              <button
+                type="button"
+                onClick={() => setSettingsOpen(false)}
+                className="rounded-full border border-stone-300 px-3 py-1.5 text-sm font-semibold text-stone-700"
+              >
+                Close
+              </button>
+            </div>
+            {renderSettingsForm()}
+          </div>
+        </div>
+      ) : null}
+
+      {/* Mobile sticky action bar */}
+      <div className="fixed inset-x-0 bottom-0 z-40 border-t border-stone-200 bg-white/95 px-3 py-2 backdrop-blur lg:hidden pb-[max(0.5rem,env(safe-area-inset-bottom))]">
+        <div className="mx-auto flex max-w-7xl gap-2">
+          <button
+            type="button"
+            onClick={() => setSettingsOpen(true)}
+            className="flex-1 rounded-lg border border-stone-300 py-2.5 text-sm font-semibold text-stone-800"
+          >
+            Settings
+          </button>
+          <button
+            type="button"
+            onClick={openCart}
+            className="flex-1 rounded-lg border border-stone-300 py-2.5 text-sm font-semibold text-stone-800"
+          >
+            Cart ({cart.itemCount})
+          </button>
+          <Link
+            href="/shop"
+            className="flex-1 rounded-lg bg-[#ae2f34] py-2.5 text-center text-sm font-semibold text-white"
+          >
+            Shop
+          </Link>
+        </div>
+      </div>
 
       <SiteFooter />
     </div>

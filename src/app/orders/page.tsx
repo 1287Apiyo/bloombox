@@ -149,52 +149,83 @@ function getOrderImage(item: OrderItem) {
 function TrackingProgress({ order }: { order: CustomerOrder }) {
   const steps = getTrackingSteps(order);
   const activeIndex = getActiveStepIndex(order);
+  const progressPct = Math.round((activeIndex / Math.max(steps.length - 1, 1)) * 100);
 
   return (
     <div className="w-full">
-      <div className="flex items-start justify-between gap-1">
-        {steps.map((step, index) => {
-          const done = step.complete;
-          const current = index === activeIndex;
-          return (
-            <div key={step.label} className="flex flex-1 flex-col items-center text-center">
-              <div className="relative flex w-full items-center justify-center">
-                {index > 0 && (
+      {/* Mobile: compact current status + bar */}
+      <div className="sm:hidden">
+        <div className="flex items-center justify-between gap-2">
+          <p className="text-sm font-semibold text-[#191c1d]">{steps[activeIndex]?.label ?? 'Placed'}</p>
+          <p className="text-[11px] font-medium text-stone-500">
+            Step {activeIndex + 1} of {steps.length}
+          </p>
+        </div>
+        <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-stone-100">
+          <div className="h-full rounded-full bg-[#006a65] transition-all" style={{ width: `${progressPct}%` }} />
+        </div>
+        <div className="mt-2 flex justify-between gap-1">
+          {steps.map((step, index) => (
+            <span
+              key={step.label}
+              className={`h-1.5 flex-1 rounded-full ${
+                index <= activeIndex ? (step.complete || index === activeIndex ? 'bg-[#006a65]' : 'bg-[#ae2f34]') : 'bg-stone-200'
+              }`}
+            />
+          ))}
+        </div>
+        <div className="mt-2 flex justify-between text-[9px] font-medium text-stone-400">
+          <span>Placed</span>
+          <span>Delivered</span>
+        </div>
+      </div>
+
+      {/* Desktop: full step rail */}
+      <div className="hidden sm:block">
+        <div className="flex items-start justify-between gap-1">
+          {steps.map((step, index) => {
+            const done = step.complete;
+            const current = index === activeIndex;
+            return (
+              <div key={step.label} className="flex flex-1 flex-col items-center text-center">
+                <div className="relative flex w-full items-center justify-center">
+                  {index > 0 && (
+                    <span
+                      className={`absolute right-1/2 left-0 top-1/2 h-px -translate-y-1/2 ${
+                        steps[index - 1].complete ? 'bg-[#006a65]' : 'bg-stone-200'
+                      }`}
+                    />
+                  )}
+                  {index < steps.length - 1 && (
+                    <span
+                      className={`absolute left-1/2 right-0 top-1/2 h-px -translate-y-1/2 ${
+                        done ? 'bg-[#006a65]' : 'bg-stone-200'
+                      }`}
+                    />
+                  )}
                   <span
-                    className={`absolute right-1/2 left-0 top-1/2 h-px -translate-y-1/2 ${
-                      steps[index - 1].complete ? 'bg-[#006a65]' : 'bg-stone-200'
+                    className={`relative z-10 flex h-6 w-6 items-center justify-center rounded-full border text-[10px] font-bold ${
+                      done
+                        ? 'border-[#006a65] bg-[#006a65] text-white'
+                        : current
+                          ? 'border-[#ae2f34] bg-white text-[#ae2f34]'
+                          : 'border-stone-200 bg-white text-stone-400'
                     }`}
-                  />
-                )}
-                {index < steps.length - 1 && (
-                  <span
-                    className={`absolute left-1/2 right-0 top-1/2 h-px -translate-y-1/2 ${
-                      done ? 'bg-[#006a65]' : 'bg-stone-200'
-                    }`}
-                  />
-                )}
-                <span
-                  className={`relative z-10 flex h-6 w-6 items-center justify-center rounded-full border text-[10px] font-bold ${
-                    done
-                      ? 'border-[#006a65] bg-[#006a65] text-white'
-                      : current
-                        ? 'border-[#ae2f34] bg-white text-[#ae2f34]'
-                        : 'border-stone-200 bg-white text-stone-400'
+                  >
+                    {done ? '✓' : index + 1}
+                  </span>
+                </div>
+                <p
+                  className={`mt-1.5 text-[11px] font-medium ${
+                    done || current ? 'text-[#191c1d]' : 'text-stone-400'
                   }`}
                 >
-                  {done ? '✓' : index + 1}
-                </span>
+                  {step.label}
+                </p>
               </div>
-              <p
-                className={`mt-1.5 text-[10px] font-medium sm:text-[11px] ${
-                  done || current ? 'text-[#191c1d]' : 'text-stone-400'
-                }`}
-              >
-                {step.label}
-              </p>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
     </div>
   );
@@ -230,39 +261,51 @@ function OrderCard({
   const orderItems = getOrderItems(order);
   const thumb = orderItems[0] ? getOrderImage(orderItems[0]) : '/mockups/bloombox-open-box.png';
 
+  const activeStep = getTrackingSteps(order)[getActiveStepIndex(order)];
+
   return (
-    <article className="overflow-hidden rounded-2xl border border-stone-200/80 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]">
-      {/* Thin summary row */}
+    <article className="overflow-hidden rounded-xl border border-stone-200/80 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] sm:rounded-2xl">
       <button
         type="button"
         onClick={() => onToggle(toggleKey)}
-        className="flex w-full items-center gap-3 px-4 py-3 text-left transition hover:bg-[#fafaf9] sm:gap-4 sm:px-5 sm:py-3.5"
+        className="flex w-full items-start gap-3 px-3 py-3 text-left transition hover:bg-[#fafaf9] sm:items-center sm:gap-4 sm:px-5 sm:py-3.5"
         aria-expanded={isOpen}
       >
-        <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-xl border border-stone-100 bg-stone-50 sm:h-12 sm:w-12">
+        <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-xl border border-stone-100 bg-stone-50 sm:h-12 sm:w-12">
           <Image src={thumb} alt="" fill sizes="48px" className="object-cover" />
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-2">
-            <p className="truncate text-sm font-semibold text-[#191c1d] sm:text-base">
-              Order #{order.id.slice(0, 8).toUpperCase()}
-            </p>
+          <div className="flex items-start justify-between gap-2">
+            <div className="min-w-0">
+              <p className="truncate text-sm font-semibold text-[#191c1d] sm:text-base">
+                #{order.id.slice(0, 8).toUpperCase()}
+              </p>
+              <p className="mt-0.5 text-[11px] text-stone-500 sm:text-xs">
+                {formatDate(order.createdAt)}
+                {orderItems.length > 0
+                  ? ` · ${orderItems.length} item${orderItems.length === 1 ? '' : 's'}`
+                  : ''}
+              </p>
+            </div>
+            <p className="shrink-0 text-sm font-bold text-[#191c1d] sm:hidden">{money(order.total ?? 0)}</p>
+          </div>
+
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
             <span
               className={`rounded-full border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${getStatusStyle(order)}`}
             >
               {getStatusLabel(order)}
             </span>
+            {!isOpen ? (
+              <span className="text-[11px] text-stone-500 sm:hidden">
+                {activeStep?.label ?? 'Placed'}
+              </span>
+            ) : null}
           </div>
-          <p className="mt-0.5 truncate text-xs text-stone-500">
-            {formatDate(order.createdAt)}
-            {orderItems.length > 0
-              ? ` · ${orderItems.length} item${orderItems.length === 1 ? '' : 's'}`
-              : ''}
-          </p>
         </div>
 
-        <div className="flex shrink-0 items-center gap-3">
+        <div className="hidden shrink-0 items-center gap-3 sm:flex">
           <p className="text-sm font-semibold text-[#191c1d]">{money(order.total ?? 0)}</p>
           <span
             className={`flex h-8 w-8 items-center justify-center rounded-full border border-stone-200 text-stone-500 transition ${
@@ -272,17 +315,24 @@ function OrderCard({
             <ChevronIcon open={isOpen} />
           </span>
         </div>
+
+        <span
+          className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-stone-200 text-stone-500 transition sm:hidden ${
+            isOpen ? 'border-[#ae2f34] bg-[#fff5f0] text-[#ae2f34]' : 'bg-white'
+          }`}
+        >
+          <ChevronIcon open={isOpen} />
+        </span>
       </button>
 
-      {/* Dropdown: steps + details */}
       {isOpen && (
-        <div className="border-t border-stone-100 px-4 pb-4 pt-3 sm:px-5 sm:pb-5">
-          <p className="mb-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400">
-            Delivery steps
+        <div className="border-t border-stone-100 px-3 pb-3.5 pt-3 sm:px-5 sm:pb-5">
+          <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400">
+            Tracking
           </p>
           <TrackingProgress order={order} />
 
-          <div className="mt-5 grid gap-3 lg:grid-cols-[1.15fr_0.85fr]">
+          <div className="mt-4 grid gap-2.5 sm:mt-5 sm:gap-3 lg:grid-cols-[1.15fr_0.85fr]">
             <div>
               <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400">
                 Items
@@ -296,19 +346,19 @@ function OrderCard({
                 {orderItems.map((item) => (
                   <div
                     key={item.productId}
-                    className="flex items-center gap-3 rounded-xl border border-stone-100 bg-[#fafaf9] px-2.5 py-2"
+                    className="flex items-center gap-2.5 rounded-xl border border-stone-100 bg-[#fafaf9] px-2 py-2 sm:gap-3 sm:px-2.5"
                   >
-                    <div className="relative h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-stone-100 bg-white">
+                    <div className="relative h-11 w-11 shrink-0 overflow-hidden rounded-lg border border-stone-100 bg-white sm:h-10 sm:w-10">
                       <Image
                         src={getOrderImage(item)}
                         alt={item.productName}
                         fill
-                        sizes="40px"
+                        sizes="44px"
                         className="object-cover"
                       />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="truncate text-sm font-medium text-[#191c1d]">
+                      <p className="line-clamp-2 text-sm font-medium leading-snug text-[#191c1d] sm:truncate">
                         {item.productName ?? 'BloomBox item'}
                       </p>
                       <p className="text-xs text-stone-500">Qty {item.quantity}</p>
@@ -321,13 +371,13 @@ function OrderCard({
               </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="rounded-xl border border-stone-100 bg-[#fff5f0] px-3.5 py-3">
+            <div className="grid grid-cols-1 gap-2 sm:space-y-0 sm:gap-2">
+              <div className="rounded-xl border border-stone-100 bg-[#fff5f0] px-3 py-2.5 sm:px-3.5 sm:py-3">
                 <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#ae2f34]">
                   Delivery
                 </p>
                 {deliveryDetails ? (
-                  <div className="mt-2 space-y-0.5 text-sm leading-6 text-[#584140]">
+                  <div className="mt-1.5 space-y-0.5 text-sm leading-6 text-[#584140] sm:mt-2">
                     <p className="font-medium text-[#191c1d]">
                       {deliveryDetails.recipientName || 'Recipient not saved'}
                     </p>
@@ -342,15 +392,18 @@ function OrderCard({
                     ) : null}
                   </div>
                 ) : (
-                  <p className="mt-2 text-xs text-[#584140]">No delivery details on this order.</p>
+                  <p className="mt-1.5 text-xs text-[#584140] sm:mt-2">No delivery details on this order.</p>
                 )}
               </div>
 
-              <div className="rounded-xl border border-stone-100 bg-white px-3.5 py-3">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400">
-                  Payment
-                </p>
-                <p className="mt-1.5 text-sm font-medium text-[#191c1d]">
+              <div className="rounded-xl border border-stone-100 bg-white px-3 py-2.5 sm:px-3.5 sm:py-3">
+                <div className="flex items-center justify-between gap-2">
+                  <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-stone-400">
+                    Payment
+                  </p>
+                  <p className="text-sm font-bold text-[#191c1d] sm:hidden">{money(order.total ?? 0)}</p>
+                </div>
+                <p className="mt-1 text-sm font-medium text-[#191c1d] sm:mt-1.5">
                   {order.payment?.label ?? 'Payment method'}
                 </p>
                 <p className="text-xs text-stone-500">
@@ -418,10 +471,41 @@ export default function OrdersPage() {
       <SiteHeader />
 
       <main className="pb-16">
-        {/* Hero */}
-        <section className="border-b border-stone-200 bg-white">
-          <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:py-14">
-            <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
+        {/* Mobile compact hero */}
+        <section className="border-b border-stone-200 bg-white sm:hidden">
+          <div className="mx-auto max-w-7xl px-4 py-5">
+            <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">Orders</p>
+            <h1 className="mt-1 font-serif text-2xl font-semibold leading-tight text-[#191c1d]">
+              Your parcels
+            </h1>
+            <div className="mt-3 grid grid-cols-4 gap-1.5">
+              {[
+                { label: 'All', value: String(orders.length) },
+                { label: 'Active', value: String(orderStats.activeOrders) },
+                { label: 'Done', value: String(orderStats.deliveredOrders) },
+                { label: 'Spent', value: money(orderStats.totalSpend).replace('KSh', '').trim() },
+              ].map((stat) => (
+                <div key={stat.label} className="rounded-xl border border-stone-200/80 bg-[#fff5f0] px-1.5 py-2 text-center">
+                  <p className="truncate text-xs font-bold text-[#191c1d]">{stat.value}</p>
+                  <p className="mt-0.5 text-[9px] font-semibold uppercase tracking-wide text-[#ae2f34]">{stat.label}</p>
+                </div>
+              ))}
+            </div>
+            <div className="mt-3 grid grid-cols-2 gap-2">
+              <Link href="/shop" className="rounded-lg bg-[#ae2f34] px-3 py-2.5 text-center text-sm font-semibold text-white">
+                Shop
+              </Link>
+              <Link href="/checkout" className="rounded-lg border border-stone-300 bg-white px-3 py-2.5 text-center text-sm font-semibold text-stone-800">
+                Checkout
+              </Link>
+            </div>
+          </div>
+        </section>
+
+        {/* Desktop hero */}
+        <section className="hidden border-b border-stone-200 bg-white sm:block">
+          <div className="mx-auto max-w-7xl px-4 py-10 sm:px-8 sm:py-12 lg:py-14">
+            <div className="flex flex-col gap-6 sm:gap-8 lg:flex-row lg:items-end lg:justify-between">
               <div className="max-w-2xl">
                 <Eyebrow>Orders</Eyebrow>
                 <h1 className="mt-4 font-serif text-4xl font-semibold leading-none text-[#191c1d] sm:text-5xl">
@@ -430,16 +514,16 @@ export default function OrdersPage() {
                 <p className="mt-4 max-w-xl text-base leading-7 text-[#584140]">
                   Track payment, packing, and delivery for every order — all in one calm place.
                 </p>
-                <div className="mt-6 flex flex-wrap gap-3">
+                <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                   <Link
                     href="/shop"
-                    className="bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8c1520]"
+                    className="bg-[#ae2f34] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520]"
                   >
                     Continue shopping
                   </Link>
                   <Link
                     href="/checkout"
-                    className="border border-[#ae2f34] px-5 py-3 text-sm font-semibold text-[#ae2f34] transition hover:bg-[#fff5f0]"
+                    className="border border-[#ae2f34] px-5 py-3 text-center text-sm font-semibold text-[#ae2f34] transition hover:bg-[#fff5f0]"
                   >
                     Go to checkout
                   </Link>
@@ -468,22 +552,22 @@ export default function OrdersPage() {
           </div>
         </section>
 
-        <section className="mx-auto max-w-7xl px-5 py-10 sm:px-8">
+        <section className="mx-auto max-w-7xl px-3 py-4 sm:px-8 sm:py-10">
           {error && (
-            <div className="mb-6 border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-800">
+            <div className="mb-4 rounded-xl border border-rose-200 bg-rose-50 p-3 text-sm leading-6 text-rose-800 sm:mb-6 sm:p-4">
               {error}
             </div>
           )}
 
           {loading && (
-            <div className="border border-stone-200 bg-white p-8 text-sm text-stone-600">
+            <div className="rounded-xl border border-stone-200 bg-white p-6 text-sm text-stone-600 sm:p-8">
               Loading your orders…
             </div>
           )}
 
           {!loading && orders.length === 0 && (
-            <div className="grid border border-stone-200 bg-white lg:grid-cols-[0.85fr_1.15fr]">
-              <div className="relative min-h-[280px] bg-stone-100">
+            <div className="overflow-hidden rounded-xl border border-stone-200 bg-white sm:rounded-none lg:grid lg:grid-cols-[0.85fr_1.15fr]">
+              <div className="relative hidden min-h-[280px] bg-stone-100 lg:block">
                 <Image
                   src="/mockups/bloombox-open-box.png"
                   alt="BloomBox package"
@@ -492,17 +576,19 @@ export default function OrdersPage() {
                   className="object-cover"
                 />
               </div>
-              <div className="flex flex-col justify-center p-8 lg:p-10">
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">No orders yet</p>
-                <h2 className="mt-3 font-serif text-3xl font-semibold text-[#191c1d] sm:text-4xl">
+              <div className="flex flex-col justify-center p-5 sm:p-8 lg:p-10">
+                <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34] sm:text-xs sm:tracking-[0.16em]">
+                  No orders yet
+                </p>
+                <h2 className="mt-2 font-serif text-2xl font-semibold text-[#191c1d] sm:mt-3 sm:text-4xl">
                   Your first parcel will show up here.
                 </h2>
-                <p className="mt-3 max-w-md text-sm leading-6 text-stone-600">
+                <p className="mt-2 max-w-md text-sm leading-6 text-stone-600 sm:mt-3">
                   After you place and pay for an order, you can track packing and delivery on this page.
                 </p>
                 <Link
                   href="/shop"
-                  className="mt-6 inline-flex w-fit bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8c1520]"
+                  className="mt-5 inline-flex w-full justify-center rounded-lg bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8c1520] sm:mt-6 sm:w-fit sm:rounded-none"
                 >
                   Browse the shop
                 </Link>
@@ -512,55 +598,57 @@ export default function OrdersPage() {
 
           {orders.length > 0 && (
             <>
-              {/* Tabs */}
-              <div className="mb-6 flex flex-col gap-4 border-b border-stone-200 pb-4 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                  <h2 className="font-serif text-2xl font-semibold text-[#191c1d] sm:text-3xl">
-                    {selectedTab === 'active' ? 'Active orders' : 'All orders'}
-                  </h2>
-                  <p className="mt-1 text-sm text-stone-600">
-                    {selectedTab === 'active'
-                      ? 'Orders still moving through payment, packing, or delivery.'
-                      : 'Full history including delivered and cancelled orders.'}
-                  </p>
-                </div>
-                <div className="inline-flex overflow-hidden rounded-full border border-stone-200 bg-white p-0.5">
-                  {[
-                    { id: 'active' as const, label: 'Active', count: activeOrders.length },
-                    { id: 'past' as const, label: 'All', count: pastOrders.length },
-                  ].map((tab) => (
-                    <button
-                      key={tab.id}
-                      type="button"
-                      onClick={() => setSelectedTab(tab.id)}
-                      className={`rounded-full px-4 py-2 text-sm font-semibold transition ${
-                        selectedTab === tab.id
-                          ? 'bg-[#ae2f34] text-white'
-                          : 'text-stone-600 hover:text-[#ae2f34]'
-                      }`}
-                    >
-                      {tab.label}
-                      <span className="ml-1 opacity-80">({tab.count})</span>
-                    </button>
-                  ))}
+              {/* Sticky tabs on mobile */}
+              <div className="sticky top-[var(--bb-header-offset,60px)] z-20 -mx-3 mb-3 border-b border-stone-200 bg-[#f8f9fa]/95 px-3 py-2 backdrop-blur sm:static sm:mx-0 sm:mb-6 sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:backdrop-blur-none">
+                <div className="flex flex-col gap-3 border-b border-transparent sm:flex-row sm:items-end sm:justify-between sm:border-stone-200 sm:pb-4">
+                  <div className="hidden sm:block">
+                    <h2 className="font-serif text-2xl font-semibold text-[#191c1d] sm:text-3xl">
+                      {selectedTab === 'active' ? 'Active orders' : 'All orders'}
+                    </h2>
+                    <p className="mt-1 text-sm text-stone-600">
+                      {selectedTab === 'active'
+                        ? 'Orders still moving through payment, packing, or delivery.'
+                        : 'Full history including delivered and cancelled orders.'}
+                    </p>
+                  </div>
+                  <div className="inline-flex w-full overflow-hidden rounded-full border border-stone-200 bg-white p-0.5 sm:w-auto">
+                    {[
+                      { id: 'active' as const, label: 'Active', count: activeOrders.length },
+                      { id: 'past' as const, label: 'All', count: pastOrders.length },
+                    ].map((tab) => (
+                      <button
+                        key={tab.id}
+                        type="button"
+                        onClick={() => setSelectedTab(tab.id)}
+                        className={`flex-1 rounded-full px-3 py-2 text-sm font-semibold transition sm:flex-none sm:px-4 ${
+                          selectedTab === tab.id
+                            ? 'bg-[#ae2f34] text-white'
+                            : 'text-stone-600 hover:text-[#ae2f34]'
+                        }`}
+                      >
+                        {tab.label}
+                        <span className="ml-1 opacity-80">({tab.count})</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </div>
 
               {visibleOrders.length === 0 ? (
-                <div className="border border-stone-200 bg-white p-8 text-center sm:p-10">
-                  <h3 className="font-serif text-2xl font-semibold text-[#191c1d]">No active orders</h3>
+                <div className="rounded-xl border border-stone-200 bg-white p-6 text-center sm:rounded-none sm:p-10">
+                  <h3 className="font-serif text-xl font-semibold text-[#191c1d] sm:text-2xl">No active orders</h3>
                   <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-stone-600">
                     Delivered orders live under All. Unpaid orders leave Active after 2 hours.
                   </p>
                   <Link
                     href="/shop"
-                    className="mt-6 inline-flex bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white hover:bg-[#8c1520]"
+                    className="mt-5 inline-flex w-full justify-center rounded-lg bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white hover:bg-[#8c1520] sm:mt-6 sm:w-auto sm:rounded-none"
                   >
                     Shop care items
                   </Link>
                 </div>
               ) : (
-                <div className="space-y-2.5">
+                <div className="space-y-2 sm:space-y-2.5">
                   {visibleOrders.map((order) => (
                     <OrderCard
                       key={`${selectedTab}-${order.id}`}

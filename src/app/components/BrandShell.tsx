@@ -109,11 +109,11 @@ export function BrandMark({ dark = false }: { dark?: boolean }) {
   const href = loading || !user ? '/' : isAdmin ? '/admin' : '/dashboard';
 
   return (
-    <Link href={href} className="flex items-center gap-3">
-      <span className="relative h-12 w-12 overflow-hidden rounded-full border border-stone-300 bg-white">
+    <Link href={href} className="flex min-w-0 items-center gap-2 sm:gap-3">
+      <span className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-stone-300 bg-white sm:h-12 sm:w-12">
         <Image src="/bloom1.png" alt="BloomBox" fill sizes="48px" className="object-cover" priority />
       </span>
-      <span className={dark ? 'text-2xl font-serif font-bold tracking-tight text-white' : 'text-2xl font-serif font-bold tracking-tight text-stone-950'}>
+      <span className={dark ? 'truncate text-lg font-serif font-bold tracking-tight text-white sm:text-2xl' : 'truncate text-lg font-serif font-bold tracking-tight text-stone-950 sm:text-2xl'}>
         BloomBox
       </span>
     </Link>
@@ -167,12 +167,12 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
   return (
     <>
     <header data-site-header className="fixed left-0 right-0 top-0 z-[1000] translate-y-0 transform-gpu border-b border-stone-300 bg-white shadow-sm">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8 sm:py-4">
-        <div className="flex min-w-0 items-center gap-2 sm:gap-4">
+      <div className="mx-auto flex max-w-7xl items-center justify-between gap-2 px-3 py-2.5 sm:gap-3 sm:px-6 sm:py-4 lg:px-8">
+        <div className="flex min-w-0 items-center gap-1.5 sm:gap-4">
           <button
             type="button"
             onClick={() => setMobileMenuOpen((current) => !current)}
-            className="inline-flex h-10 w-10 items-center justify-center border border-stone-300 bg-white text-stone-700 transition hover:border-rose-700 hover:text-rose-700 lg:hidden"
+            className="inline-flex h-10 w-10 shrink-0 items-center justify-center border border-stone-300 bg-white text-stone-700 transition hover:border-rose-700 hover:text-rose-700 lg:hidden"
             aria-expanded={mobileMenuOpen}
             aria-controls="mobile-primary-nav"
             aria-label={mobileMenuOpen ? 'Close menu' : 'Open menu'}
@@ -198,11 +198,11 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
           })}
         </nav>
 
-        <div className="flex shrink-0 items-center gap-2 sm:gap-3">
+        <div className="flex shrink-0 items-center gap-1.5 sm:gap-3">
           {user ? (
             <Link
               href="/cycle"
-              className={`relative inline-flex h-10 w-10 items-center justify-center rounded-full border-2 shadow-sm transition sm:h-11 sm:w-11 ${
+              className={`relative inline-flex h-9 w-9 items-center justify-center rounded-full border-2 shadow-sm transition sm:h-11 sm:w-11 ${
                 isActiveRoute(pathname, '/cycle')
                   ? 'border-[#ae2f34] bg-[#ae2f34] text-white'
                   : 'border-stone-300 bg-[#fff5f0] text-[#ae2f34] hover:border-[#ae2f34] hover:bg-[#fed4c8]'
@@ -216,34 +216,35 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
 
           <Link
             href="/donate"
-            className="border border-[#006a65] bg-[#006a65] px-4 py-2 text-sm font-semibold text-white transition hover:border-[#004b48] hover:bg-[#004b48] sm:px-6"
+            className="hidden border border-[#006a65] bg-[#006a65] px-4 py-2 text-sm font-semibold text-white transition hover:border-[#004b48] hover:bg-[#004b48] sm:inline-flex sm:px-6"
           >
-            <span className="sm:hidden">Give</span>
-            <span className="hidden sm:inline">Donate</span>
+            Donate
           </Link>
 
           <Link
             href={accountHref}
-            className="bg-[#ae2f34] px-4 py-2 text-sm font-semibold text-white transition hover:bg-stone-950 sm:px-6"
+            className="bg-[#ae2f34] px-3 py-2 text-sm font-semibold text-white transition hover:bg-stone-950 sm:px-6"
           >
             {accountLabel}
           </Link>
 
           {user ? (
-            <div className="relative">
-              <button
-                type="button"
-                onClick={handleLogout}
-                disabled={isLoggingOut}
-                className="border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-800 transition hover:border-[#ae2f34] hover:text-[#ae2f34] disabled:cursor-not-allowed disabled:opacity-60"
-              >
-                <span className="sm:hidden">Out</span>
-                <span className="hidden sm:inline">{isLoggingOut ? '...' : 'Logout'}</span>
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="hidden border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-800 transition hover:border-[#ae2f34] hover:text-[#ae2f34] disabled:cursor-not-allowed disabled:opacity-60 sm:inline-flex"
+            >
+              {isLoggingOut ? '...' : 'Logout'}
+            </button>
           ) : null}
         </div>
       </div>
+      {logoutError ? (
+        <p className="border-t border-rose-200 bg-rose-50 px-4 py-2 text-center text-xs text-rose-800 sm:px-6">
+          {logoutError}
+        </p>
+      ) : null}
     </header>
 
     {mobileMenuOpen ? (
@@ -256,7 +257,7 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
         />
         <nav
           id="mobile-primary-nav"
-          className="fixed left-0 right-0 top-[72px] z-[1001] max-h-[calc(100vh-72px)] overflow-y-auto border-b border-stone-200 bg-white px-4 py-4 shadow-lg sm:top-[80px] sm:max-h-[calc(100vh-80px)] lg:hidden"
+          className="fixed left-0 right-0 top-[var(--bb-header-offset,60px)] z-[1001] max-h-[calc(100dvh-var(--bb-header-offset,60px))] overflow-y-auto border-b border-stone-200 bg-white px-4 py-4 shadow-lg lg:hidden"
           aria-label="Primary navigation"
         >
           <div className="mx-auto grid max-w-7xl gap-2">
@@ -274,12 +275,51 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
                 </Link>
               );
             })}
+
+            <div className="mt-2 grid gap-2 border-t border-stone-200 pt-3">
+              <Link
+                href="/donate"
+                onClick={() => setMobileMenuOpen(false)}
+                className="border border-[#006a65] bg-[#006a65] px-4 py-3 text-center text-sm font-semibold text-white"
+              >
+                Donate
+              </Link>
+              <Link
+                href={accountHref}
+                onClick={() => setMobileMenuOpen(false)}
+                className="bg-[#ae2f34] px-4 py-3 text-center text-sm font-semibold text-white"
+              >
+                {accountLabel}
+              </Link>
+              {user ? (
+                <>
+                  <Link
+                    href="/cycle"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`border px-4 py-3 text-center text-sm font-semibold transition ${mobileNavLinkClass(isActiveRoute(pathname, '/cycle'))}`}
+                  >
+                    Cycle tracker
+                  </Link>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setMobileMenuOpen(false);
+                      void handleLogout();
+                    }}
+                    disabled={isLoggingOut}
+                    className="border border-stone-300 bg-white px-4 py-3 text-sm font-semibold text-stone-800 transition hover:border-[#ae2f34] hover:text-[#ae2f34] disabled:opacity-60"
+                  >
+                    {isLoggingOut ? 'Signing out...' : 'Logout'}
+                  </button>
+                </>
+              ) : null}
+            </div>
           </div>
         </nav>
       </>
     ) : null}
 
-    <div className="h-[72px] sm:h-[80px] lg:h-[72px]" aria-hidden="true" />
+    <div className="h-[60px] sm:h-[80px] lg:h-[72px]" aria-hidden="true" />
     </>
   );
 }

@@ -111,9 +111,9 @@ export default function SignupPage() {
       panelText="Your account keeps the practical parts close, from reusable carts to delivery and order history."
       details={['Reusable carts', 'Saved delivery', 'Order history', 'Payment records']}
     >
-      <div className="mb-7 border-b border-stone-200 pb-6">
+      <div className="mb-5 border-b border-stone-200 pb-4 sm:mb-7 sm:pb-6">
         <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">Start your care flow</p>
-        <h2 className="mt-3 font-serif text-4xl font-semibold text-[#191c1d]">Create account</h2>
+        <h2 className="mt-2 font-serif text-3xl font-semibold text-[#191c1d] sm:mt-3 sm:text-4xl">Create account</h2>
         <p className="mt-2 text-sm leading-6 text-[#584140]">Keep shopping, gifting, and subscriptions connected.</p>
       </div>
 

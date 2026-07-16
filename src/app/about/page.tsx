@@ -50,17 +50,17 @@ export default function AboutPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-[1.05fr_0.75fr] gap-4">
-              <div className="relative min-h-[440px] overflow-hidden border border-stone-300 bg-stone-100">
+            <div className="bb-hero-collage">
+              <div className="relative overflow-hidden border border-stone-300 bg-stone-100">
                 <Image src="/mockups/bloombox-open-box.png" alt="Open BloomBox care package" fill sizes="(min-width: 1024px) 560px, 100vw" priority className="object-cover" />
               </div>
-              <div className="grid gap-4">
-                <div className="relative min-h-[210px] overflow-hidden border border-stone-300 bg-stone-100">
+              <div className="grid gap-3 sm:gap-4">
+                <div className="relative overflow-hidden border border-stone-300 bg-stone-100">
                   <Image src="/products/waterbottles.jpg" alt="Comfort item for BloomBox" fill sizes="240px" className="object-cover" />
                 </div>
-                <div className="border border-stone-300 bg-[#fff5f0] p-5">
+                <div className="border border-stone-300 bg-[#fff5f0] p-4 sm:p-5">
                   <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">The belief</p>
-                  <p className="mt-2 font-serif text-3xl font-semibold text-[#191c1d]">
+                  <p className="mt-2 font-serif text-2xl font-semibold text-[#191c1d] sm:text-3xl">
                     Every woman deserves to feel celebrated, not just comfortable.
                   </p>
                   <p className="mt-3 text-sm leading-6 text-[#584140]">The point is not decoration. The point is care that arrives with thought.</p>
@@ -89,15 +89,15 @@ export default function AboutPage() {
 
         <section className="border-y border-stone-300 bg-white">
           <div className="mx-auto grid max-w-7xl gap-8 px-5 py-14 sm:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-stretch">
-            <div className="flex min-h-[380px] items-center justify-center border border-stone-300 bg-[#ae2f34] p-6">
-              <div className="border border-stone-300 bg-white p-3">
+            <div className="flex min-h-[280px] items-center justify-center border border-stone-300 bg-[#ae2f34] p-4 sm:min-h-[340px] sm:p-6 lg:min-h-[380px]">
+              <div className="w-full max-w-[280px] border border-stone-300 bg-white p-3">
                 <Image
                   src="/about/delilah-founder.png"
                   alt="Delilah Johnson, BloomBox founder"
                   width={253}
                   height={253}
                   unoptimized
-                  className="h-52 w-52 object-cover sm:h-56 sm:w-56"
+                  className="mx-auto h-44 w-44 object-cover sm:h-56 sm:w-56"
                 />
                 <div className="border-x border-b border-stone-300 bg-white px-4 py-3">
                   <p className="font-serif text-xl font-semibold text-[#191c1d]">Delilah Johnson</p>
@@ -105,7 +105,7 @@ export default function AboutPage() {
                 </div>
               </div>
             </div>
-            <div className="border border-stone-300 bg-[#fff5f0] p-7 lg:p-9">
+            <div className="border border-stone-300 bg-[#fff5f0] p-5 sm:p-7 lg:p-9">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">Our beginning</p>
               <h2 className="mt-4 font-serif text-4xl font-semibold text-[#191c1d]">A story of love and legacy.</h2>
               <p className="mt-5 border-l-4 border-[#ae2f34] bg-white px-5 py-4 font-serif text-2xl leading-9 text-[#191c1d]">

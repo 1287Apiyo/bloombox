@@ -108,17 +108,17 @@ export default function GiftingPage() {
               </div>
             </div>
 
-            <div className="grid grid-cols-[1.05fr_0.75fr] gap-4">
-              <div className="relative min-h-[440px] overflow-hidden border border-stone-300 bg-stone-100">
+            <div className="bb-hero-collage">
+              <div className="relative overflow-hidden border border-stone-300 bg-stone-100">
                 <Image src="/mockups/bloombox-gift-flowers.png" alt="BloomBox flowers and gift box" fill sizes="(min-width: 1024px) 560px, 100vw" priority className="object-cover" />
               </div>
-              <div className="grid gap-4">
-                <div className="relative min-h-[210px] overflow-hidden border border-stone-300 bg-stone-100">
+              <div className="grid gap-3 sm:gap-4">
+                <div className="relative overflow-hidden border border-stone-300 bg-stone-100">
                   <Image src="/products/candle.jpg" alt="Scented candle gift add-on" fill sizes="240px" className="object-cover" />
                 </div>
-                <div className="border border-stone-300 bg-[#fff5f0] p-5">
+                <div className="border border-stone-300 bg-[#fff5f0] p-4 sm:p-5">
                   <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">Gift flow</p>
-                  <p className="mt-2 font-serif text-3xl font-semibold text-[#191c1d]">Pick, personalize, deliver.</p>
+                  <p className="mt-2 font-serif text-2xl font-semibold text-[#191c1d] sm:text-3xl">Pick, personalize, deliver.</p>
                   <p className="mt-3 text-sm leading-6 text-[#584140]">Each direction leads back to the catalog and checkout details.</p>
                 </div>
               </div>

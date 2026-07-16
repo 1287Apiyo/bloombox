@@ -104,7 +104,7 @@ export default function DonatePage() {
               </div>
             </div>
 
-            <div className="relative min-h-[430px] overflow-hidden border border-stone-300 bg-stone-100">
+            <div className="relative min-h-[220px] overflow-hidden border border-stone-300 bg-stone-100 sm:min-h-[320px] lg:min-h-[430px]">
               <Image src="/mockups/bloombox-gift-flowers.png" alt="BloomBox donation care bundle" fill sizes="(min-width: 1024px) 620px, 100vw" priority className="object-cover" />
             </div>
           </div>

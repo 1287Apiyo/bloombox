@@ -408,29 +408,44 @@ function StepIcon({ name, className = 'h-8 w-8' }: { name: string; className?: s
 }
 
 // ---------- Collection card – static (no animation) ----------
-function CollectionCard({ collection, large = false }: { collection: (typeof collections)[number]; large?: boolean }) {
+function CollectionCard({
+  collection,
+  large = false,
+  rail = false,
+}: {
+  collection: (typeof collections)[number];
+  large?: boolean;
+  /** Compact fixed-width card for mobile horizontal rails */
+  rail?: boolean;
+}) {
   return (
     <Link
       href={collection.href}
-      className={`group relative block overflow-hidden border border-[#e0bfbd] bg-white h-full ${
-        large
-          ? 'min-h-[340px] sm:min-h-[420px] md:col-span-8 lg:min-h-[500px]'
-          : 'min-h-[320px] md:col-span-4 lg:min-h-[360px]'
+      className={`group relative block overflow-hidden border border-[#e0bfbd] bg-white ${
+        rail
+          ? 'h-[220px] w-[78vw] max-w-[300px] shrink-0 snap-start'
+          : large
+            ? 'h-full min-h-[260px] sm:min-h-[420px] md:col-span-8 lg:min-h-[500px]'
+            : 'h-full min-h-[240px] sm:min-h-[300px] md:col-span-4 lg:min-h-[360px]'
       }`}
     >
       <Image
         src={collection.image}
         alt={collection.title}
         fill
-        sizes={large ? '(min-width: 768px) 760px, 100vw' : '(min-width: 768px) 420px, 100vw'}
+        sizes={rail ? '300px' : large ? '(min-width: 768px) 760px, 100vw' : '(min-width: 768px) 420px, 100vw'}
         quality={IMAGE_QUALITY}
-        priority
+        priority={!rail}
         className="object-cover transition duration-700 group-hover:scale-[1.04]"
       />
-      <div className={`absolute inset-x-0 bottom-0 ${collection.panel} p-6 md:p-8`}>
-        <h3 className="font-sans text-3xl font-semibold">{collection.title}</h3>
-        <p className="mt-2 max-w-lg text-sm leading-6 opacity-90">{collection.text}</p>
-        <span className={`mt-5 inline-flex px-5 py-2 text-sm font-semibold ${collection.button}`}>
+      <div className={`absolute inset-x-0 bottom-0 ${collection.panel} ${rail ? 'p-3.5' : 'p-4 sm:p-6 md:p-8'}`}>
+        <h3 className={`font-sans font-semibold ${rail ? 'text-lg leading-snug' : 'text-2xl sm:text-3xl'}`}>
+          {collection.title}
+        </h3>
+        {!rail ? (
+          <p className="mt-2 max-w-lg text-sm leading-6 opacity-90">{collection.text}</p>
+        ) : null}
+        <span className={`inline-flex font-semibold ${rail ? 'mt-2 px-3 py-1.5 text-xs' : 'mt-4 px-4 py-2 text-sm sm:mt-5 sm:px-5'} ${collection.button}`}>
           {collection.action}
         </span>
       </div>
@@ -529,11 +544,11 @@ export default function DashboardPage() {
 
       <main>
         {/* ---------- HERO ---------- */}
-        <section className="relative min-h-[600px] overflow-hidden bg-bb-red lg:min-h-[800px]">
+        <section className="relative overflow-hidden bg-bb-red">
           {/* Background Split */}
           <div className="absolute inset-0 flex flex-col lg:flex-row">
             <div className="flex-1 bg-bb-red" />
-            <div className="relative w-full lg:w-1/2 h-[400px] lg:h-auto shrink-0">
+            <div className="relative hidden w-full shrink-0 lg:block lg:h-auto lg:w-1/2">
               <Image
                 src="/family-hero.jpg"
                 alt="BloomBox care ritual"
@@ -544,58 +559,61 @@ export default function DashboardPage() {
                 className="object-cover object-center [image-rendering:high-quality]"
               />
               {/* Soft edge only — keep the photo bright and crisp */}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/20 via-transparent to-transparent lg:bg-gradient-to-l lg:from-transparent lg:via-transparent lg:to-black/10" />
+              <div className="absolute inset-0 bg-gradient-to-l from-transparent via-transparent to-black/10" />
             </div>
           </div>
 
           {/* Content layer constrained by max-w-7xl for alignment with Navbar */}
           <div className="relative z-10 mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <div className="flex flex-col lg:flex-row min-h-[600px] lg:min-h-[800px]">
-              <div className="flex-1 flex items-center py-20 lg:py-0">
-                <div className="max-w-xl w-full">
+            <div className="flex min-h-0 flex-col lg:min-h-[800px] lg:flex-row">
+              <div className="flex flex-1 items-center py-8 sm:py-16 lg:py-0">
+                <div className="w-full max-w-xl">
                   <motion.div
                     initial={{ opacity: 0, x: -24 }}
                     animate={{ opacity: 1, x: 0 }}
                     transition={{ duration: 0.7, ease: 'easeOut' }}
-                    className="space-y-8"
+                    className="space-y-4 sm:space-y-8"
                   >
-                    <span className="inline-block text-xs font-bold uppercase tracking-[0.26em] text-white/70">
+                    <span className="inline-block text-[10px] font-bold uppercase tracking-[0.2em] text-white/70 sm:text-xs sm:tracking-[0.26em]">
                       Timed to your cycle, not the calendar
                     </span>
 
-                    <h1 className="text-5xl font-bold leading-[1.08] tracking-tight text-white sm:text-7xl lg:text-8xl">
+                    <h1 className="text-3xl font-bold leading-[1.08] tracking-tight text-white sm:text-7xl lg:text-8xl">
                       Monthly Period Care, a Timed{' '}
                       <span className="text-bb-pink">Ritual.</span>
                     </h1>
 
-                    <p className="max-w-prose text-lg leading-relaxed text-white/95 sm:text-xl">
+                    <p className="hidden max-w-prose text-base leading-relaxed text-white/95 sm:block sm:text-xl">
                       The first cycle‑aware subscription in Kenya. BloomBox delivers a curated
                       monthly ritual of period essentials, comfort extras, and a reminder a day
                       ahead — so you’re never caught off guard. Starting at KSh 300.
                     </p>
+                    <p className="max-w-prose text-sm leading-relaxed text-white/95 sm:hidden">
+                      Cycle-aware care in Kenya from KSh 300 — essentials, comfort extras, and on-time reminders.
+                    </p>
 
-                    <div className="flex flex-wrap gap-5">
+                    <div className="flex gap-2.5 sm:flex-wrap sm:gap-5">
                       <Link
                         href="/subscriptions"
-                        className="inline-flex items-center justify-center rounded-full bg-bb-pink px-8 py-4 text-sm font-bold text-[#14090c] shadow-lg transition hover:bg-white"
+                        className="inline-flex flex-1 items-center justify-center rounded-full bg-bb-pink px-4 py-3 text-sm font-bold text-[#14090c] shadow-lg transition hover:bg-white sm:flex-none sm:px-8 sm:py-4"
                       >
                         Get started
                       </Link>
                       <Link
                         href="/cycle"
-                        className="inline-flex items-center justify-center rounded-full border border-white/30 bg-white/5 px-8 py-4 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/10"
+                        className="inline-flex flex-1 items-center justify-center rounded-full border border-white/30 bg-white/5 px-4 py-3 text-sm font-bold text-white backdrop-blur-sm transition hover:bg-white/10 sm:flex-none sm:px-8 sm:py-4"
                       >
-                        Track your cycle
+                        Track cycle
                       </Link>
                     </div>
 
-                    <dl className="mt-16 grid grid-cols-3 gap-x-8 gap-y-6 sm:gap-x-14">
+                    <dl className="hidden grid-cols-3 gap-x-3 gap-y-4 sm:mt-16 sm:grid sm:gap-x-14 sm:gap-y-6">
                       {heroStats.map((stat) => (
-                        <div key={stat.label}>
-                          <dd className="text-4xl font-bold tracking-tight text-bb-pink sm:text-5xl">
+                        <div key={stat.label} className="min-w-0">
+                          <dd className="text-2xl font-bold tracking-tight text-bb-pink sm:text-5xl">
                             {stat.value}
                           </dd>
-                          <dt className="mt-2 text-[10px] font-bold uppercase tracking-[0.16em] text-white/60">
+                          <dt className="mt-1 text-[9px] font-bold uppercase leading-tight tracking-[0.1em] text-white/60 sm:mt-2 sm:text-[10px] sm:tracking-[0.16em]">
                             {stat.label}
                           </dt>
                         </div>
@@ -605,64 +623,69 @@ export default function DashboardPage() {
                 </div>
               </div>
               {/* Spacer for the image side */}
-              <div className="flex-1 hidden lg:block" />
+              <div className="hidden flex-1 lg:block" />
             </div>
+          </div>
+
+          {/* Mobile hero image under copy */}
+          <div className="relative h-56 w-full sm:h-72 lg:hidden">
+            <Image
+              src="/family-hero.jpg"
+              alt="BloomBox care ritual"
+              sizes="100vw"
+              quality={90}
+              fill
+              priority
+              className="object-cover object-center"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/25 via-transparent to-transparent" />
           </div>
         </section>
 
         {/* ---------- SUBSCRIPTION JOURNEY ---------- */}
         <section className="border-b border-stone-300 bg-white">
-          <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-            <motion.div
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={viewportSettings}
-              transition={{ duration: 0.6 }}
-              className="mb-10 flex flex-col justify-between gap-4 md:flex-row md:items-end md:mb-14"
-            >
-              <div>
-                <h2 className="font-sans text-4xl font-semibold text-[#ae2f34]">Subscription journey</h2>
-                <p className="mt-2 max-w-2xl text-base leading-7 text-[#584140]">
-                  The customer path is designed around recurring monthly care first, with customization, cycle support, and delivery tracking wrapped around it.
+          <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-16 lg:px-8">
+            <div className="mb-4 flex items-end justify-between gap-3 sm:mb-10 md:mb-14">
+              <div className="min-w-0">
+                <h2 className="font-sans text-2xl font-semibold text-[#ae2f34] sm:text-4xl">How it works</h2>
+                <p className="mt-1 hidden max-w-2xl text-base leading-7 text-[#584140] sm:mt-2 sm:block">
+                  Recurring monthly care first, with customization, cycle support, and delivery tracking wrapped around it.
                 </p>
               </div>
-              <Link href="/signup?next=/subscriptions" className="w-fit bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white hover:bg-[#8c1520]">
+              <Link href="/signup?next=/subscriptions" className="hidden shrink-0 bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white hover:bg-[#8c1520] sm:inline-flex">
                 Start subscription
               </Link>
-            </motion.div>
+            </div>
 
-            {/* Connected circle path — horizontal on desktop, vertical on mobile */}
-            <motion.ol
-              variants={staggerContainer}
-              initial="hidden"
-              whileInView="visible"
-              viewport={viewportSettings}
-              className="relative flex flex-col gap-0 md:flex-row md:items-start md:justify-between"
-            >
-              {/* Continuous line behind circles (desktop) */}
-              <div
-                className="pointer-events-none absolute left-0 right-0 top-10 hidden h-0.5 bg-[#e0bfbd] md:block"
-                aria-hidden="true"
-              />
-              {/* Continuous line (mobile) */}
-              <div
-                className="pointer-events-none absolute bottom-4 left-10 top-4 w-0.5 bg-[#e0bfbd] md:hidden"
-                aria-hidden="true"
-              />
-
+            {/* Mobile: horizontal rail */}
+            <div className="bb-mobile-scroll -mx-4 flex snap-x snap-mandatory gap-3 px-4 pb-1 md:hidden">
               {journeySteps.map((step, index) => (
-                <motion.li
+                <Link
                   key={step.title}
-                  variants={fadeUp}
-                  transition={{ duration: 0.45 }}
-                  className="relative z-10 flex flex-1 flex-row gap-4 pb-10 last:pb-0 md:flex-col md:items-center md:gap-0 md:pb-0 md:text-center"
+                  href={step.href}
+                  className="w-[72vw] max-w-[260px] shrink-0 snap-start border border-[#e0bfbd] bg-[#fffaf7] p-4"
                 >
-                  <Link
-                    href={step.href}
-                    className="group flex flex-row items-start gap-4 md:flex-col md:items-center"
-                  >
-                    {/* Numbered circle */}
+                  <span className="inline-flex h-11 w-11 items-center justify-center rounded-full border-2 border-[#ae2f34] bg-white text-[#ae2f34]">
+                    <StepIcon name={step.icon} className="h-5 w-5" />
+                  </span>
+                  <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">
+                    Step {String(index + 1).padStart(2, '0')}
+                  </p>
+                  <h3 className="mt-1 font-sans text-base font-semibold text-[#191c1d]">{step.title}</h3>
+                  <p className="mt-1.5 line-clamp-3 text-xs leading-5 text-stone-600">{step.text}</p>
+                </Link>
+              ))}
+            </div>
+
+            {/* Desktop: connected path */}
+            <ol className="relative hidden md:flex md:items-start md:justify-between">
+              <div
+                className="pointer-events-none absolute left-0 right-0 top-10 h-0.5 bg-[#e0bfbd]"
+                aria-hidden="true"
+              />
+              {journeySteps.map((step, index) => (
+                <li key={step.title} className="relative z-10 flex flex-1 flex-col items-center text-center">
+                  <Link href={step.href} className="group flex flex-col items-center">
                     <span className="relative z-10 flex h-20 w-20 shrink-0 items-center justify-center rounded-full border-2 border-[#ae2f34] bg-white text-[#ae2f34] shadow-sm transition group-hover:bg-[#ae2f34] group-hover:text-white">
                       <span className="flex flex-col items-center justify-center">
                         <StepIcon name={step.icon} className="h-6 w-6" />
@@ -671,36 +694,41 @@ export default function DashboardPage() {
                         </span>
                       </span>
                     </span>
-
-                    <span className="min-w-0 flex-1 pt-1 md:mt-5 md:px-2 md:pt-0">
-                      <span className="block font-sans text-lg font-semibold text-[#191c1d] group-hover:text-[#ae2f34] md:text-xl">
-                        {step.title}
-                      </span>
-                      <span className="mt-1.5 block text-sm leading-6 text-stone-600">
-                        {step.text}
-                      </span>
+                    <span className="mt-5 block px-2 font-sans text-xl font-semibold text-[#191c1d] group-hover:text-[#ae2f34]">
+                      {step.title}
                     </span>
+                    <span className="mt-1.5 block text-sm leading-6 text-stone-600">{step.text}</span>
                   </Link>
-                </motion.li>
+                </li>
               ))}
-            </motion.ol>
+            </ol>
           </div>
         </section>
 
-        {/* ---------- SUBSCRIPTION PATHS (original, no animations) ---------- */}
-        <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-          <div className="mb-12 flex flex-col justify-between gap-4 md:flex-row md:items-end">
-            <div>
-              <h2 className="font-sans text-4xl font-semibold text-[#ae2f34]">Subscription paths</h2>
-              <p className="mt-2 text-base leading-7 text-[#584140]">Start with monthly care, then add customization only where it helps.</p>
+        {/* ---------- SUBSCRIPTION PATHS ---------- */}
+        <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-16 lg:px-8">
+          <div className="mb-4 flex items-end justify-between gap-3 sm:mb-12">
+            <div className="min-w-0">
+              <h2 className="font-sans text-2xl font-semibold text-[#ae2f34] sm:text-4xl">Subscription paths</h2>
+              <p className="mt-1 hidden text-base leading-7 text-[#584140] sm:mt-2 sm:block">
+                Start with monthly care, then add customization only where it helps.
+              </p>
             </div>
-            <Link href="/subscriptions" className="inline-flex items-center gap-2 text-sm font-semibold text-[#ae2f34]">
-              View monthly tiers
+            <Link href="/subscriptions" className="inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold text-[#ae2f34]">
+              View all
               <ArrowIcon />
             </Link>
           </div>
 
-          <div className="grid gap-6 md:grid-cols-12">
+          {/* Mobile horizontal rail */}
+          <div className="bb-mobile-scroll -mx-4 flex snap-x snap-mandatory gap-3 px-4 pb-1 md:hidden">
+            {collections.map((collection) => (
+              <CollectionCard key={collection.title} collection={collection} rail />
+            ))}
+          </div>
+
+          {/* Desktop grid */}
+          <div className="hidden gap-6 md:grid md:grid-cols-12">
             <CollectionCard collection={collections[0]} large />
             <CollectionCard collection={collections[1]} />
             <CollectionCard collection={collections[2]} />
@@ -738,41 +766,49 @@ export default function DashboardPage() {
         </section>
 
         {/* ---------- MONTHLY SUBSCRIPTION PLANS ---------- */}
-        <section className="mx-auto max-w-7xl px-4 pb-12 sm:px-6 sm:pb-16 lg:px-8">
-          <motion.div
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={viewportSettings}
-            transition={{ duration: 0.6 }}
-            className="mb-10 flex flex-col justify-between gap-4 md:flex-row md:items-end"
-          >
-            <div>
-              <h2 className="font-sans text-4xl font-semibold text-[#ae2f34]">Monthly subscription plans</h2>
-              <p className="mt-2 max-w-2xl text-base leading-7 text-[#584140]">
-                The core BloomBox experience is recurring care: pick a base, save the customer record, then adjust over time.
+        <section className="mx-auto max-w-7xl px-4 pb-8 sm:px-6 sm:pb-16 lg:px-8">
+          <div className="mb-4 flex items-end justify-between gap-3 sm:mb-10">
+            <div className="min-w-0">
+              <h2 className="font-sans text-2xl font-semibold text-[#ae2f34] sm:text-4xl">Monthly plans</h2>
+              <p className="mt-1 hidden max-w-2xl text-base leading-7 text-[#584140] sm:mt-2 sm:block">
+                Pick a base, save the customer record, then adjust over time.
               </p>
             </div>
-            <Link href="/subscriptions" className="inline-flex items-center gap-2 text-sm font-semibold text-[#ae2f34]">
-              Compare all tiers
+            <Link href="/subscriptions" className="inline-flex shrink-0 items-center gap-1.5 text-sm font-semibold text-[#ae2f34]">
+              Compare
               <ArrowIcon />
             </Link>
-          </motion.div>
+          </div>
 
-          <motion.div
-            variants={staggerContainer}
-            initial="hidden"
-            whileInView="visible"
-            viewport={viewportSettings}
-            className="grid gap-5 md:grid-cols-3"
-          >
+          {/* Mobile horizontal rail */}
+          <div className="bb-mobile-scroll -mx-4 flex snap-x snap-mandatory gap-3 px-4 pb-1 md:hidden">
             {packages.map((item) => (
-              <motion.article
+              <article
                 key={item.title}
-                variants={fadeUp}
-                transition={{ duration: 0.5 }}
-                className="flex flex-col border border-[#e0bfbd] bg-white"
+                className="flex w-[72vw] max-w-[280px] shrink-0 snap-start flex-col border border-[#e0bfbd] bg-white"
               >
+                <div className="relative aspect-[5/3] overflow-hidden border-b border-[#e0bfbd] bg-[#edeeef]">
+                  <Image src={item.image} alt={item.title} fill sizes="280px" quality={IMAGE_QUALITY} className="object-cover" />
+                </div>
+                <div className="flex flex-1 flex-col p-3.5">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#ae2f34]">{item.price}</p>
+                  <h3 className="mt-1.5 font-sans text-lg font-semibold text-[#191c1d]">{item.title}</h3>
+                  <p className="mt-1 line-clamp-2 text-xs leading-5 text-[#584140]">{item.text}</p>
+                  <Link
+                    href={item.href}
+                    className="mt-3 inline-flex w-full items-center justify-center bg-[#ae2f34] px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-[#8c1520]"
+                  >
+                    View plan
+                  </Link>
+                </div>
+              </article>
+            ))}
+          </div>
+
+          {/* Desktop grid */}
+          <div className="hidden gap-5 md:grid md:grid-cols-3">
+            {packages.map((item) => (
+              <article key={item.title} className="flex flex-col border border-[#e0bfbd] bg-white">
                 <div className="relative aspect-[4/3] overflow-hidden border-b border-[#e0bfbd] bg-[#edeeef]">
                   <Image
                     src={item.image}
@@ -787,32 +823,26 @@ export default function DashboardPage() {
                   <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">{item.price}</p>
                   <h3 className="mt-3 font-sans text-3xl font-semibold text-[#191c1d]">{item.title}</h3>
                   <p className="mt-3 text-sm leading-6 text-[#584140]">{item.text}</p>
-                  <div className="mt-5 flex flex-wrap gap-2">
-                   
-                  </div>
                   <div className="mt-auto pt-6">
-                    <Link href={item.href} className="inline-flex w-full items-center justify-between bg-[#ae2f34] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#8c1520]">
+                    <Link
+                      href={item.href}
+                      className="inline-flex w-full items-center justify-between bg-[#ae2f34] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#8c1520]"
+                    >
                       View subscription
                       <ArrowIcon />
                     </Link>
                   </div>
                 </div>
-              </motion.article>
+              </article>
             ))}
-          </motion.div>
+          </div>
         </section>
 
-        {/* ---------- HOW FOLLOW-UP WORKS ---------- */}
-        <section className="border-b border-stone-300 bg-[#fff5f0]">
+        {/* ---------- HOW FOLLOW-UP WORKS (desktop only — skips long mobile scroll) ---------- */}
+        <section className="hidden border-b border-stone-300 bg-[#fff5f0] md:block">
           <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
             <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
-              <motion.div
-                variants={fadeUp}
-                initial="hidden"
-                whileInView="visible"
-                viewport={viewportSettings}
-                transition={{ duration: 0.6 }}
-              >
+              <div>
                 <p className="w-fit bg-[#006a65] px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-white">
                   Care follow-up
                 </p>
@@ -831,74 +861,41 @@ export default function DashboardPage() {
                   </Link>
                 </div>
                 <DelilahGuide />
-              </motion.div>
+              </div>
 
-              {/* Simple 3-step path with connecting line */}
-              <motion.ol
-                variants={staggerContainer}
-                initial="hidden"
-                whileInView="visible"
-                viewport={viewportSettings}
-                className="relative grid gap-0"
-              >
+              <ol className="relative grid gap-0">
                 <div
                   className="pointer-events-none absolute bottom-8 left-8 top-8 w-0.5 bg-[#e0bfbd]"
                   aria-hidden="true"
                 />
                 {funnelSteps.map((step, index) => (
-                  <motion.li
-                    key={step.title}
-                    variants={fadeUp}
-                    transition={{ duration: 0.45 }}
-                    className="relative z-10 flex gap-5 pb-8 last:pb-0"
-                  >
+                  <li key={step.title} className="relative z-10 flex gap-5 pb-8 last:pb-0">
                     <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-[#006a65] bg-white font-sans text-lg font-bold text-[#006a65]">
                       {step.step}
                     </span>
                     <div className="flex-1 border border-stone-300 bg-white p-5">
-                      <div className="flex items-center gap-2">
-                        <h3 className="font-sans text-2xl font-semibold text-[#191c1d]">{step.title}</h3>
-                        {index < funnelSteps.length - 1 && (
-                          <span className="hidden text-xs font-semibold uppercase tracking-wide text-stone-400 sm:inline">
-                            then
-                          </span>
-                        )}
-                      </div>
+                      <h3 className="font-sans text-2xl font-semibold text-[#191c1d]">{step.title}</h3>
                       <p className="mt-2 text-sm leading-6 text-stone-600">{step.text}</p>
                     </div>
-                  </motion.li>
+                  </li>
                 ))}
-              </motion.ol>
+              </ol>
             </div>
           </div>
         </section>
 
         {/* ---------- SIGN-UP SHEET (Lead Form with direct WhatsApp) ---------- */}
-        <section id="care-planner" className="mx-auto grid max-w-7xl gap-8 px-4 py-12 sm:px-6 lg:grid-cols-[0.78fr_1fr] lg:px-8">
-          <motion.div
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={viewportSettings}
-            transition={{ duration: 0.6 }}
-            className="flex flex-col justify-center"
-          >
+        <section id="care-planner" className="mx-auto grid max-w-7xl gap-5 px-4 py-8 sm:gap-8 sm:px-6 sm:py-12 lg:grid-cols-[0.78fr_1fr] lg:px-8">
+          <div className="flex flex-col justify-center">
             <p className="w-fit bg-[#006a65] px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-white">Sign-up sheet</p>
-            <h2 className="mt-4 font-sans text-4xl font-semibold text-[#ae2f34]">Find your BloomBox fit.</h2>
-            <p className="mt-3 max-w-xl text-base leading-7 text-[#584140]">
+            <h2 className="mt-3 font-sans text-2xl font-semibold text-[#ae2f34] sm:mt-4 sm:text-4xl">Find your BloomBox fit.</h2>
+            <p className="mt-2 hidden max-w-xl text-base leading-7 text-[#584140] sm:mt-3 sm:block">
               Choose the care path you are considering. We save your details so the team can follow up with the right plan and a WhatsApp message when needed.
             </p>
-          </motion.div>
+          </div>
 
-          <motion.div
-            variants={fadeUp}
-            initial="hidden"
-            whileInView="visible"
-            viewport={viewportSettings}
-            transition={{ duration: 0.6 }}
-            className="border border-stone-200 bg-white p-6 sm:p-8"
-          >
-            <form onSubmit={handleLeadSubmit} className="space-y-6">
+          <div className="border border-stone-200 bg-white p-4 sm:p-8">
+            <form onSubmit={handleLeadSubmit} className="space-y-5 sm:space-y-6">
               <div className="border border-[#006a65] bg-[#e7fbf8] p-4">
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#006a65]">WhatsApp follow-up</p>
                 <p className="mt-2 text-sm leading-6 text-[#00504c]">
@@ -966,72 +963,65 @@ export default function DashboardPage() {
                 {isSavingLead ? 'Saving...' : 'Send request'}
               </button>
             </form>
-          </motion.div>
+          </div>
         </section>
 
-        {/* ---------- BLOOMBOX PROMISE ---------- */}
-        <section className="relative overflow-hidden bg-[#14090c] py-12 sm:py-16">
+        {/* ---------- BLOOMBOX PROMISE (desktop only) ---------- */}
+        <section className="relative hidden overflow-hidden bg-[#14090c] py-12 sm:py-16 md:block">
           <Image
             src={mockupImages.giftFlowers}
             alt="Darkened BloomBox floral gift arrangement"
             fill
             sizes="100vw"
             quality={IMAGE_QUALITY}
-            priority
             className="object-cover opacity-80"
           />
           <div className="absolute inset-0 bg-[#14090c]/70" />
           <div className="relative mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-            <motion.div
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={viewportSettings}
-              transition={{ duration: 0.6 }}
-              className="mx-auto mb-14 max-w-2xl text-center"
-            >
+            <div className="mx-auto mb-14 max-w-2xl text-center">
               <h2 className="font-sans text-4xl font-semibold text-white">The BloomBox promise</h2>
               <p className="mt-4 text-base leading-7 text-[#fff5f0]">
                 We believe care packages are more than products. They are a medium for connection, relief, and ritual.
               </p>
-            </motion.div>
+            </div>
 
-            <motion.div
-              variants={staggerContainer}
-              initial="hidden"
-              whileInView="visible"
-              viewport={viewportSettings}
-              className="grid gap-10 md:grid-cols-3"
-            >
+            <div className="grid gap-10 md:grid-cols-3">
               {promises.map((promise) => (
-                <motion.div
-                  key={promise.title}
-                  variants={fadeUp}
-                  transition={{ duration: 0.5 }}
-                  className="flex flex-col items-center text-center"
-                >
+                <div key={promise.title} className="flex flex-col items-center text-center">
                   <div className="mb-6 flex h-16 w-16 items-center justify-center bg-white text-[#ae2f34]">
                     <PromiseIcon type={promise.icon} />
                   </div>
                   <h3 className="font-sans text-2xl font-semibold text-white">{promise.title}</h3>
                   <p className="mt-3 text-base leading-7 text-[#fed4c8]">{promise.text}</p>
-                </motion.div>
+                </div>
               ))}
-            </motion.div>
+            </div>
           </div>
         </section>
 
-        {/* ---------- TESTIMONIALS ---------- */}
-        <section className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
-          <div className="grid gap-14 lg:grid-cols-2 lg:items-center">
-            <motion.div
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={viewportSettings}
-              transition={{ duration: 0.6 }}
-              className="relative"
-            >
+        {/* ---------- TESTIMONIALS: compact rail on mobile, full on desktop ---------- */}
+        <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-16 lg:px-8">
+          <div className="mb-4 flex items-end justify-between gap-3 md:hidden">
+            <h2 className="font-sans text-2xl font-semibold italic text-[#ae2f34]">What families say</h2>
+            <Link href="/about" className="text-sm font-semibold text-[#ae2f34]">
+              Our story
+            </Link>
+          </div>
+          <div className="bb-mobile-scroll -mx-4 flex snap-x snap-mandatory gap-3 px-4 pb-1 md:hidden">
+            {testimonials.map((item) => (
+              <article
+                key={item.title}
+                className="w-[80vw] max-w-[300px] shrink-0 snap-start border border-[#e0bfbd] bg-white p-4"
+              >
+                <h3 className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#584140]">&quot;{item.title}&quot;</h3>
+                <p className="mt-2 line-clamp-4 text-sm leading-6 text-[#191c1d]">&quot;{item.text}&quot;</p>
+                <p className="mt-3 text-[10px] font-bold uppercase tracking-[0.14em] text-[#76574e]">{item.name}</p>
+              </article>
+            ))}
+          </div>
+
+          <div className="hidden gap-14 md:grid lg:grid-cols-2 lg:items-center">
+            <div className="relative">
               <div className="relative aspect-[4/3] overflow-hidden border border-[#e0bfbd] bg-[#edeeef]">
                 <Image
                   src="/gift.png"
@@ -1039,7 +1029,6 @@ export default function DashboardPage() {
                   fill
                   quality={100}
                   sizes="(min-width: 1024px) 560px, 90vw"
-                  priority
                   className="object-cover object-center [image-rendering:high-quality]"
                 />
               </div>
@@ -1054,16 +1043,9 @@ export default function DashboardPage() {
                 </p>
                 <p className="mt-4 text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">BloomBox family</p>
               </div>
-            </motion.div>
+            </div>
 
-            <motion.div
-              variants={fadeUp}
-              initial="hidden"
-              whileInView="visible"
-              viewport={viewportSettings}
-              transition={{ duration: 0.6 }}
-              className="lg:pl-10"
-            >
+            <div className="lg:pl-10">
               <h2 className="font-sans text-4xl font-semibold italic text-[#ae2f34]">Voices of the BloomBox family</h2>
               <div className="mt-9 space-y-9">
                 {testimonials.map((item) => (
@@ -1080,7 +1062,7 @@ export default function DashboardPage() {
                 </span>
                 Watch our story
               </Link>
-            </motion.div>
+            </div>
           </div>
         </section>
       </main>

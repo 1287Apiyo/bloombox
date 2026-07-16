@@ -96,9 +96,9 @@ export function AdminPortalFrame({
     <div className="min-h-screen bg-white text-black lg:grid lg:grid-cols-[240px_1fr]">
       {/* Black sidebar */}
       <aside className="border-b border-white/10 bg-black text-white lg:sticky lg:top-0 lg:h-screen lg:border-b-0 lg:border-r lg:border-white/10">
-        <div className="flex h-full flex-col px-3 py-4 sm:px-4">
-          <div className="flex items-center gap-3 border-b border-white/10 px-2 pb-4">
-            <span className="relative h-9 w-9 overflow-hidden rounded-full border border-white/20 bg-white">
+        <div className="flex h-full flex-col px-3 py-3 sm:px-4 sm:py-4">
+          <div className="flex items-center gap-3 border-b border-white/10 px-1 pb-3 sm:px-2 sm:pb-4">
+            <span className="relative h-9 w-9 shrink-0 overflow-hidden rounded-full border border-white/20 bg-white">
               <Image src="/bloom1.png" alt="BloomBox" fill sizes="36px" className="object-cover" priority />
             </span>
             <div className="min-w-0">
@@ -107,14 +107,14 @@ export function AdminPortalFrame({
             </div>
           </div>
 
-          <nav className="bb-mobile-scroll mt-4 flex gap-1 overflow-x-auto pb-1 lg:mt-5 lg:flex-1 lg:flex-col lg:overflow-y-auto lg:overflow-x-visible lg:pb-0">
+          <nav className="bb-mobile-scroll mt-3 flex gap-1 overflow-x-auto pb-1 lg:mt-5 lg:flex-1 lg:flex-col lg:overflow-y-auto lg:overflow-x-visible lg:pb-0">
             {navigation.map((item) => {
               const active = activeSection === item.id;
               return (
                 <Link
                   key={item.id}
                   href={item.href}
-                  className={`flex shrink-0 items-center gap-2.5 rounded-lg px-3 py-2.5 text-sm font-medium transition lg:w-full ${
+                  className={`flex shrink-0 items-center gap-2 rounded-lg px-2.5 py-2 text-sm font-medium transition sm:gap-2.5 sm:px-3 sm:py-2.5 lg:w-full ${
                     active ? 'bg-[#ae2f34] text-white' : 'text-white/80 hover:bg-white/10 hover:text-white'
                   }`}
                 >
@@ -125,7 +125,7 @@ export function AdminPortalFrame({
             })}
           </nav>
 
-          <div className="mt-4 space-y-3 border-t border-white/10 pt-4">
+          <div className="mt-3 hidden space-y-3 border-t border-white/10 pt-4 lg:block">
             <div className="flex items-center gap-3 px-2">
               <span className="flex h-8 w-8 items-center justify-center rounded-full bg-[#ae2f34] text-xs font-bold">
                 {initials}
@@ -155,12 +155,12 @@ export function AdminPortalFrame({
       </aside>
 
       {/* White content area — same structure on every page */}
-      <div className="min-w-0 bg-white">
-        <header className="sticky top-0 z-20 border-b border-black/10 bg-white px-4 py-5 sm:px-6 lg:px-8">
+      <div className="min-w-0 overflow-x-hidden bg-white">
+        <header className="sticky top-0 z-20 border-b border-black/10 bg-white px-3 py-4 sm:px-6 sm:py-5 lg:px-8">
           <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
             <div className="min-w-0">
               <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-[#ae2f34]">{eyebrow}</p>
-              <h1 className="mt-0.5 truncate text-2xl font-semibold tracking-tight text-black sm:text-3xl">
+              <h1 className="mt-0.5 text-xl font-semibold tracking-tight text-black sm:truncate sm:text-3xl">
                 {title}
               </h1>
               {description ? (
@@ -180,7 +180,7 @@ export function AdminPortalFrame({
           </div>
         </header>
 
-        <main className="bg-white px-4 py-6 sm:px-6 lg:px-8 lg:py-8">{children}</main>
+        <main className="bg-white px-3 py-5 sm:px-6 sm:py-6 lg:px-8 lg:py-8">{children}</main>
       </div>
     </div>
   );

@@ -3,6 +3,19 @@
 :root {
   --background: #fffaf7;
   --foreground: #1c1917;
+  --bb-header-offset: 60px;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --bb-header-offset: 80px;
+  }
+}
+
+@media (min-width: 1024px) {
+  :root {
+    --bb-header-offset: 72px;
+  }
 }
 
 @theme inline {
@@ -96,10 +109,17 @@ textarea {
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
   scrollbar-width: none;
+  overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity;
 }
 
 .bb-mobile-scroll::-webkit-scrollbar {
   display: none;
+}
+
+.bb-mobile-scroll.snap-mandatory,
+.bb-mobile-scroll.snap-x {
+  scroll-snap-type: x mandatory;
 }
 
 .bb-page-shell {
@@ -118,6 +138,84 @@ textarea {
 
 main {
   padding-bottom: max(5rem, env(safe-area-inset-bottom, 0px));
+}
+
+/* Shared mobile-friendly section rhythm */
+.bb-section {
+  width: 100%;
+  max-width: 80rem;
+  margin-inline: auto;
+  padding-inline: max(1rem, env(safe-area-inset-left, 0px));
+  padding-inline-end: max(1rem, env(safe-area-inset-right, 0px));
+}
+
+@media (min-width: 640px) {
+  .bb-section {
+    padding-inline: 2rem;
+  }
+}
+
+/* Prevent fixed chrome from overlapping interactive content on phones */
+.bb-access-trigger,
+.bb-access-panel {
+  margin-bottom: env(safe-area-inset-bottom, 0px);
+  margin-right: env(safe-area-inset-right, 0px);
+}
+
+/* Compact touch targets stay at least ~44px where buttons are small */
+button,
+a[role="button"],
+.bb-touch {
+  touch-action: manipulation;
+}
+
+/* Hero collage used on marketing pages: stack gently on very small screens */
+.bb-hero-collage {
+  display: grid;
+  grid-template-columns: 1fr 0.78fr;
+  gap: 0.75rem;
+}
+
+.bb-hero-collage > :first-child {
+  min-height: 220px;
+}
+
+.bb-hero-collage > :last-child > :first-child {
+  min-height: 100px;
+}
+
+@media (min-width: 480px) {
+  .bb-hero-collage {
+    gap: 1rem;
+  }
+
+  .bb-hero-collage > :first-child {
+    min-height: 300px;
+  }
+
+  .bb-hero-collage > :last-child > :first-child {
+    min-height: 140px;
+  }
+}
+
+@media (min-width: 640px) {
+  .bb-hero-collage > :first-child {
+    min-height: 400px;
+  }
+
+  .bb-hero-collage > :last-child > :first-child {
+    min-height: 190px;
+  }
+}
+
+@media (max-width: 379px) {
+  .bb-hero-collage {
+    grid-template-columns: 1fr;
+  }
+
+  .bb-hero-collage > :first-child {
+    min-height: 200px;
+  }
 }
 
 .text-7xl {
@@ -177,32 +275,66 @@ main {
     font-size: 14px;
   }
 
+  .text-8xl {
+    font-size: 2.75rem !important;
+    line-height: 1.02 !important;
+  }
+
   .text-7xl {
-    font-size: 2.8rem !important;
-    line-height: 1 !important;
+    font-size: 2.5rem !important;
+    line-height: 1.02 !important;
   }
 
   .text-6xl {
-    font-size: 2.35rem !important;
-    line-height: 1.03 !important;
+    font-size: 2.15rem !important;
+    line-height: 1.05 !important;
   }
 
   .text-5xl {
-    font-size: 2rem !important;
+    font-size: 1.85rem !important;
     line-height: 1.08 !important;
   }
 
   .text-4xl {
-    font-size: 1.68rem !important;
+    font-size: 1.55rem !important;
     line-height: 1.12 !important;
   }
 
   .text-3xl {
-    font-size: 1.42rem !important;
+    font-size: 1.32rem !important;
     line-height: 1.18 !important;
   }
 
   .text-2xl {
-    font-size: 1.16rem !important;
+    font-size: 1.12rem !important;
+  }
+
+  /* Calendar cells: hide verbose phase text, keep dots */
+  .bb-cal-phase-label {
+    display: none !important;
+  }
+
+  .bb-cal-day {
+    min-height: 3.25rem !important;
+    padding: 0.35rem !important;
+  }
+
+  .bb-cal-cycle-day {
+    display: none !important;
+  }
+}
+
+@media (max-width: 380px) {
+  .text-8xl,
+  .text-7xl {
+    font-size: 2.2rem !important;
+  }
+
+  .text-6xl {
+    font-size: 1.9rem !important;
+  }
+
+  .text-5xl {
+    font-size: 1.65rem !important;
   }
 }

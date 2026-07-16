@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import {
   catalogProducts,
@@ -111,8 +110,8 @@ function CartDrawer({
         onClick={onClose}
         className="absolute inset-0 bg-stone-900/30"
       />
-      <aside className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col border-l border-stone-200 bg-white">
-        <div className="flex items-center justify-between border-b border-stone-200 px-6 py-5">
+      <aside className="absolute inset-y-0 right-0 flex w-full max-w-md flex-col border-l border-stone-200 bg-white pb-[env(safe-area-inset-bottom,0px)]">
+        <div className="flex items-center justify-between border-b border-stone-200 px-4 py-4 sm:px-6 sm:py-5">
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#ae2f34]">Cart</p>
             <h2 className="mt-1 text-xl font-semibold text-stone-900">{cart.itemCount} items ready</h2>
@@ -126,16 +125,16 @@ function CartDrawer({
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="flex-1 overflow-y-auto px-4 py-4 sm:px-6 sm:py-5">
           {cart.items.length === 0 ? (
-            <div className="rounded-md border border-[#e0bfbd] bg-[#fff5f0] p-6 text-sm leading-6 text-stone-700">
+            <div className="rounded-md border border-[#e0bfbd] bg-[#fff5f0] p-5 text-sm leading-6 text-stone-700 sm:p-6">
               Your cart is empty. Start with an essential, then add comfort or gifting details.
             </div>
           ) : (
             <div className="space-y-4">
               {cart.items.map((item) => (
-                <div key={item.id} className="rounded-md border border-stone-200 bg-white p-4">
-                  <div className="grid grid-cols-[76px_1fr] gap-4">
+                <div key={item.id} className="rounded-md border border-stone-200 bg-white p-3 sm:p-4">
+                  <div className="grid grid-cols-[64px_1fr] gap-3 sm:grid-cols-[76px_1fr] sm:gap-4">
                     <div className="relative aspect-square overflow-hidden rounded-md border border-stone-200 bg-stone-100">
                       <Image
                         src={item.image || getCatalogImage(item.productId, item.categoryId)}
@@ -187,7 +186,7 @@ function CartDrawer({
           )}
         </div>
 
-        <div className="border-t border-stone-200 px-6 py-5">
+        <div className="border-t border-stone-200 px-4 py-4 sm:px-6 sm:py-5">
           <div className="flex items-center justify-between text-sm text-stone-600">
             <span>Subtotal</span>
             <span className="text-lg font-semibold text-stone-900">{money(cart.subtotal)}</span>
@@ -331,54 +330,95 @@ export default function ShopPage() {
         userId={user?.uid}
       />
 
-      <main className="pb-16">
-        {/* ---------- HERO (soft, no stats) ---------- */}
-        <section className="border-b border-stone-200 bg-white">
-          <div className="mx-auto grid max-w-7xl gap-8 px-5 py-12 sm:px-8 lg:grid-cols-[1fr_380px] lg:items-center lg:py-16">
-            <div>
-              <Eyebrow>Shop BloomBox</Eyebrow>
-              <h1 className="mt-4 max-w-2xl font-serif text-4xl font-semibold leading-tight text-[#191c1d] sm:text-5xl">
-                Choose what goes into this month’s box.
-              </h1>
-              <p className="mt-4 max-w-xl text-base leading-7 text-stone-600">
-                Browse essentials, comfort add-ons, and small gifts. Everything you add goes to your cart and then to checkout.
-              </p>
-
-              {/* Gentle search bar */}
-              <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <input
-                  type="search"
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  placeholder="Search pads, candles, flowers..."
-                  className="flex-1 rounded-md border border-stone-200 bg-[#fafaf9] px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-[#ae2f34]"
-                />
-                <button
-                  type="button"
-                  onClick={() => setIsCartOpen(true)}
-                  className="rounded-md bg-[#ae2f34] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#8c1520]"
-                >
-                  Cart ({cart.itemCount})
-                </button>
-              </div>
-            </div>
-
-            <div className="relative hidden h-80 overflow-hidden rounded-md bg-stone-100 lg:block">
-              <Image
-                src={shopImages.hero}
-                alt="BloomBox care package"
-                fill
-                sizes="380px"
-                className="object-cover"
+      <main className="pb-20 sm:pb-16">
+        {/* ---------- COMPACT MOBILE SHOP BAR ---------- */}
+        <section className="sticky top-[var(--bb-header-offset,60px)] z-30 border-b border-stone-200 bg-white lg:static lg:z-auto">
+          <div className="mx-auto max-w-7xl px-3 py-2.5 sm:px-8 sm:py-4 lg:hidden">
+            <div className="flex items-center gap-2">
+              <input
+                type="search"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search products..."
+                className="min-w-0 flex-1 rounded-full border border-stone-200 bg-[#fafaf9] px-3.5 py-2.5 text-sm text-stone-900 outline-none transition focus:border-[#ae2f34]"
               />
+              <button
+                type="button"
+                onClick={() => setIsCartOpen(true)}
+                className="relative shrink-0 rounded-full bg-[#ae2f34] px-3.5 py-2.5 text-sm font-semibold text-white"
+              >
+                Cart
+                {cart.itemCount > 0 ? (
+                  <span className="absolute -right-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-[#14090c] px-1 text-[10px] font-bold text-white">
+                    {cart.itemCount}
+                  </span>
+                ) : null}
+              </button>
+            </div>
+            <div className="bb-mobile-scroll mt-2.5 flex gap-1.5 pb-0.5">
+              {categoryFilters.map((cat) => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => setActiveCategory(cat.id)}
+                  className={`shrink-0 rounded-full px-3 py-1.5 text-xs font-semibold transition ${
+                    activeCategory === cat.id
+                      ? 'bg-[#ae2f34] text-white'
+                      : 'bg-stone-100 text-stone-700'
+                  }`}
+                >
+                  {cat.name}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Desktop hero */}
+          <div className="hidden border-b border-stone-200 lg:block">
+            <div className="mx-auto grid max-w-7xl gap-8 px-8 py-12 lg:grid-cols-[1fr_380px] lg:items-center lg:py-16">
+              <div>
+                <Eyebrow>Shop BloomBox</Eyebrow>
+                <h1 className="mt-4 max-w-2xl font-serif text-4xl font-semibold leading-tight text-[#191c1d] sm:text-5xl">
+                  Choose what goes into this month’s box.
+                </h1>
+                <p className="mt-4 max-w-xl text-base leading-7 text-stone-600">
+                  Browse essentials, comfort add-ons, and small gifts. Everything you add goes to your cart and then to checkout.
+                </p>
+                <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+                  <input
+                    type="search"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    placeholder="Search pads, candles, flowers..."
+                    className="flex-1 rounded-md border border-stone-200 bg-[#fafaf9] px-4 py-3 text-sm text-stone-900 outline-none transition focus:border-[#ae2f34]"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setIsCartOpen(true)}
+                    className="rounded-md bg-[#ae2f34] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#8c1520]"
+                  >
+                    Cart ({cart.itemCount})
+                  </button>
+                </div>
+              </div>
+              <div className="relative h-80 overflow-hidden rounded-md bg-stone-100">
+                <Image
+                  src={shopImages.hero}
+                  alt="BloomBox care package"
+                  fill
+                  sizes="380px"
+                  className="object-cover"
+                />
+              </div>
             </div>
           </div>
         </section>
 
         {/* ---------- FILTER + PRODUCT GRID ---------- */}
-        <section className="mx-auto grid max-w-7xl gap-8 px-5 py-10 sm:px-8 lg:grid-cols-[280px_1fr]">
-          {/* Sidebar – calm, no shadows */}
-          <aside className="lg:sticky lg:top-28 lg:self-start">
+        <section className="mx-auto grid max-w-7xl gap-4 px-2 py-3 sm:gap-8 sm:px-8 sm:py-10 lg:grid-cols-[280px_1fr]">
+
+          {/* Desktop sidebar */}
+          <aside className="hidden lg:sticky lg:top-28 lg:block lg:self-start">
             <div className="rounded-md border border-stone-200 bg-white p-5">
               <div className="flex items-center justify-between">
                 <h2 className="font-semibold text-stone-900">Filters</h2>
@@ -430,95 +470,99 @@ export default function ShopPage() {
             </div>
           </aside>
 
-          {/* Product list */}
+          {/* Product list — Carrefour-style dense grid on mobile */}
           <div>
             {catalogError && (
-              <div className="mb-5 rounded-md border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-900">
+              <div className="mb-3 rounded-md border border-amber-200 bg-amber-50 p-3 text-sm leading-6 text-amber-900 sm:mb-5 sm:p-4">
                 {catalogError}
               </div>
             )}
             {notice && (
-              <div className="mb-5 rounded-md border border-emerald-200 bg-emerald-50 p-4 text-sm leading-6 text-emerald-900">
+              <div className="mb-3 rounded-md border border-emerald-200 bg-emerald-50 p-3 text-sm leading-6 text-emerald-900 sm:mb-5 sm:p-4">
                 {notice}
               </div>
             )}
 
-            <div className="mb-6 flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">{activeCategoryLabel}</p>
-                <p className="mt-1 text-sm text-stone-500">
-                  Showing {visibleProducts.length} of {products.length} products
+            <div className="mb-3 flex items-center justify-between gap-2 px-1 sm:mb-6 sm:flex-row sm:gap-3">
+              <div className="min-w-0">
+                <p className="truncate text-xs font-bold uppercase tracking-[0.12em] text-[#ae2f34] sm:tracking-[0.16em]">
+                  {activeCategoryLabel}
+                </p>
+                <p className="mt-0.5 text-[11px] text-stone-500 sm:text-sm">
+                  {visibleProducts.length} of {products.length}
                 </p>
               </div>
-              {/* Sort dropdown (subtle) */}
               <select
                 value={sortBy}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="rounded-md border border-stone-200 bg-white px-4 py-2 text-sm text-stone-600 outline-none focus:border-[#ae2f34]"
+                className="max-w-[48%] rounded-md border border-stone-200 bg-white px-2 py-1.5 text-xs text-stone-600 outline-none focus:border-[#ae2f34] sm:max-w-none sm:px-4 sm:py-2 sm:text-sm"
               >
-                <option value="featured">Featured first</option>
-                <option value="rating">Highest rated</option>
-                <option value="price-low">Price low to high</option>
-                <option value="price-high">Price high to low</option>
-                <option value="name">Name A-Z</option>
+                <option value="featured">Featured</option>
+                <option value="rating">Top rated</option>
+                <option value="price-low">Price ↑</option>
+                <option value="price-high">Price ↓</option>
+                <option value="name">A–Z</option>
               </select>
             </div>
 
             {visibleProducts.length === 0 ? (
-              <div className="rounded-md border border-stone-200 bg-white p-10 text-center">
-                <h2 className="text-xl font-semibold text-stone-900">No products found</h2>
-                <p className="mt-2 text-stone-600">Try a different category or clear the search.</p>
+              <div className="rounded-md border border-stone-200 bg-white p-8 text-center sm:p-10">
+                <h2 className="text-lg font-semibold text-stone-900 sm:text-xl">No products found</h2>
+                <p className="mt-2 text-sm text-stone-600">Try a different category or clear the search.</p>
               </div>
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="grid grid-cols-2 gap-1.5 sm:gap-4 md:grid-cols-3 xl:grid-cols-4">
                 {visibleProducts.map((product) => (
                   <article
                     key={product.id}
-                    className="flex min-h-full flex-col rounded-md border border-stone-200 bg-white"
+                    className="flex min-h-full flex-col overflow-hidden rounded-lg border border-stone-200/80 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
                   >
-                    <div className="relative aspect-[4/3] overflow-hidden bg-stone-100">
+                    {/* Square image like grocery apps */}
+                    <div className="relative aspect-square overflow-hidden bg-stone-50">
                       <Image
                         src={product.image || getCatalogImage(product.id, product.categoryId)}
                         alt={product.name}
                         fill
-                        sizes="(min-width: 1280px) 300px, (min-width: 768px) 45vw, 100vw"
+                        sizes="(min-width: 1280px) 220px, (min-width: 768px) 30vw, 48vw"
                         className="object-cover"
                       />
-                      {/* Soft gradient overlay at bottom for readability */}
-                      <div className="absolute inset-x-0 bottom-0 h-12 bg-gradient-to-t from-black/10 to-transparent" />
+                      {product.stockStatus === 'pending-price' ? (
+                        <span className="absolute left-1.5 top-1.5 rounded bg-amber-100 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-amber-900 sm:left-2 sm:top-2 sm:text-[10px]">
+                          Request
+                        </span>
+                      ) : null}
                     </div>
 
-                    <div className="flex flex-1 flex-col p-4">
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs font-medium text-stone-400">{product.categoryName}</span>
-                        <span className="text-xs text-stone-300">|</span>
-                        <span className="text-xs text-stone-400">{product.brand}</span>
-                      </div>
-
-                      <h3 className="mt-2 font-serif text-lg font-semibold leading-6 text-stone-900">
+                    <div className="flex flex-1 flex-col p-2 sm:p-3.5">
+                      <p className="hidden text-[10px] font-medium uppercase tracking-wide text-stone-400 sm:block">
+                        {product.brand}
+                      </p>
+                      <h3 className="line-clamp-2 min-h-[2.25rem] text-[13px] font-semibold leading-snug text-stone-900 sm:mt-1 sm:min-h-0 sm:text-base sm:leading-6">
                         {product.name}
                       </h3>
-                      <p className="mt-1 line-clamp-2 text-sm leading-6 text-stone-500">
+                      <p className="mt-1 hidden line-clamp-2 text-sm leading-5 text-stone-500 sm:block">
                         {product.description}
                       </p>
 
-                      <div className="mt-auto flex items-end justify-between pt-6">
-                        <div>
-                          <p className="text-lg font-semibold text-stone-900">
-                            {formatProductPrice(product)}
-                          </p>
-                        </div>
+                      <div className="mt-auto flex items-end justify-between gap-1.5 pt-2 sm:pt-4">
+                        <p className="min-w-0 text-sm font-bold leading-tight text-[#ae2f34] sm:text-lg sm:text-stone-900">
+                          {formatProductPrice(product)}
+                        </p>
                         <button
                           type="button"
                           onClick={() => handleAddToCart(product)}
                           disabled={addingProductId === product.id}
-                          className="rounded-md bg-[#ae2f34] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#8c1520] disabled:opacity-60"
+                          aria-label={`Add ${product.name} to cart`}
+                          className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#ae2f34] text-base font-bold leading-none text-white transition hover:bg-[#8c1520] disabled:opacity-60 sm:h-auto sm:w-auto sm:rounded-md sm:px-4 sm:py-2 sm:text-sm sm:font-semibold"
                         >
-                          {addingProductId === product.id
-                            ? 'Adding...'
-                            : product.stockStatus === 'pending-price'
-                            ? 'Request'
-                            : 'Add'}
+                          <span className="sm:hidden">{addingProductId === product.id ? '…' : '+'}</span>
+                          <span className="hidden sm:inline">
+                            {addingProductId === product.id
+                              ? 'Adding...'
+                              : product.stockStatus === 'pending-price'
+                                ? 'Request'
+                                : 'Add'}
+                          </span>
                         </button>
                       </div>
                     </div>

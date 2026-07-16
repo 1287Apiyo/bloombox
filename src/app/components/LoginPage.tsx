@@ -133,19 +133,19 @@ export default function LoginPage() {
       panelText="Sign in before checkout to keep delivery details, orders, and care choices connected."
       details={['Saved cart', 'Order tracking', 'Faster checkout', 'Gift details']}
     >
-      <div className="mb-7 border-b border-stone-200 pb-6">
+      <div className="mb-5 border-b border-stone-200 pb-4 sm:mb-7 sm:pb-6">
         <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">BloomBox account</p>
-        <h2 className="mt-3 font-serif text-4xl font-semibold text-[#191c1d]">Sign in</h2>
+        <h2 className="mt-2 font-serif text-3xl font-semibold text-[#191c1d] sm:mt-3 sm:text-4xl">Sign in</h2>
         <p className="mt-2 text-sm leading-6 text-[#584140]">Continue into your dashboard, cart, and delivery details.</p>
       </div>
 
-      <div className="mb-6 border border-[#e0bfbd] bg-[#fff5f0] p-4">
-        <div className="flex items-start justify-between gap-4">
-          <div>
+      <div className="mb-5 border border-[#e0bfbd] bg-[#fff5f0] p-3 sm:mb-6 sm:p-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
+          <div className="min-w-0">
             <p className="text-sm font-semibold text-[#191c1d]">Your care details stay together.</p>
             <p className="mt-1 text-sm leading-6 text-[#584140]">Sign in before shopping to keep carts, gifts, and checkout details ready.</p>
           </div>
-          <span className="shrink-0 border border-[#e0bfbd] bg-white px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-[#ae2f34]">
+          <span className="w-fit shrink-0 border border-[#e0bfbd] bg-white px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-[#ae2f34]">
             Secure
           </span>
         </div>

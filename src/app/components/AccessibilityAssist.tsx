@@ -107,7 +107,7 @@ export function AccessibilityAssist() {
     }`;
 
   return (
-    <div className="fixed bottom-4 right-4 z-[900] sm:bottom-5 sm:right-5">
+    <div className="fixed bottom-[max(1rem,env(safe-area-inset-bottom))] right-[max(1rem,env(safe-area-inset-right))] z-[900] sm:bottom-5 sm:right-5">
       {isOpen ? (
         <div id="bb-access-panel" className="bb-access-panel mb-3 w-[min(20rem,calc(100vw-2rem))] rounded-md border border-stone-300 bg-white p-3 shadow-xl">
           <div className="mb-3 border-b border-stone-200 pb-3">
@@ -148,7 +148,8 @@ export function AccessibilityAssist() {
         aria-label="Open accessibility controls"
       >
         <AccessIcon />
-        Assist
+        <span className="hidden sm:inline">Assist</span>
+        <span className="sm:hidden">A11y</span>
         <span className="h-2 w-2 rounded-full bg-[#006a65]" aria-hidden="true" />
       </button>
     </div>

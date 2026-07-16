@@ -234,11 +234,11 @@ export default function CheckoutPage() {
 
       <main>
         <section className="border-b border-stone-300 bg-[#f4ddd7]">
-          <div className="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:py-16">
+          <div className="mx-auto max-w-7xl px-4 py-10 sm:px-8 sm:py-12 lg:py-16">
             <Eyebrow>Checkout</Eyebrow>
-            <div className="mt-6 grid gap-8 lg:grid-cols-[0.85fr_0.65fr] lg:items-end">
+            <div className="mt-5 grid gap-6 sm:mt-6 sm:gap-8 lg:grid-cols-[0.85fr_0.65fr] lg:items-end">
               <div>
-                <h1 className="text-5xl font-semibold leading-[0.96] tracking-tight text-stone-950 sm:text-6xl">
+                <h1 className="text-4xl font-semibold leading-[0.98] tracking-tight text-stone-950 sm:text-6xl">
                   Confirm delivery, choose payment, place the order.
                 </h1>
                 <p className="mt-5 max-w-2xl text-base leading-7 text-stone-700">
@@ -256,7 +256,7 @@ export default function CheckoutPage() {
           </div>
         </section>
 
-        <section className="mx-auto grid max-w-7xl gap-8 px-5 py-10 sm:px-8 lg:grid-cols-[1fr_380px]">
+        <section className="mx-auto grid max-w-7xl gap-6 px-4 py-8 sm:gap-8 sm:px-8 sm:py-10 lg:grid-cols-[1fr_380px]">
           <form onSubmit={handlePlaceOrder} className="space-y-8">
             {error ? (
               <div className="rounded-md border border-rose-200 bg-rose-50 p-4 text-sm leading-6 text-rose-800">
@@ -432,13 +432,13 @@ export default function CheckoutPage() {
               <p className="text-xs font-semibold uppercase tracking-[0.16em] text-rose-700">Payment</p>
               <h2 className="mt-2 text-2xl font-semibold text-stone-950">Choose how to pay</h2>
 
-              <div className="mt-6 grid gap-3 md:grid-cols-4">
+              <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
                 {paymentOptions.map((option) => (
                   <button
                     key={option.id}
                     type="button"
                     onClick={() => setPaymentMethod(option.id)}
-                    className={`rounded-md border p-4 text-left transition ${
+                    className={`rounded-md border p-3 text-left transition sm:p-4 ${
                       paymentMethod === option.id ? 'border-rose-700 bg-rose-50' : 'border-stone-300 bg-white hover:border-rose-300'
                     }`}
                   >

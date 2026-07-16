@@ -102,12 +102,12 @@ export default function FAQsPage() {
           </div>
         </section>
 
-        <section className="mx-auto grid max-w-7xl gap-8 px-5 py-14 sm:px-8 lg:grid-cols-[280px_1fr]">
-          <aside className="h-fit border border-stone-300 bg-white p-5">
+        <section className="mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:gap-8 sm:px-8 sm:py-14 lg:grid-cols-[280px_1fr]">
+          <aside className="h-fit border border-stone-300 bg-white p-4 sm:p-5">
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">Topics</p>
-            <div className="mt-4 grid gap-2">
+            <div className="bb-mobile-scroll mt-4 flex gap-2 lg:grid lg:gap-2 lg:overflow-visible">
               {Array.from(new Set(faqs.map((faq) => faq.category))).map((category) => (
-                <span key={category} className="border border-stone-200 bg-[#f8f9fa] px-3 py-2 text-sm font-semibold text-stone-700">
+                <span key={category} className="shrink-0 border border-stone-200 bg-[#f8f9fa] px-3 py-2 text-sm font-semibold text-stone-700">
                   {category}
                 </span>
               ))}
@@ -117,12 +117,12 @@ export default function FAQsPage() {
           <div className="grid gap-3">
             {faqs.map((faq, index) => (
               <details key={faq.question} className="group border border-stone-300 bg-white" open={index === 0}>
-                <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-4 text-sm font-semibold text-stone-950">
-                  <span>{faq.question}</span>
+                <summary className="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3.5 text-sm font-semibold text-stone-950 sm:items-center sm:gap-4 sm:px-5 sm:py-4">
+                  <span className="min-w-0 leading-6">{faq.question}</span>
                   <span className="shrink-0 text-lg leading-none text-[#ae2f34] group-open:hidden">+</span>
                   <span className="hidden shrink-0 text-lg leading-none text-[#ae2f34] group-open:inline">-</span>
                 </summary>
-                <div className="border-t border-stone-200 px-5 py-4">
+                <div className="border-t border-stone-200 px-4 py-4 sm:px-5">
                   <span className="inline-flex bg-[#fff5f0] px-2 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#ae2f34]">
                     {faq.category}
                   </span>
