@@ -515,7 +515,7 @@ export default function ShopPage() {
                 {visibleProducts.map((product) => (
                   <article
                     key={product.id}
-                    className="flex min-h-full flex-col overflow-hidden rounded-lg border border-stone-200/80 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)]"
+                    className="flex min-h-full flex-col overflow-hidden rounded-md border border-stone-200/80 bg-white shadow-sm"
                   >
                     {/* Square image like grocery apps */}
                     <div className="relative aspect-square overflow-hidden bg-stone-50">

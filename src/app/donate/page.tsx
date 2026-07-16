@@ -27,7 +27,7 @@ const donationOptions = [
 const donationTypes = ['One care bundle', 'School or NGO bundle', 'Monthly sponsor', 'Corporate donation', 'Custom donation'];
 
 const inputClass =
-  'w-full rounded-lg border border-stone-300 bg-white px-3 py-3 text-base font-normal outline-none transition focus:border-[#006a65] focus:ring-1 focus:ring-[#006a65] sm:rounded-none sm:text-sm';
+  'w-full rounded-lg border border-stone-300 bg-white px-3 py-3 text-base font-normal outline-none transition focus:border-[#006a65] focus:ring-1 focus:ring-[#006a65] sm:rounded-md sm:text-sm';
 
 export default function DonatePage() {
   const [name, setName] = useState('');
@@ -145,12 +145,12 @@ export default function DonatePage() {
         </label>
       </div>
 
-      {error ? <p className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800 sm:rounded-none">{error}</p> : null}
-      {notice ? <p className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900 sm:rounded-none">{notice}</p> : null}
+      {error ? <p className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800 sm:rounded-md">{error}</p> : null}
+      {notice ? <p className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900 sm:rounded-md">{notice}</p> : null}
 
       <button
         disabled={isSubmitting}
-        className="rounded-lg bg-[#006a65] px-6 py-3.5 text-sm font-semibold text-white hover:bg-[#004b48] disabled:opacity-60 sm:rounded-none sm:py-3"
+        className="rounded-lg bg-[#006a65] px-6 py-3.5 text-sm font-semibold text-white hover:bg-[#004b48] disabled:opacity-60 sm:rounded-md sm:py-3"
       >
         {isSubmitting ? 'Saving...' : 'Save donation pledge'}
       </button>
@@ -205,16 +205,16 @@ export default function DonatePage() {
                 Donations help BloomBox prepare care bundles for girls, schools, NGOs, and community partners. Add your M-Changa reference if you have already paid.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <a href="#donate-form" className="bg-[#006a65] px-6 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#004b48]">
+                <a href="#donate-form" className="rounded-md bg-[#006a65] px-6 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#004b48]">
                   Record donation
                 </a>
-                <Link href="/subscriptions" className="border border-[#ae2f34] px-6 py-3 text-center text-sm font-semibold text-[#ae2f34] transition hover:bg-[#fff5f0]">
+                <Link href="/subscriptions" className="rounded-md border border-[#ae2f34] px-6 py-3 text-center text-sm font-semibold text-[#ae2f34] transition hover:bg-[#fff5f0]">
                   View subscriptions
                 </Link>
               </div>
             </div>
 
-            <div className="relative min-h-[430px] overflow-hidden border border-stone-300 bg-stone-100">
+            <div className="relative min-h-[430px] overflow-hidden rounded-md border border-stone-300 bg-stone-100">
               <Image
                 src="/mockups/bloombox-gift-flowers.png"
                 alt="BloomBox donation care bundle"
@@ -275,7 +275,7 @@ export default function DonatePage() {
                   key={option.title}
                   type="button"
                   onClick={() => selectPath(option)}
-                  className={`border p-5 text-left transition ${
+                  className={`rounded-md border p-5 text-left shadow-sm transition ${
                     isSelected
                       ? 'border-[#006a65] bg-[#e7fbf8]'
                       : 'border-stone-300 bg-white hover:border-[#006a65] hover:bg-[#e7fbf8]'
@@ -303,14 +303,14 @@ export default function DonatePage() {
               <p className="mt-2 max-w-xl text-sm leading-6 text-[#584140] sm:mt-4">
                 This form saves your donation details so the team can confirm the reference, recipient program, and delivery reporting.
               </p>
-              <div className="mt-4 hidden rounded-none border border-[#e0bfbd] bg-[#fff5f0] p-4 sm:block">
+              <div className="mt-4 hidden rounded-md border border-[#e0bfbd] bg-[#fff5f0] p-4 sm:block">
                 <p className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#006a65]">Selected path</p>
                 <p className="mt-1 font-semibold text-[#191c1d]">{selectedPath}</p>
                 <p className="mt-0.5 text-sm text-stone-600">{amount}</p>
               </div>
             </div>
 
-            <div className="rounded-xl border border-stone-300 bg-[#fff5f0] p-4 sm:rounded-none sm:p-5">
+            <div className="rounded-xl border border-stone-300 bg-[#fff5f0] p-4 shadow-sm sm:rounded-md sm:p-5">
               <p className="mb-3 text-[10px] font-bold uppercase tracking-[0.14em] text-[#006a65] sm:hidden">
                 Your details · {amount}
               </p>

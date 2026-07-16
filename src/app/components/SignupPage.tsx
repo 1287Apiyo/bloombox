@@ -131,7 +131,7 @@ export default function SignupPage() {
         type="button"
         onClick={handleGoogleSignup}
         disabled={isGoogleSubmitting || !isConfigured}
-        className="inline-flex w-full items-center justify-center gap-3 border border-stone-300 bg-white px-4 py-3 text-sm font-semibold text-stone-800 transition hover:border-[#ae2f34] hover:bg-[#fff5f0] disabled:cursor-not-allowed disabled:opacity-60"
+        className="rounded-md inline-flex w-full items-center justify-center gap-3 border border-stone-300 bg-white px-4 py-3 text-sm font-semibold text-stone-800 transition hover:border-[#ae2f34] hover:bg-[#fff5f0] disabled:cursor-not-allowed disabled:opacity-60"
       >
         <GoogleMark />
         {isGoogleSubmitting ? 'Opening Google...' : 'Continue with Google'}
@@ -150,7 +150,7 @@ export default function SignupPage() {
             type="text"
             value={name}
             onChange={(event) => setName(event.target.value)}
-            className="block w-full border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none transition focus:border-[#ae2f34] focus:ring-2 focus:ring-rose-100"
+            className="rounded-md block w-full border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none transition focus:border-[#ae2f34] focus:ring-2 focus:ring-rose-100"
             placeholder="Your name"
           />
         </div>
@@ -162,7 +162,7 @@ export default function SignupPage() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             required
-            className="block w-full border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none transition focus:border-[#ae2f34] focus:ring-2 focus:ring-rose-100"
+            className="rounded-md block w-full border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none transition focus:border-[#ae2f34] focus:ring-2 focus:ring-rose-100"
             placeholder="you@example.com"
           />
         </div>
@@ -210,7 +210,7 @@ export default function SignupPage() {
         <button
           type="submit"
           disabled={isSubmitting || !isConfigured}
-          className="flex w-full justify-center bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8c1520] focus:outline-none focus:ring-2 focus:ring-[#fed4c8] disabled:cursor-not-allowed disabled:opacity-75"
+          className="rounded-md flex w-full justify-center bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8c1520] focus:outline-none focus:ring-2 focus:ring-[#fed4c8] disabled:cursor-not-allowed disabled:opacity-75"
         >
           {isSubmitting ? 'Creating account...' : 'Create account'}
         </button>

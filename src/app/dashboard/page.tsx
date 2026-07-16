@@ -306,7 +306,7 @@ function DelilahGuide() {
       whileInView="visible"
       viewport={viewportSettings}
       transition={{ duration: 0.5 }}
-      className="mt-6 flex max-w-md items-start gap-3 border border-[#006a65] bg-white p-4 shadow-sm"
+      className="mt-6 flex max-w-md items-start gap-3 rounded-md border border-[#006a65] bg-white p-4 shadow-sm"
     >
       <div className="relative h-16 w-16 shrink-0 rounded-full border-2 border-[#006a65] bg-[#fed4c8]" aria-hidden="true">
         <span className="absolute left-4 top-5 h-2 w-2 rounded-full bg-[#14090c]" />
@@ -421,9 +421,9 @@ function CollectionCard({
   return (
     <Link
       href={collection.href}
-      className={`group relative block overflow-hidden border border-[#e0bfbd] bg-white ${
+      className={`group relative block overflow-hidden rounded-md border border-[#e0bfbd] bg-white ${
         rail
-          ? 'h-[220px] w-[78vw] max-w-[300px] shrink-0 snap-start'
+          ? 'h-[220px] w-[78vw] max-w-[300px] shrink-0 snap-start rounded-xl'
           : large
             ? 'h-full min-h-[260px] sm:min-h-[420px] md:col-span-8 lg:min-h-[500px]'
             : 'h-full min-h-[240px] sm:min-h-[300px] md:col-span-4 lg:min-h-[360px]'
@@ -652,7 +652,7 @@ export default function DashboardPage() {
                   Recurring monthly care first, with customization, cycle support, and delivery tracking wrapped around it.
                 </p>
               </div>
-              <Link href="/signup?next=/subscriptions" className="hidden shrink-0 bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white hover:bg-[#8c1520] sm:inline-flex">
+              <Link href="/signup?next=/subscriptions" className="rounded-md hidden shrink-0 bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white hover:bg-[#8c1520] sm:inline-flex">
                 Start subscription
               </Link>
             </div>
@@ -663,7 +663,7 @@ export default function DashboardPage() {
                 <Link
                   key={step.title}
                   href={step.href}
-                  className="w-[72vw] max-w-[260px] shrink-0 snap-start border border-[#e0bfbd] bg-[#fffaf7] p-4"
+                  className="w-[72vw] max-w-[260px] shrink-0 snap-start rounded-xl border border-[#e0bfbd] bg-[#fffaf7] p-4"
                 >
                   <span className="inline-flex h-11 w-11 items-center justify-center rounded-full border-2 border-[#ae2f34] bg-white text-[#ae2f34]">
                     <StepIcon name={step.icon} className="h-5 w-5" />
@@ -733,7 +733,7 @@ export default function DashboardPage() {
             <CollectionCard collection={collections[1]} />
             <CollectionCard collection={collections[2]} />
 
-            <div className="bg-[#fed4c8] p-6 sm:p-8 md:col-span-8 md:min-h-[360px] md:p-12">
+            <div className="rounded-md bg-[#fed4c8] p-6 sm:p-8 md:col-span-8 md:min-h-[360px] md:p-12">
               <div className="max-w-xl">
                 <h3 className="font-sans text-4xl font-semibold italic text-[#76574e]">
                   &quot;Care feels different when it arrives on time.&quot;
@@ -750,7 +750,7 @@ export default function DashboardPage() {
                     type="email"
                     required
                   />
-                  <button className="bg-[#006a65] px-8 py-3 text-sm font-semibold text-white transition hover:bg-[#004b48]">
+                  <button className="rounded-md bg-[#006a65] px-8 py-3 text-sm font-semibold text-white transition hover:bg-[#004b48]">
                     {isJoiningNewsletter ? 'Joining...' : 'Join us'}
                   </button>
                 </form>
@@ -785,7 +785,7 @@ export default function DashboardPage() {
             {packages.map((item) => (
               <article
                 key={item.title}
-                className="flex w-[72vw] max-w-[280px] shrink-0 snap-start flex-col border border-[#e0bfbd] bg-white"
+                className="flex w-[72vw] max-w-[280px] shrink-0 snap-start flex-col overflow-hidden rounded-xl border border-[#e0bfbd] bg-white"
               >
                 <div className="relative aspect-[5/3] overflow-hidden border-b border-[#e0bfbd] bg-[#edeeef]">
                   <Image src={item.image} alt={item.title} fill sizes="280px" quality={IMAGE_QUALITY} className="object-cover" />
@@ -796,7 +796,7 @@ export default function DashboardPage() {
                   <p className="mt-1 line-clamp-2 text-xs leading-5 text-[#584140]">{item.text}</p>
                   <Link
                     href={item.href}
-                    className="mt-3 inline-flex w-full items-center justify-center bg-[#ae2f34] px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-[#8c1520]"
+                    className="rounded-md mt-3 inline-flex w-full items-center justify-center bg-[#ae2f34] px-3 py-2.5 text-xs font-semibold text-white transition hover:bg-[#8c1520]"
                   >
                     View plan
                   </Link>
@@ -808,7 +808,7 @@ export default function DashboardPage() {
           {/* Desktop grid */}
           <div className="hidden gap-5 md:grid md:grid-cols-3">
             {packages.map((item) => (
-              <article key={item.title} className="flex flex-col border border-[#e0bfbd] bg-white">
+              <article key={item.title} className="flex flex-col overflow-hidden rounded-md border border-[#e0bfbd] bg-white shadow-sm">
                 <div className="relative aspect-[4/3] overflow-hidden border-b border-[#e0bfbd] bg-[#edeeef]">
                   <Image
                     src={item.image}
@@ -826,7 +826,7 @@ export default function DashboardPage() {
                   <div className="mt-auto pt-6">
                     <Link
                       href={item.href}
-                      className="inline-flex w-full items-center justify-between bg-[#ae2f34] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#8c1520]"
+                      className="rounded-md inline-flex w-full items-center justify-between bg-[#ae2f34] px-4 py-3 text-sm font-semibold text-white transition hover:bg-[#8c1520]"
                     >
                       View subscription
                       <ArrowIcon />
@@ -843,7 +843,7 @@ export default function DashboardPage() {
           <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 sm:py-16 lg:px-8">
             <div className="grid gap-10 lg:grid-cols-[0.9fr_1.1fr] lg:items-center">
               <div>
-                <p className="w-fit bg-[#006a65] px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-white">
+                <p className="rounded-md w-fit bg-[#006a65] px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-white">
                   Care follow-up
                 </p>
                 <h2 className="mt-4 font-sans text-4xl font-semibold text-[#191c1d]">
@@ -853,10 +853,10 @@ export default function DashboardPage() {
                   When someone shares their details below, BloomBox saves the request, the team reviews it, and follow-up can open in WhatsApp with a ready message.
                 </p>
                 <div className="mt-6 flex flex-wrap gap-3">
-                  <a href="#care-planner" className="bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8c1520]">
+                  <a href="#care-planner" className="rounded-md bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8c1520]">
                     Fill the form
                   </a>
-                  <Link href="/admin/leads" className="border border-[#191c1d] px-5 py-3 text-sm font-semibold text-[#191c1d] transition hover:bg-white">
+                  <Link href="/admin/leads" className="rounded-md border border-[#191c1d] px-5 py-3 text-sm font-semibold text-[#191c1d] transition hover:bg-white">
                     Open lead list
                   </Link>
                 </div>
@@ -873,7 +873,7 @@ export default function DashboardPage() {
                     <span className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full border-2 border-[#006a65] bg-white font-sans text-lg font-bold text-[#006a65]">
                       {step.step}
                     </span>
-                    <div className="flex-1 border border-stone-300 bg-white p-5">
+                    <div className="flex-1 rounded-md border border-stone-300 bg-white p-5">
                       <h3 className="font-sans text-2xl font-semibold text-[#191c1d]">{step.title}</h3>
                       <p className="mt-2 text-sm leading-6 text-stone-600">{step.text}</p>
                     </div>
@@ -887,14 +887,14 @@ export default function DashboardPage() {
         {/* ---------- SIGN-UP SHEET (Lead Form with direct WhatsApp) ---------- */}
         <section id="care-planner" className="mx-auto grid max-w-7xl gap-5 px-4 py-8 sm:gap-8 sm:px-6 sm:py-12 lg:grid-cols-[0.78fr_1fr] lg:px-8">
           <div className="flex flex-col justify-center">
-            <p className="w-fit bg-[#006a65] px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-white">Sign-up sheet</p>
+            <p className="rounded-md w-fit bg-[#006a65] px-3 py-1 text-xs font-bold uppercase tracking-[0.16em] text-white">Sign-up sheet</p>
             <h2 className="mt-3 font-sans text-2xl font-semibold text-[#ae2f34] sm:mt-4 sm:text-4xl">Find your BloomBox fit.</h2>
             <p className="mt-2 hidden max-w-xl text-base leading-7 text-[#584140] sm:mt-3 sm:block">
               Choose the care path you are considering. We save your details so the team can follow up with the right plan and a WhatsApp message when needed.
             </p>
           </div>
 
-          <div className="border border-stone-200 bg-white p-4 sm:p-8">
+          <div className="rounded-md border border-stone-200 bg-white p-4 shadow-sm sm:p-8">
             <form onSubmit={handleLeadSubmit} className="space-y-5 sm:space-y-6">
               <div className="border border-[#006a65] bg-[#e7fbf8] p-4">
                 <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#006a65]">WhatsApp follow-up</p>
@@ -906,19 +906,19 @@ export default function DashboardPage() {
               <div className="grid gap-4 sm:grid-cols-2">
                 <label className="grid gap-2 text-sm font-semibold text-stone-700">
                   Name
-                  <input value={leadName} onChange={(event) => setLeadName(event.target.value)} className="rounded border border-stone-300 px-4 py-3 font-normal outline-none transition focus:border-[#ae2f34] focus:ring-1 focus:ring-[#ae2f34]" />
+                  <input value={leadName} onChange={(event) => setLeadName(event.target.value)} className="rounded-md rounded border border-stone-300 px-4 py-3 font-normal outline-none transition focus:border-[#ae2f34] focus:ring-1 focus:ring-[#ae2f34]" />
                 </label>
                 <label className="grid gap-2 text-sm font-semibold text-stone-700">
                   Email
-                  <input type="email" value={leadEmail} onChange={(event) => setLeadEmail(event.target.value)} className="rounded border border-stone-300 px-4 py-3 font-normal outline-none transition focus:border-[#ae2f34] focus:ring-1 focus:ring-[#ae2f34]" />
+                  <input type="email" value={leadEmail} onChange={(event) => setLeadEmail(event.target.value)} className="rounded-md rounded border border-stone-300 px-4 py-3 font-normal outline-none transition focus:border-[#ae2f34] focus:ring-1 focus:ring-[#ae2f34]" />
                 </label>
                 <label className="grid gap-2 text-sm font-semibold text-stone-700">
                   WhatsApp number
-                  <input value={leadPhone} onChange={(event) => setLeadPhone(event.target.value)} className="rounded border border-stone-300 px-4 py-3 font-normal outline-none transition focus:border-[#006a65] focus:ring-1 focus:ring-[#006a65]" placeholder="e.g. 0712 345 678" />
+                  <input value={leadPhone} onChange={(event) => setLeadPhone(event.target.value)} className="rounded-md rounded border border-stone-300 px-4 py-3 font-normal outline-none transition focus:border-[#006a65] focus:ring-1 focus:ring-[#006a65]" placeholder="e.g. 0712 345 678" />
                 </label>
                 <label className="grid gap-2 text-sm font-semibold text-stone-700">
                   Budget
-                  <select value={leadBudget} onChange={(event) => setLeadBudget(event.target.value)} className="rounded border border-stone-300 px-4 py-3 font-normal outline-none transition focus:border-[#ae2f34] focus:ring-1 focus:ring-[#ae2f34]">
+                  <select value={leadBudget} onChange={(event) => setLeadBudget(event.target.value)} className="rounded-md rounded border border-stone-300 px-4 py-3 font-normal outline-none transition focus:border-[#ae2f34] focus:ring-1 focus:ring-[#ae2f34]">
                     {['KSh 300 - 1,000', 'KSh 1,000 - 2,500', 'KSh 2,500 - 5,000', 'Donation / sponsor', 'Custom'].map((budget) => (
                       <option key={budget} value={budget}>{budget}</option>
                     ))}
@@ -926,7 +926,7 @@ export default function DashboardPage() {
                 </label>
                 <label className="grid gap-2 text-sm font-semibold text-stone-700 sm:col-span-2">
                   Interest
-                  <select value={leadInterest} onChange={(event) => setLeadInterest(event.target.value)} className="rounded border border-stone-300 px-4 py-3 font-normal outline-none transition focus:border-[#ae2f34] focus:ring-1 focus:ring-[#ae2f34]">
+                  <select value={leadInterest} onChange={(event) => setLeadInterest(event.target.value)} className="rounded-md rounded border border-stone-300 px-4 py-3 font-normal outline-none transition focus:border-[#ae2f34] focus:ring-1 focus:ring-[#ae2f34]">
                     {['Monthly subscription', 'Custom monthly plan', 'First period kit', 'Donate a bundle', 'Corporate or school care', 'Partnership or sponsor'].map((interest) => (
                       <option key={interest} value={interest}>{interest}</option>
                     ))}
@@ -958,7 +958,7 @@ export default function DashboardPage() {
 
               <button
                 disabled={isSavingLead}
-                className="w-full rounded bg-[#1B1F3B] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#006a65] disabled:opacity-60 sm:w-auto"
+                className="rounded-md w-full rounded bg-[#1B1F3B] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[#006a65] disabled:opacity-60 sm:w-auto"
               >
                 {isSavingLead ? 'Saving...' : 'Send request'}
               </button>
@@ -1011,7 +1011,7 @@ export default function DashboardPage() {
             {testimonials.map((item) => (
               <article
                 key={item.title}
-                className="w-[80vw] max-w-[300px] shrink-0 snap-start border border-[#e0bfbd] bg-white p-4"
+                className="w-[80vw] max-w-[300px] shrink-0 snap-start rounded-xl border border-[#e0bfbd] bg-white p-4"
               >
                 <h3 className="text-[10px] font-bold uppercase tracking-[0.14em] text-[#584140]">&quot;{item.title}&quot;</h3>
                 <p className="mt-2 line-clamp-4 text-sm leading-6 text-[#191c1d]">&quot;{item.text}&quot;</p>
@@ -1022,7 +1022,7 @@ export default function DashboardPage() {
 
           <div className="hidden gap-14 md:grid lg:grid-cols-2 lg:items-center">
             <div className="relative">
-              <div className="relative aspect-[4/3] overflow-hidden border border-[#e0bfbd] bg-[#edeeef]">
+              <div className="relative aspect-[4/3] overflow-hidden rounded-md border border-[#e0bfbd] bg-[#edeeef]">
                 <Image
                   src="/gift.png"
                   alt="BloomBox gift collection"
@@ -1032,7 +1032,7 @@ export default function DashboardPage() {
                   className="object-cover object-center [image-rendering:high-quality]"
                 />
               </div>
-              <div className="mt-5 max-w-sm border border-[#e0bfbd] bg-white p-7 lg:absolute lg:-bottom-8 lg:-right-8 lg:mt-0">
+              <div className="mt-5 max-w-sm rounded-md border border-[#e0bfbd] bg-white p-7 shadow-sm lg:absolute lg:-bottom-8 lg:-right-8 lg:mt-0">
                 <div className="mb-3 flex gap-1 text-[#ae2f34]" aria-label="Five star rating">
                   {Array.from({ length: 5 }).map((_, index) => (
                     <span key={index}>*</span>

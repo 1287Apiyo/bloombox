@@ -70,7 +70,7 @@ export default function TermsPage() {
             <p className="mt-3 text-sm leading-6 text-[#584140]">
               The Privacy Policy explains what information BloomBox collects and how it is handled.
             </p>
-            <Link href="/privacy" className="mt-5 inline-flex bg-[#ae2f34] px-4 py-2 text-sm font-semibold text-white hover:bg-[#8c1520]">
+            <Link href="/privacy" className="rounded-md mt-5 inline-flex bg-[#ae2f34] px-4 py-2 text-sm font-semibold text-white hover:bg-[#8c1520]">
               Privacy Policy
             </Link>
           </div>

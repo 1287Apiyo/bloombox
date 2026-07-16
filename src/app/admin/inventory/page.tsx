@@ -158,7 +158,7 @@ export default function InventoryPage() {
       title="Track inventory against revenue."
       description="Record incoming stock, compare it with outgoing paid orders, and keep stock value visible."
       actions={
-        <Link href="/admin?section=products" className="w-fit bg-[#ae2f34] px-4 py-2 text-sm font-semibold text-white hover:bg-[#8c1520]">
+        <Link href="/admin?section=products" className="rounded-md w-fit bg-[#ae2f34] px-4 py-2 text-sm font-semibold text-white hover:bg-[#8c1520]">
           Manage products
         </Link>
       }
@@ -214,7 +214,7 @@ export default function InventoryPage() {
                   Reason
                   <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} className={`${fieldCls} resize-none`} placeholder="Supplier delivery, shrinkage, order correction..." />
                 </label>
-                <button disabled={isSaving || !selectedProduct} className="bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white hover:bg-[#8c1520] disabled:opacity-60">
+                <button disabled={isSaving || !selectedProduct} className="rounded-md bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white hover:bg-[#8c1520] disabled:opacity-60">
                   {isSaving ? 'Saving...' : 'Save movement'}
                 </button>
               </div>
@@ -259,7 +259,7 @@ export default function InventoryPage() {
                     <p className="font-semibold text-black">{movement.productName}</p>
                     <p className="mt-1 text-xs text-black">{getDate(movement.createdAt)}</p>
                   </div>
-                  <span className="border border-[#e0bfbd] bg-[#fff5f0] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#8c1520]">
+                  <span className="rounded-md border border-[#e0bfbd] bg-[#fff5f0] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#8c1520]">
                     {movement.type}
                   </span>
                 </div>

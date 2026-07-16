@@ -41,24 +41,24 @@ export default function AboutPage() {
                 BloomBox was born from a first-period memory filled with gentleness, food, reassurance, and love. Today it carries that same feeling into period essentials, comfort products, flowers, gifts, and delivery.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Link href="/shop" className="bg-[#ae2f34] px-6 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520]">
+                <Link href="/shop" className="rounded-md bg-[#ae2f34] px-6 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520]">
                   Shop care items
                 </Link>
-                <Link href="/gifting" className="border border-[#ae2f34] px-6 py-3 text-center text-sm font-semibold text-[#ae2f34] transition hover:bg-[#fff5f0]">
+                <Link href="/gifting" className="rounded-md border border-[#ae2f34] px-6 py-3 text-center text-sm font-semibold text-[#ae2f34] transition hover:bg-[#fff5f0]">
                   Send a gift
                 </Link>
               </div>
             </div>
 
             <div className="bb-hero-collage">
-              <div className="relative overflow-hidden border border-stone-300 bg-stone-100">
+              <div className="relative overflow-hidden rounded-md border border-stone-300 bg-stone-100">
                 <Image src="/mockups/bloombox-open-box.png" alt="Open BloomBox care package" fill sizes="(min-width: 1024px) 560px, 100vw" priority className="object-cover" />
               </div>
               <div className="grid gap-3 sm:gap-4">
-                <div className="relative overflow-hidden border border-stone-300 bg-stone-100">
+                <div className="relative overflow-hidden rounded-md border border-stone-300 bg-stone-100">
                   <Image src="/products/waterbottles.jpg" alt="Comfort item for BloomBox" fill sizes="240px" className="object-cover" />
                 </div>
-                <div className="border border-stone-300 bg-[#fff5f0] p-4 sm:p-5">
+                <div className="rounded-md border border-stone-300 bg-[#fff5f0] p-4 sm:p-5">
                   <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">The belief</p>
                   <p className="mt-2 font-serif text-2xl font-semibold text-[#191c1d] sm:text-3xl">
                     Every woman deserves to feel celebrated, not just comfortable.
@@ -89,8 +89,8 @@ export default function AboutPage() {
 
         <section className="border-y border-stone-300 bg-white">
           <div className="mx-auto grid max-w-7xl gap-8 px-5 py-14 sm:px-8 lg:grid-cols-[0.95fr_1.05fr] lg:items-stretch">
-            <div className="flex min-h-[280px] items-center justify-center border border-stone-300 bg-[#ae2f34] p-4 sm:min-h-[340px] sm:p-6 lg:min-h-[380px]">
-              <div className="w-full max-w-[280px] border border-stone-300 bg-white p-3">
+            <div className="flex min-h-[280px] items-center justify-center rounded-md border border-stone-300 bg-[#ae2f34] p-4 sm:min-h-[340px] sm:p-6 lg:min-h-[380px]">
+              <div className="w-full max-w-[280px] rounded-md border border-stone-300 bg-white p-3">
                 <Image
                   src="/about/delilah-founder.png"
                   alt="Delilah Johnson, BloomBox founder"
@@ -105,7 +105,7 @@ export default function AboutPage() {
                 </div>
               </div>
             </div>
-            <div className="border border-stone-300 bg-[#fff5f0] p-5 sm:p-7 lg:p-9">
+            <div className="rounded-md border border-stone-300 bg-[#fff5f0] p-5 sm:p-7 lg:p-9">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">Our beginning</p>
               <h2 className="mt-4 font-serif text-4xl font-semibold text-[#191c1d]">A story of love and legacy.</h2>
               <p className="mt-5 border-l-4 border-[#ae2f34] bg-white px-5 py-4 font-serif text-2xl leading-9 text-[#191c1d]">
@@ -133,7 +133,7 @@ export default function AboutPage() {
           </div>
           <div className="grid gap-5 md:grid-cols-3">
             {storyMoments.map((moment, index) => (
-              <article key={moment.title} className="border border-stone-300 bg-white p-6">
+              <article key={moment.title} className="rounded-md border border-stone-300 bg-white p-6 shadow-sm">
                 <span className="flex h-9 w-9 items-center justify-center bg-[#ae2f34] text-sm font-semibold text-white">{index + 1}</span>
                 <h3 className="mt-5 font-serif text-2xl font-semibold text-[#191c1d]">{moment.title}</h3>
                 <p className="mt-3 text-sm leading-6 text-stone-600">{moment.text}</p>
@@ -143,7 +143,7 @@ export default function AboutPage() {
         </section>
 
         <section className="mx-auto max-w-7xl px-5 py-14 sm:px-8">
-          <div className="border border-stone-300 bg-white p-6 lg:p-8">
+          <div className="rounded-md border border-stone-300 bg-white p-6 shadow-sm lg:p-8">
             <Eyebrow>How it works</Eyebrow>
             <div className="mt-4 flex flex-col justify-between gap-4 md:flex-row md:items-end">
               <h2 className="max-w-2xl font-serif text-4xl font-semibold text-[#191c1d]">A simple path from need to delivery.</h2>
@@ -153,8 +153,8 @@ export default function AboutPage() {
             </div>
             <div className="mt-8 grid gap-4 md:grid-cols-4">
               {workflow.map(([title, text], index) => (
-                <article key={title} className="border border-stone-200 bg-[#f8f9fa] p-5">
-                  <span className="inline-flex bg-[#ae2f34] px-3 py-1 text-xs font-semibold text-white">0{index + 1}</span>
+                <article key={title} className="rounded-md border border-stone-200 bg-[#f8f9fa] p-5">
+                  <span className="rounded-md inline-flex bg-[#ae2f34] px-3 py-1 text-xs font-semibold text-white">0{index + 1}</span>
                   <h3 className="mt-5 font-serif text-2xl font-semibold text-stone-950">{title}</h3>
                   <p className="mt-2 text-sm leading-6 text-stone-600">{text}</p>
                 </article>
@@ -164,7 +164,7 @@ export default function AboutPage() {
         </section>
 
         <section className="mx-auto max-w-7xl px-5 py-14 sm:px-8">
-          <div className="grid overflow-hidden border border-stone-300 bg-white lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="grid overflow-hidden rounded-md border border-stone-300 bg-white lg:grid-cols-[0.9fr_1.1fr]">
             <div className="relative min-h-[340px] bg-stone-100">
               <Image src="/mockups/bloombox-gift-flowers.png" alt="BloomBox flowers and gift" fill sizes="(min-width: 1024px) 520px, 100vw" className="object-cover" />
             </div>
@@ -175,10 +175,10 @@ export default function AboutPage() {
                 The future of BloomBox is simple: stronger product data, better delivery tracking, cleaner checkout, and a care experience that feels human from the first page.
               </p>
               <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-                <Link href="/shop" className="bg-[#ae2f34] px-5 py-3 text-center text-sm font-semibold text-white hover:bg-[#8c1520]">
+                <Link href="/shop" className="rounded-md bg-[#ae2f34] px-5 py-3 text-center text-sm font-semibold text-white hover:bg-[#8c1520]">
                   Explore shop
                 </Link>
-                <Link href="/faqs" className="border border-[#ae2f34] px-5 py-3 text-center text-sm font-semibold text-[#ae2f34] hover:bg-[#fff5f0]">
+                <Link href="/faqs" className="rounded-md border border-[#ae2f34] px-5 py-3 text-center text-sm font-semibold text-[#ae2f34] hover:bg-[#fff5f0]">
                   Read FAQs
                 </Link>
               </div>

@@ -89,11 +89,11 @@ export default function FAQsPage() {
               </p>
             </div>
 
-            <div className="border border-stone-300 bg-[#fff5f0] p-6">
+            <div className="rounded-md border border-stone-300 bg-[#fff5f0] p-6">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">Need something faster?</p>
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 {quickLinks.map((link) => (
-                  <Link key={link.href} href={link.href} className="border border-[#e0bfbd] bg-white px-4 py-3 text-sm font-semibold text-[#191c1d] transition hover:border-[#ae2f34] hover:text-[#ae2f34]">
+                  <Link key={link.href} href={link.href} className="rounded-md border border-[#e0bfbd] bg-white px-4 py-3 text-sm font-semibold text-[#191c1d] transition hover:border-[#ae2f34] hover:text-[#ae2f34]">
                     {link.label}
                   </Link>
                 ))}
@@ -103,11 +103,11 @@ export default function FAQsPage() {
         </section>
 
         <section className="mx-auto grid max-w-7xl gap-6 px-4 py-10 sm:gap-8 sm:px-8 sm:py-14 lg:grid-cols-[280px_1fr]">
-          <aside className="h-fit border border-stone-300 bg-white p-4 sm:p-5">
+          <aside className="h-fit rounded-md border border-stone-300 bg-white p-4 shadow-sm sm:p-5">
             <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">Topics</p>
             <div className="bb-mobile-scroll mt-4 flex gap-2 lg:grid lg:gap-2 lg:overflow-visible">
               {Array.from(new Set(faqs.map((faq) => faq.category))).map((category) => (
-                <span key={category} className="shrink-0 border border-stone-200 bg-[#f8f9fa] px-3 py-2 text-sm font-semibold text-stone-700">
+                <span key={category} className="shrink-0 rounded-md border border-stone-200 bg-[#f8f9fa] px-3 py-2 text-sm font-semibold text-stone-700">
                   {category}
                 </span>
               ))}
@@ -116,7 +116,7 @@ export default function FAQsPage() {
 
           <div className="grid gap-3">
             {faqs.map((faq, index) => (
-              <details key={faq.question} className="group border border-stone-300 bg-white" open={index === 0}>
+              <details key={faq.question} className="group overflow-hidden rounded-md border border-stone-300 bg-white shadow-sm" open={index === 0}>
                 <summary className="flex cursor-pointer list-none items-start justify-between gap-3 px-4 py-3.5 text-sm font-semibold text-stone-950 sm:items-center sm:gap-4 sm:px-5 sm:py-4">
                   <span className="min-w-0 leading-6">{faq.question}</span>
                   <span className="shrink-0 text-lg leading-none text-[#ae2f34] group-open:hidden">+</span>

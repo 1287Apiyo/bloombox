@@ -180,7 +180,7 @@ export default function AiAssistPage() {
                   <button
                     type="button"
                     onClick={() => copyDraft(draft.title, draft.text)}
-                    className="shrink-0 border border-stone-300 px-3 py-1.5 text-xs font-semibold text-black hover:bg-[#fff5f0]"
+                    className="rounded-md shrink-0 border border-stone-300 px-3 py-1.5 text-xs font-semibold text-black hover:bg-[#fff5f0]"
                   >
                     {copied === draft.title ? 'Copied' : 'Copy'}
                   </button>

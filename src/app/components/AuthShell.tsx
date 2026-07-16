@@ -43,7 +43,7 @@ export function AuthShell({
                 <span className="text-lg font-bold tracking-tight text-white sm:text-xl">BloomBox</span>
               </Link>
 
-              <div className="relative min-h-[200px] overflow-hidden border border-[#fed4c8] bg-white shadow-[4px_4px_0_#8c1520] sm:min-h-[360px] sm:shadow-[8px_8px_0_#8c1520] lg:min-h-[560px]">
+              <div className="relative min-h-[200px] overflow-hidden rounded-md border border-[#fed4c8] bg-white shadow-[4px_4px_0_#8c1520] sm:min-h-[360px] sm:shadow-[8px_8px_0_#8c1520] lg:min-h-[560px]">
                 <Image
                   src={image}
                   alt={imageAlt}
@@ -64,7 +64,7 @@ export function AuthShell({
                 </div>
               </div>
 
-              <div className="hidden border border-[#fed4c8] bg-[#fff5f0] sm:grid sm:grid-cols-[1fr_1.2fr]">
+              <div className="hidden overflow-hidden rounded-md border border-[#fed4c8] bg-[#fff5f0] sm:grid sm:grid-cols-[1fr_1.2fr]">
                 <div className="border-b border-[#e0bfbd] p-5 sm:border-b-0 sm:border-r">
                   <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">Account flow</p>
                   <h2 className="mt-3 font-serif text-3xl font-semibold text-[#191c1d]">{panelTitle}</h2>
@@ -73,7 +73,7 @@ export function AuthShell({
                   <p className="text-sm leading-6 text-[#584140]">{panelText}</p>
                   <div className="mt-4 flex flex-wrap gap-2">
                     {details.map((detail) => (
-                      <span key={detail} className="border border-[#e0bfbd] bg-white px-3 py-1 text-xs font-semibold text-[#584140]">
+                      <span key={detail} className="rounded-md border border-[#e0bfbd] bg-white px-3 py-1 text-xs font-semibold text-[#584140]">
                         {detail}
                       </span>
                     ))}
@@ -90,7 +90,7 @@ export function AuthShell({
                 </span>
                 <span className="text-lg font-bold tracking-tight text-white">BloomBox</span>
               </Link>
-              <div className="w-full border border-[#e0bfbd] bg-white p-4 shadow-[4px_4px_0_#f4dfdc] sm:p-7 sm:shadow-[8px_8px_0_#f4dfdc] lg:p-8">
+              <div className="w-full rounded-md border border-[#e0bfbd] bg-white p-4 shadow-[4px_4px_0_#f4dfdc] sm:p-7 sm:shadow-[8px_8px_0_#f4dfdc] lg:p-8">
                 {children}
               </div>
             </div>

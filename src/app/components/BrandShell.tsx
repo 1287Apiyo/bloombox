@@ -216,14 +216,14 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
 
           <Link
             href="/donate"
-            className="hidden border border-[#006a65] bg-[#006a65] px-4 py-2 text-sm font-semibold text-white transition hover:border-[#004b48] hover:bg-[#004b48] sm:inline-flex sm:px-6"
+            className="rounded-md hidden border border-[#006a65] bg-[#006a65] px-4 py-2 text-sm font-semibold text-white transition hover:border-[#004b48] hover:bg-[#004b48] sm:inline-flex sm:px-6"
           >
             Donate
           </Link>
 
           <Link
             href={accountHref}
-            className="bg-[#ae2f34] px-3 py-2 text-sm font-semibold text-white transition hover:bg-stone-950 sm:px-6"
+            className="rounded-md bg-[#ae2f34] px-3 py-2 text-sm font-semibold text-white transition hover:bg-stone-950 sm:px-6"
           >
             {accountLabel}
           </Link>
@@ -233,7 +233,7 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
               type="button"
               onClick={handleLogout}
               disabled={isLoggingOut}
-              className="hidden border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-800 transition hover:border-[#ae2f34] hover:text-[#ae2f34] disabled:cursor-not-allowed disabled:opacity-60 sm:inline-flex"
+              className="rounded-md hidden border border-stone-300 bg-white px-4 py-2 text-sm font-semibold text-stone-800 transition hover:border-[#ae2f34] hover:text-[#ae2f34] disabled:cursor-not-allowed disabled:opacity-60 sm:inline-flex"
             >
               {isLoggingOut ? '...' : 'Logout'}
             </button>
@@ -280,14 +280,14 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
               <Link
                 href="/donate"
                 onClick={() => setMobileMenuOpen(false)}
-                className="border border-[#006a65] bg-[#006a65] px-4 py-3 text-center text-sm font-semibold text-white"
+                className="rounded-md border border-[#006a65] bg-[#006a65] px-4 py-3 text-center text-sm font-semibold text-white"
               >
                 Donate
               </Link>
               <Link
                 href={accountHref}
                 onClick={() => setMobileMenuOpen(false)}
-                className="bg-[#ae2f34] px-4 py-3 text-center text-sm font-semibold text-white"
+                className="rounded-md bg-[#ae2f34] px-4 py-3 text-center text-sm font-semibold text-white"
               >
                 {accountLabel}
               </Link>
@@ -307,7 +307,7 @@ export function SiteHeader({ cartCount = 0, onCartClick }: { cartCount?: number;
                       void handleLogout();
                     }}
                     disabled={isLoggingOut}
-                    className="border border-stone-300 bg-white px-4 py-3 text-sm font-semibold text-stone-800 transition hover:border-[#ae2f34] hover:text-[#ae2f34] disabled:opacity-60"
+                    className="rounded-md border border-stone-300 bg-white px-4 py-3 text-sm font-semibold text-stone-800 transition hover:border-[#ae2f34] hover:text-[#ae2f34] disabled:opacity-60"
                   >
                     {isLoggingOut ? 'Signing out...' : 'Logout'}
                   </button>
@@ -348,10 +348,10 @@ export function SiteFooter() {
           </div>
 
           <div className="grid gap-3 sm:grid-cols-2">
-            <Link href="/signup?next=/subscriptions" className="bg-[#ae2f34] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520]">
+            <Link href="/signup?next=/subscriptions" className="rounded-md bg-[#ae2f34] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520]">
               Start subscription
             </Link>
-            <Link href="/donate" className="border border-[#fed4c8] px-5 py-3 text-center text-sm font-semibold text-[#fed4c8] transition hover:bg-[#fed4c8] hover:text-[#14090c]">
+            <Link href="/donate" className="rounded-md border border-[#fed4c8] px-5 py-3 text-center text-sm font-semibold text-[#fed4c8] transition hover:bg-[#fed4c8] hover:text-[#14090c]">
               Donate
             </Link>
           </div>
@@ -392,7 +392,7 @@ export function SiteFooter() {
             <p className="mt-3 text-sm leading-6 text-stone-300">
               Explore product guides, first-period stories, menstrual cup notes, and comfort rituals from the BloomBox community.
             </p>
-            <Link href="/blog" className="mt-5 inline-flex border border-[#fed4c8] px-4 py-2 text-sm font-semibold text-[#fed4c8] transition hover:bg-[#fed4c8] hover:text-[#14090c]">
+            <Link href="/blog" className="rounded-md mt-5 inline-flex border border-[#fed4c8] px-4 py-2 text-sm font-semibold text-[#fed4c8] transition hover:bg-[#fed4c8] hover:text-[#14090c]">
               Open blog
             </Link>
           </div>

@@ -517,13 +517,13 @@ export default function OrdersPage() {
                 <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                   <Link
                     href="/shop"
-                    className="bg-[#ae2f34] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520]"
+                    className="rounded-md bg-[#ae2f34] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520]"
                   >
                     Continue shopping
                   </Link>
                   <Link
                     href="/checkout"
-                    className="border border-[#ae2f34] px-5 py-3 text-center text-sm font-semibold text-[#ae2f34] transition hover:bg-[#fff5f0]"
+                    className="rounded-md border border-[#ae2f34] px-5 py-3 text-center text-sm font-semibold text-[#ae2f34] transition hover:bg-[#fff5f0]"
                   >
                     Go to checkout
                   </Link>
@@ -566,7 +566,7 @@ export default function OrdersPage() {
           )}
 
           {!loading && orders.length === 0 && (
-            <div className="overflow-hidden rounded-xl border border-stone-200 bg-white sm:rounded-none lg:grid lg:grid-cols-[0.85fr_1.15fr]">
+            <div className="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-sm sm:rounded-md lg:grid lg:grid-cols-[0.85fr_1.15fr]">
               <div className="relative hidden min-h-[280px] bg-stone-100 lg:block">
                 <Image
                   src="/mockups/bloombox-open-box.png"
@@ -588,7 +588,7 @@ export default function OrdersPage() {
                 </p>
                 <Link
                   href="/shop"
-                  className="mt-5 inline-flex w-full justify-center rounded-lg bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8c1520] sm:mt-6 sm:w-fit sm:rounded-none"
+                  className="mt-5 inline-flex w-full justify-center rounded-lg bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8c1520] sm:mt-6 sm:w-fit sm:rounded-md"
                 >
                   Browse the shop
                 </Link>
@@ -635,14 +635,14 @@ export default function OrdersPage() {
               </div>
 
               {visibleOrders.length === 0 ? (
-                <div className="rounded-xl border border-stone-200 bg-white p-6 text-center sm:rounded-none sm:p-10">
+                <div className="rounded-xl border border-stone-200 bg-white p-6 text-center shadow-sm sm:rounded-md sm:p-10">
                   <h3 className="font-serif text-xl font-semibold text-[#191c1d] sm:text-2xl">No active orders</h3>
                   <p className="mx-auto mt-2 max-w-md text-sm leading-6 text-stone-600">
                     Delivered orders live under All. Unpaid orders leave Active after 2 hours.
                   </p>
                   <Link
                     href="/shop"
-                    className="mt-5 inline-flex w-full justify-center rounded-lg bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white hover:bg-[#8c1520] sm:mt-6 sm:w-auto sm:rounded-none"
+                    className="mt-5 inline-flex w-full justify-center rounded-lg bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white hover:bg-[#8c1520] sm:mt-6 sm:w-auto sm:rounded-md"
                   >
                     Shop care items
                   </Link>

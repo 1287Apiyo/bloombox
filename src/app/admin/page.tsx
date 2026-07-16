@@ -452,7 +452,7 @@ function RecentOrders({ orders, users, onViewAll, onSelectOrder }: any) {
       title="Recent orders"
       description="Latest checkout activity"
       actions={
-        <button type="button" onClick={onViewAll} className="border border-stone-300 px-3 py-1.5 text-xs font-semibold text-[#ae2f34] hover:bg-[#fff5f0]">
+        <button type="button" onClick={onViewAll} className="rounded-md border border-stone-300 px-3 py-1.5 text-xs font-semibold text-[#ae2f34] hover:bg-[#fff5f0]">
           View all
         </button>
       }
@@ -563,7 +563,7 @@ function OrdersList({ orders, users, onDeleteOrder, onSelectOrder }: any) {
                   {getOrderStatusLabel(order.status)}
                 </span>
                 <div className="flex gap-1.5">
-                  <button type="button" onClick={() => onSelectOrder(order)} className="bg-black px-3 py-1 text-xs font-semibold text-white hover:bg-[#ae2f34]">
+                  <button type="button" onClick={() => onSelectOrder(order)} className="rounded-md bg-black px-3 py-1 text-xs font-semibold text-white hover:bg-[#ae2f34]">
                     View
                   </button>
                   <button type="button" onClick={() => onDeleteOrder(order.id)} className="border border-rose-600 px-3 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50">
@@ -1036,10 +1036,10 @@ function ProductForm({
         </div>
 
         <div className="flex gap-3 border-t border-stone-300 pt-4">
-          <button type="submit" disabled={isSaving} className="flex-1 bg-[#ae2f34] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#8c1520] disabled:opacity-50">
+          <button type="submit" disabled={isSaving} className="rounded-md flex-1 bg-[#ae2f34] px-4 py-2.5 text-sm font-semibold text-white hover:bg-[#8c1520] disabled:opacity-50">
             {isSaving ? 'Saving…' : isEditing ? 'Save changes' : 'Add product'}
           </button>
-          <button type="button" onClick={onClear} className="border border-stone-300 px-4 py-2.5 text-sm font-semibold text-black hover:bg-[#fff5f0]">
+          <button type="button" onClick={onClear} className="rounded-md border border-stone-300 px-4 py-2.5 text-sm font-semibold text-black hover:bg-[#fff5f0]">
             Clear
           </button>
         </div>
@@ -1081,10 +1081,10 @@ function ProductList({ products, onEdit, onToggle, onDelete, updatingId }: any) 
                 {product.isActive === false ? 'Hidden' : 'Live'}
               </span>
               <div className="flex flex-wrap gap-1.5">
-                <button type="button" onClick={() => onEdit(product)} className="border border-stone-300 px-3 py-1 text-xs font-semibold text-black hover:bg-[#fff5f0]">
+                <button type="button" onClick={() => onEdit(product)} className="rounded-md border border-stone-300 px-3 py-1 text-xs font-semibold text-black hover:bg-[#fff5f0]">
                   Edit
                 </button>
-                <button type="button" disabled={updatingId === product.id} onClick={() => onToggle(product)} className="border border-stone-300 px-3 py-1 text-xs font-semibold text-black hover:bg-[#fff5f0] disabled:opacity-50">
+                <button type="button" disabled={updatingId === product.id} onClick={() => onToggle(product)} className="rounded-md border border-stone-300 px-3 py-1 text-xs font-semibold text-black hover:bg-[#fff5f0] disabled:opacity-50">
                   {product.isActive === false ? 'Show' : 'Hide'}
                 </button>
                 <button type="button" onClick={() => onDelete(product.id)} className="border border-rose-600 px-3 py-1 text-xs font-semibold text-rose-600 hover:bg-rose-50">
@@ -1177,7 +1177,7 @@ function SubscribersList({ subscribers }: { subscribers: NewsletterSubscriber[] 
           {subscribers.map((subscriber) => (
             <div key={subscriber.email} className="flex items-center gap-4 py-3">
               <p className="min-w-0 flex-1 truncate text-sm text-black">{subscriber.email}</p>
-              <p className="shrink-0 border border-stone-200 px-2 py-0.5 text-xs text-black">
+              <p className="rounded-md shrink-0 border border-stone-200 px-2 py-0.5 text-xs text-black">
                 {subscriber.source || 'website'}
               </p>
               <p className="w-24 shrink-0 text-right text-xs text-black">
@@ -1399,7 +1399,7 @@ function InventorySection({
           <div className="mt-5 grid gap-4">
             <label className="grid gap-2 text-sm font-semibold text-black/80">
               Product
-              <select value={selectedProductId} onChange={(e) => setSelectedProductId(e.target.value)} className="border border-black/20 px-3 py-2 font-normal outline-none focus:border-[#a23b35]">
+              <select value={selectedProductId} onChange={(e) => setSelectedProductId(e.target.value)} className="rounded-md border border-black/20 px-3 py-2 font-normal outline-none focus:border-[#a23b35]">
                 {products.map((p) => (
                   <option key={p.id} value={p.id}>{p.name}</option>
                 ))}
@@ -1408,7 +1408,7 @@ function InventorySection({
 
             <label className="grid gap-2 text-sm font-semibold text-black/80">
               Movement type
-              <select value={movementType} onChange={(e) => setMovementType(e.target.value as InventoryMovementType)} className="border border-black/20 px-3 py-2 font-normal outline-none focus:border-[#a23b35]">
+              <select value={movementType} onChange={(e) => setMovementType(e.target.value as InventoryMovementType)} className="rounded-md border border-black/20 px-3 py-2 font-normal outline-none focus:border-[#a23b35]">
                 <option value="incoming">Incoming stock</option>
                 <option value="outgoing">Manual outgoing stock</option>
                 <option value="adjustment">Adjustment</option>
@@ -1418,25 +1418,25 @@ function InventorySection({
             <div className="grid gap-3 sm:grid-cols-2">
               <label className="grid gap-2 text-sm font-semibold text-black/80">
                 Quantity
-                <input type="number" value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} className="border border-black/20 px-3 py-2 font-normal outline-none focus:border-[#a23b35]" />
+                <input type="number" value={quantity} onChange={(e) => setQuantity(Number(e.target.value))} className="rounded-md border border-black/20 px-3 py-2 font-normal outline-none focus:border-[#a23b35]" />
               </label>
               <label className="grid gap-2 text-sm font-semibold text-black/80">
                 Unit cost
-                <input type="number" value={unitCost} onChange={(e) => setUnitCost(Number(e.target.value))} className="border border-black/20 px-3 py-2 font-normal outline-none focus:border-[#a23b35]" />
+                <input type="number" value={unitCost} onChange={(e) => setUnitCost(Number(e.target.value))} className="rounded-md border border-black/20 px-3 py-2 font-normal outline-none focus:border-[#a23b35]" />
               </label>
             </div>
 
             <label className="grid gap-2 text-sm font-semibold text-black/80">
               Linked order ID
-              <input value={linkedOrderId} onChange={(e) => setLinkedOrderId(e.target.value)} className="border border-black/20 px-3 py-2 font-normal outline-none focus:border-[#a23b35]" placeholder="Optional" />
+              <input value={linkedOrderId} onChange={(e) => setLinkedOrderId(e.target.value)} className="rounded-md border border-black/20 px-3 py-2 font-normal outline-none focus:border-[#a23b35]" placeholder="Optional" />
             </label>
 
             <label className="grid gap-2 text-sm font-semibold text-black/80">
               Reason
-              <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} className="resize-none border border-black/20 px-3 py-2 font-normal outline-none focus:border-[#a23b35]" placeholder="Supplier delivery, shrinkage, order correction..." />
+              <textarea value={reason} onChange={(e) => setReason(e.target.value)} rows={3} className="rounded-md resize-none border border-black/20 px-3 py-2 font-normal outline-none focus:border-[#a23b35]" placeholder="Supplier delivery, shrinkage, order correction..." />
             </label>
 
-            <button disabled={isSaving || !selectedProduct} className="bg-[#a23b35] px-5 py-3 text-sm font-semibold text-white hover:bg-[#8c302b] disabled:opacity-60">
+            <button disabled={isSaving || !selectedProduct} className="rounded-md bg-[#a23b35] px-5 py-3 text-sm font-semibold text-white hover:bg-[#8c302b] disabled:opacity-60">
               {isSaving ? 'Saving...' : 'Save movement'}
             </button>
           </div>
@@ -1488,7 +1488,7 @@ function InventorySection({
                   <p className="font-semibold text-black">{movement.productName}</p>
                   <p className="mt-1 text-xs text-black/50">{getDate(movement.createdAt)}</p>
                 </div>
-                <span className="border border-[#e0bfbd] bg-[#fff5f0] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#a23b35]">{movement.type}</span>
+                <span className="rounded-md border border-[#e0bfbd] bg-[#fff5f0] px-2 py-1 text-[10px] font-bold uppercase tracking-[0.12em] text-[#a23b35]">{movement.type}</span>
               </div>
               <p className="mt-3 text-sm text-black/80">Qty {movement.quantity} / Cost {money(movement.unitCost)}</p>
               <p className="mt-2 text-xs leading-5 text-black/50">{movement.reason}</p>
@@ -1623,7 +1623,7 @@ function LeadsSection({ leads }: { leads: SalesLead[] }) {
                       value={lead.stage}
                       disabled={updatingId === lead.id}
                       onChange={(e) => updateLead(lead, e.target.value as LeadStage)}
-                      className="border border-black/20 bg-white px-3 py-2 text-sm font-semibold normal-case tracking-normal text-black outline-none focus:border-[#a23b35]"
+                      className="rounded-md border border-black/20 bg-white px-3 py-2 text-sm font-semibold normal-case tracking-normal text-black outline-none focus:border-[#a23b35]"
                     >
                       {leadStages.map((stage) => (
                         <option key={stage.value} value={stage.value}>{stage.label}</option>
@@ -1657,7 +1657,7 @@ function LeadsSection({ leads }: { leads: SalesLead[] }) {
                       onChange={(e) => setNotesByLead((prev) => ({ ...prev, [lead.id]: e.target.value }))}
                       onBlur={() => updateLead(lead, lead.stage)}
                       rows={4}
-                      className="resize-none border border-black/20 bg-white px-3 py-2 text-sm font-normal normal-case tracking-normal text-black outline-none focus:border-[#a23b35]"
+                      className="rounded-md resize-none border border-black/20 bg-white px-3 py-2 text-sm font-normal normal-case tracking-normal text-black outline-none focus:border-[#a23b35]"
                     />
                   </label>
                 </div>
@@ -1758,7 +1758,7 @@ function PartnersSection({ inquiries }: { inquiries: PartnerInquiry[] }) {
                       value={inquiry.status}
                       disabled={updatingId === inquiry.id}
                       onChange={(e) => updateStatus(inquiry, e.target.value as PartnerInquiryStatus)}
-                      className="border border-black/20 bg-white px-3 py-2 text-sm font-semibold normal-case tracking-normal text-black outline-none focus:border-[#a23b35]"
+                      className="rounded-md border border-black/20 bg-white px-3 py-2 text-sm font-semibold normal-case tracking-normal text-black outline-none focus:border-[#a23b35]"
                     >
                       {partnerStatuses.map((status) => (
                         <option key={status.value} value={status.value}>{status.label}</option>
@@ -1770,7 +1770,7 @@ function PartnersSection({ inquiries }: { inquiries: PartnerInquiry[] }) {
                     href={getWhatsappHref(inquiry)}
                     target="_blank"
                     rel="noreferrer"
-                    className="inline-flex justify-center border border-[#006a65] px-4 py-2 text-sm font-semibold text-[#006a65] hover:bg-[#e7fbf8]"
+                    className="rounded-md inline-flex justify-center border border-[#006a65] px-4 py-2 text-sm font-semibold text-[#006a65] hover:bg-[#e7fbf8]"
                   >
                     Contact partner
                   </a>

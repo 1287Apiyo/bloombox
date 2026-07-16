@@ -67,10 +67,10 @@ export default function PrivacyPage() {
               For privacy requests, contact BloomBox through the partnership or support channels on the site.
             </p>
             <div className="mt-5 flex flex-wrap gap-3">
-              <Link href="/terms" className="border border-[#ae2f34] px-4 py-2 text-sm font-semibold text-[#ae2f34] hover:bg-white">
+              <Link href="/terms" className="rounded-md border border-[#ae2f34] px-4 py-2 text-sm font-semibold text-[#ae2f34] hover:bg-white">
                 Terms and Conditions
               </Link>
-              <Link href="/partner" className="bg-[#ae2f34] px-4 py-2 text-sm font-semibold text-white hover:bg-[#8c1520]">
+              <Link href="/partner" className="rounded-md bg-[#ae2f34] px-4 py-2 text-sm font-semibold text-white hover:bg-[#8c1520]">
                 Contact BloomBox
               </Link>
             </div>

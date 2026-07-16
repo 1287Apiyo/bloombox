@@ -132,7 +132,7 @@ export default function PartnersAdminPage() {
                         value={inquiry.status}
                         disabled={updatingId === inquiry.id}
                         onChange={(e) => updateStatus(inquiry, e.target.value as PartnerInquiryStatus)}
-                        className="border border-stone-300 bg-white px-3 py-2 text-sm font-semibold normal-case tracking-normal text-black outline-none focus:border-[#ae2f34]"
+                        className="rounded-md border border-stone-300 bg-white px-3 py-2 text-sm font-semibold normal-case tracking-normal text-black outline-none focus:border-[#ae2f34]"
                       >
                         {statuses.map((status) => (
                           <option key={status.value} value={status.value}>
@@ -146,13 +146,13 @@ export default function PartnersAdminPage() {
                       href={getWhatsappHref(inquiry)}
                       target="_blank"
                       rel="noreferrer"
-                      className="inline-flex justify-center border border-[#006a65] px-4 py-2 text-sm font-semibold text-[#006a65] hover:bg-[#e7fbf8]"
+                      className="rounded-md inline-flex justify-center border border-[#006a65] px-4 py-2 text-sm font-semibold text-[#006a65] hover:bg-[#e7fbf8]"
                     >
                       Contact partner
                     </a>
                     <a
                       href={`mailto:${inquiry.email}`}
-                      className="inline-flex justify-center border border-[#ae2f34] px-4 py-2 text-sm font-semibold text-[#ae2f34] hover:bg-[#fff5f0]"
+                      className="rounded-md inline-flex justify-center border border-[#ae2f34] px-4 py-2 text-sm font-semibold text-[#ae2f34] hover:bg-[#fff5f0]"
                     >
                       Email partner
                     </a>

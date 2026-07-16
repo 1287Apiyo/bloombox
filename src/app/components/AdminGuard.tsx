@@ -58,7 +58,7 @@ export function AdminGuard({ children }: { children: ReactNode }) {
           <p className="mt-4 text-sm leading-6 text-[#584140]">
             You are signed in as a customer. Ask an existing admin to add your Firebase uid to the admins collection before opening this page.
           </p>
-          <Link href="/dashboard" className="mt-7 inline-flex bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white hover:bg-[#8c1520]">
+          <Link href="/dashboard" className="rounded-md mt-7 inline-flex bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white hover:bg-[#8c1520]">
             Back to customer dashboard
           </Link>
         </div>

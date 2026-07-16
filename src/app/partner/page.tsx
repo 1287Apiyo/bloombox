@@ -37,7 +37,7 @@ const categories = [
 ];
 
 const inputClass =
-  'w-full rounded-lg border border-stone-300 bg-white px-3 py-3 text-base font-normal outline-none transition focus:border-[#ae2f34] focus:ring-1 focus:ring-[#ae2f34] sm:rounded-none sm:text-sm';
+  'w-full rounded-lg border border-stone-300 bg-white px-3 py-3 text-base font-normal outline-none transition focus:border-[#ae2f34] focus:ring-1 focus:ring-[#ae2f34] sm:rounded-md sm:text-sm';
 
 export default function PartnerPage() {
   const [businessName, setBusinessName] = useState('');
@@ -142,12 +142,12 @@ export default function PartnerPage() {
         </label>
       </div>
 
-      {error ? <p className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800 sm:rounded-none">{error}</p> : null}
-      {notice ? <p className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900 sm:rounded-none">{notice}</p> : null}
+      {error ? <p className="rounded-lg border border-rose-200 bg-rose-50 p-3 text-sm text-rose-800 sm:rounded-md">{error}</p> : null}
+      {notice ? <p className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-sm text-emerald-900 sm:rounded-md">{notice}</p> : null}
 
       <button
         disabled={isSubmitting}
-        className="rounded-lg bg-[#ae2f34] px-6 py-3.5 text-sm font-semibold text-white hover:bg-[#8c1520] disabled:opacity-60 sm:rounded-none sm:py-3"
+        className="rounded-lg bg-[#ae2f34] px-6 py-3.5 text-sm font-semibold text-white hover:bg-[#8c1520] disabled:opacity-60 sm:rounded-md sm:py-3"
       >
         {isSubmitting ? 'Sending...' : 'Send partnership request'}
       </button>
@@ -209,16 +209,16 @@ export default function PartnerPage() {
                 BloomBox can work with businesses, sponsors, schools, NGOs, corporates, wellness educators, delivery teams, and creative partners who want to support period care and thoughtful gifting.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <a href="#partner-form" className="bg-[#ae2f34] px-6 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520]">
+                <a href="#partner-form" className="rounded-md bg-[#ae2f34] px-6 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520]">
                   Start partnership
                 </a>
-                <Link href="/shop" className="border border-[#ae2f34] px-6 py-3 text-center text-sm font-semibold text-[#ae2f34] transition hover:bg-[#fff5f0]">
+                <Link href="/shop" className="rounded-md border border-[#ae2f34] px-6 py-3 text-center text-sm font-semibold text-[#ae2f34] transition hover:bg-[#fff5f0]">
                   View catalog
                 </Link>
               </div>
             </div>
 
-            <div className="relative min-h-[430px] overflow-hidden border border-stone-300 bg-stone-100">
+            <div className="relative min-h-[430px] overflow-hidden rounded-md border border-stone-300 bg-stone-100">
               <Image
                 src="/mockups/bloombox-open-box.png"
                 alt="Open BloomBox package for partnership ideas"
@@ -270,7 +270,7 @@ export default function PartnerPage() {
           {/* Desktop grid */}
           <div className="hidden gap-5 md:grid md:grid-cols-2 xl:grid-cols-4">
             {partnershipModels.map((model) => (
-              <article key={model.title} className="border border-stone-300 bg-white p-5">
+              <article key={model.title} className="rounded-md border border-stone-300 bg-white p-5 shadow-sm">
                 <h2 className="font-serif text-3xl font-semibold text-[#ae2f34]">{model.title}</h2>
                 <p className="mt-3 text-sm leading-6 text-stone-600">{model.text}</p>
               </article>
@@ -305,7 +305,7 @@ export default function PartnerPage() {
               ) : null}
             </div>
 
-            <div className="hidden border border-stone-300 bg-[#fff5f0] p-5 lg:block">{partnerForm}</div>
+            <div className="hidden rounded-md border border-stone-300 bg-[#fff5f0] p-5 shadow-sm lg:block">{partnerForm}</div>
           </div>
         </section>
       </main>

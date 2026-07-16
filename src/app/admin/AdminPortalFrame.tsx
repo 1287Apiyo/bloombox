@@ -251,7 +251,7 @@ export function AdminPanel({
   bordered?: boolean;
 }) {
   return (
-    <section className={bordered ? 'border border-stone-300 bg-white p-5' : 'bg-white'}>
+    <section className={bordered ? 'rounded-md border border-stone-300 bg-white p-5 shadow-sm' : 'bg-white'}>
       <div className="mb-3 flex flex-col justify-between gap-2 border-b border-stone-300 pb-2 md:flex-row md:items-end">
         <div>
           <h2 className="text-lg font-semibold text-black">{title}</h2>
@@ -274,7 +274,7 @@ export function AdminFormCard({
   children: ReactNode;
 }) {
   return (
-    <div className="border border-stone-300 bg-white p-5 xl:sticky xl:top-6 xl:self-start">
+    <div className="rounded-md border border-stone-300 bg-white p-5 shadow-sm xl:sticky xl:top-6 xl:self-start">
       <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">{eyebrow}</p>
       <h2 className="mt-2 font-serif text-3xl font-semibold text-black">{title}</h2>
       <div className="mt-5">{children}</div>

@@ -129,7 +129,7 @@ export default function AdminOrderDetailPage() {
       title="Order details"
       description={order ? `Review #${order.id.slice(0, 10)}, update fulfilment, and confirm customer delivery details.` : 'Review and manage a BloomBox order.'}
       actions={(
-        <Link href="/admin?section=orders" className="border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:border-[#ae2f34] hover:text-[#ae2f34]">
+        <Link href="/admin?section=orders" className="rounded-md border border-stone-300 px-4 py-2 text-sm font-semibold text-stone-700 hover:border-[#ae2f34] hover:text-[#ae2f34]">
           Back to orders
         </Link>
       )}
@@ -162,7 +162,7 @@ export default function AdminOrderDetailPage() {
                   value={order.status}
                   onChange={(event) => changeStatus(event.target.value as OrderStatus)}
                   disabled={updating}
-                  className="border border-stone-300 bg-white px-3 py-2 text-sm text-black outline-none focus:border-[#ae2f34] disabled:opacity-60"
+                  className="rounded-md border border-stone-300 bg-white px-3 py-2 text-sm text-black outline-none focus:border-[#ae2f34] disabled:opacity-60"
                 >
                   {orderStatuses.map((status) => (
                     <option key={status} value={status}>{getOrderStatusLabel(status)}</option>

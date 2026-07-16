@@ -234,18 +234,18 @@ export default function BlogPage() {
         value={title}
         onChange={(event) => setTitle(event.target.value)}
         placeholder="Title"
-        className="rounded-lg border border-stone-300 bg-white px-3 py-3 text-base outline-none focus:border-[#ae2f34] sm:rounded-none sm:px-4 sm:text-sm"
+        className="rounded-lg border border-stone-300 bg-white px-3 py-3 text-base outline-none focus:border-[#ae2f34] sm:rounded-md sm:px-4 sm:text-sm"
       />
       <input
         value={excerpt}
         onChange={(event) => setExcerpt(event.target.value)}
         placeholder="Short summary"
-        className="rounded-lg border border-stone-300 bg-white px-3 py-3 text-base outline-none focus:border-[#ae2f34] sm:rounded-none sm:px-4 sm:text-sm"
+        className="rounded-lg border border-stone-300 bg-white px-3 py-3 text-base outline-none focus:border-[#ae2f34] sm:rounded-md sm:px-4 sm:text-sm"
       />
       <select
         value={type}
         onChange={(event) => setType(event.target.value as BlogPostType)}
-        className="rounded-lg border border-stone-300 bg-white px-3 py-3 text-base outline-none focus:border-[#ae2f34] sm:rounded-none sm:px-4 sm:text-sm"
+        className="rounded-lg border border-stone-300 bg-white px-3 py-3 text-base outline-none focus:border-[#ae2f34] sm:rounded-md sm:px-4 sm:text-sm"
       >
         {postTypes.map((item) => (
           <option key={item.value} value={item.value}>
@@ -258,25 +258,25 @@ export default function BlogPage() {
         onChange={(event) => setBody(event.target.value)}
         placeholder="Write your story, product thoughts, or care notes..."
         rows={4}
-        className="resize-none rounded-lg border border-stone-300 bg-white px-3 py-3 text-base outline-none focus:border-[#ae2f34] sm:rounded-none sm:px-4 sm:text-sm"
+        className="resize-none rounded-lg border border-stone-300 bg-white px-3 py-3 text-base outline-none focus:border-[#ae2f34] sm:rounded-md sm:px-4 sm:text-sm"
       />
       <input
         value={productTags}
         onChange={(event) => setProductTags(event.target.value)}
         placeholder="Tags, e.g. menstrual cups, shower bombs"
-        className="rounded-lg border border-stone-300 bg-white px-3 py-3 text-base outline-none focus:border-[#ae2f34] sm:rounded-none sm:px-4 sm:text-sm"
+        className="rounded-lg border border-stone-300 bg-white px-3 py-3 text-base outline-none focus:border-[#ae2f34] sm:rounded-md sm:px-4 sm:text-sm"
       />
       <input
         value={videoUrl}
         onChange={(event) => setVideoUrl(event.target.value)}
         placeholder="Optional YouTube link"
-        className="rounded-lg border border-stone-300 bg-white px-3 py-3 text-base outline-none focus:border-[#ae2f34] sm:rounded-none sm:px-4 sm:text-sm"
+        className="rounded-lg border border-stone-300 bg-white px-3 py-3 text-base outline-none focus:border-[#ae2f34] sm:rounded-md sm:px-4 sm:text-sm"
       />
-      {error ? <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2.5 text-sm text-rose-800 sm:rounded-none sm:px-4 sm:py-3">{error}</p> : null}
-      {notice ? <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-900 sm:rounded-none sm:px-4 sm:py-3">{notice}</p> : null}
+      {error ? <p className="rounded-lg border border-rose-200 bg-rose-50 px-3 py-2.5 text-sm text-rose-800 sm:rounded-md sm:px-4 sm:py-3">{error}</p> : null}
+      {notice ? <p className="rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-900 sm:rounded-md sm:px-4 sm:py-3">{notice}</p> : null}
       <button
         disabled={isSubmitting || !user}
-        className="rounded-lg bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white hover:bg-[#8c1520] disabled:cursor-not-allowed disabled:opacity-60 sm:rounded-none"
+        className="rounded-lg bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white hover:bg-[#8c1520] disabled:cursor-not-allowed disabled:opacity-60 sm:rounded-md"
       >
         {user ? (isSubmitting ? 'Publishing...' : 'Publish post') : 'Log in to publish'}
       </button>
@@ -378,15 +378,15 @@ export default function BlogPage() {
                 Community stories, menstrual cup guidance, shower and bath rituals, first-period kits, and short videos that make care easier to understand.
               </p>
               <div className="mt-8 flex flex-row gap-3">
-                <a href="#community-posts" className="bg-[#ae2f34] px-6 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520]">
+                <a href="#community-posts" className="rounded-md bg-[#ae2f34] px-6 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520]">
                   Watch and read
                 </a>
                 {!user ? (
-                  <Link href="/signup?next=/blog" className="border border-[#fed4c8] px-6 py-3 text-center text-sm font-semibold text-[#fed4c8] transition hover:bg-[#fed4c8] hover:text-[#14090c]">
+                  <Link href="/signup?next=/blog" className="rounded-md border border-[#fed4c8] px-6 py-3 text-center text-sm font-semibold text-[#fed4c8] transition hover:bg-[#fed4c8] hover:text-[#14090c]">
                     Create account to write
                   </Link>
                 ) : (
-                  <a href="#share-story" className="border border-[#fed4c8] px-6 py-3 text-center text-sm font-semibold text-[#fed4c8] transition hover:bg-[#fed4c8] hover:text-[#14090c]">
+                  <a href="#share-story" className="rounded-md border border-[#fed4c8] px-6 py-3 text-center text-sm font-semibold text-[#fed4c8] transition hover:bg-[#fed4c8] hover:text-[#14090c]">
                     Share a story
                   </a>
                 )}
@@ -455,7 +455,7 @@ export default function BlogPage() {
               return (
                 <article
                   key={post.id}
-                  className="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] sm:rounded-none sm:border-stone-300 sm:shadow-none"
+                  className="overflow-hidden rounded-xl border border-stone-200 bg-white shadow-[0_1px_2px_rgba(0,0,0,0.04)] sm:rounded-md sm:border-stone-300 sm:shadow-sm"
                 >
                   <div className="p-3.5 sm:p-5">
                     <div className="flex flex-wrap items-center gap-2">
@@ -490,7 +490,7 @@ export default function BlogPage() {
                         {post.productTags.map((tag) => (
                           <span
                             key={tag}
-                            className="rounded-full border border-stone-200 bg-[#f8f9fa] px-2.5 py-0.5 text-[10px] font-semibold text-stone-600 sm:rounded-none sm:px-3 sm:py-1 sm:text-xs"
+                            className="rounded-full border border-stone-200 bg-[#f8f9fa] px-2.5 py-0.5 text-[10px] font-semibold text-stone-600 sm:rounded-md sm:px-3 sm:py-1 sm:text-xs"
                           >
                             {tag}
                           </span>
@@ -502,7 +502,7 @@ export default function BlogPage() {
                     {embedUrl ? (
                       <div className="mt-3 sm:mt-5">
                         {videoOpen ? (
-                          <div className="aspect-video overflow-hidden rounded-lg border border-stone-200 bg-stone-100 sm:rounded-none sm:border-stone-300">
+                          <div className="aspect-video overflow-hidden rounded-md border border-stone-200 bg-stone-100 sm:border-stone-300">
                             <iframe
                               src={embedUrl}
                               title={post.title}
@@ -522,7 +522,7 @@ export default function BlogPage() {
                         )}
                         {/* Desktop always show embed when not already opened via mobile button */}
                         {!videoOpen ? (
-                          <div className="hidden aspect-video overflow-hidden border border-stone-300 bg-stone-100 sm:block">
+                          <div className="hidden aspect-video overflow-hidden rounded-md border border-stone-300 bg-stone-100 sm:block">
                             <iframe
                               src={embedUrl}
                               title={post.title}
@@ -538,7 +538,7 @@ export default function BlogPage() {
                         href={post.videoUrl}
                         target="_blank"
                         rel="noreferrer"
-                        className="mt-3 inline-flex border border-[#ae2f34] px-4 py-2 text-sm font-semibold text-[#ae2f34] hover:bg-[#fff5f0] sm:mt-5"
+                        className="rounded-md mt-3 inline-flex border border-[#ae2f34] px-4 py-2 text-sm font-semibold text-[#ae2f34] hover:bg-[#fff5f0] sm:mt-5"
                       >
                         Watch linked video
                       </a>
@@ -591,13 +591,13 @@ export default function BlogPage() {
                 <div className="mt-4 flex flex-col gap-2 sm:mt-6 sm:flex-row sm:gap-3">
                   <Link
                     href="/signup?next=/blog"
-                    className="rounded-lg bg-[#ae2f34] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520] sm:rounded-none"
+                    className="rounded-lg bg-[#ae2f34] px-5 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520] sm:rounded-md"
                   >
                     Create account
                   </Link>
                   <Link
                     href="/login?next=/blog"
-                    className="rounded-lg border border-[#ae2f34] px-5 py-3 text-center text-sm font-semibold text-[#ae2f34] transition hover:bg-[#fff5f0] sm:rounded-none"
+                    className="rounded-lg border border-[#ae2f34] px-5 py-3 text-center text-sm font-semibold text-[#ae2f34] transition hover:bg-[#fff5f0] sm:rounded-md"
                   >
                     Log in
                   </Link>
@@ -614,7 +614,7 @@ export default function BlogPage() {
             </div>
 
             {/* Desktop form */}
-            <div className="hidden border border-stone-300 bg-[#fff5f0] p-5 sm:block">
+            <div className="hidden rounded-md border border-stone-300 bg-[#fff5f0] p-5 shadow-sm sm:block">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">Share with the community</p>
               <div className="mt-4">{writeForm}</div>
             </div>

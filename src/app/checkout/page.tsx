@@ -245,7 +245,7 @@ export default function CheckoutPage() {
                   BloomBox now works like a parcel checkout: add a location, review your cart, and submit an order for delivery.
                 </p>
               </div>
-              <div className="border border-stone-300 bg-white p-5">
+              <div className="rounded-md border border-stone-300 bg-white p-5 shadow-sm">
                 <p className="text-xs font-semibold uppercase tracking-[0.16em] text-rose-700">Current total</p>
                 <p className="mt-2 text-4xl font-semibold text-stone-950">{money(displayTotals.total)}</p>
                 <p className="mt-2 text-sm text-stone-600">

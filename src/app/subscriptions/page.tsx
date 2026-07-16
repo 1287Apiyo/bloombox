@@ -269,24 +269,24 @@ export default function SubscriptionsPage() {
                 Choose a recurring BloomBox tier, save the subscription, and keep monthly period care moving without starting from scratch each cycle.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <a href="#subscription-card" className="bg-[#ae2f34] px-6 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520]">
+                <a href="#subscription-card" className="rounded-md bg-[#ae2f34] px-6 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520]">
                   Activate monthly care
                 </a>
-                <Link href="/donate" className="border border-[#ae2f34] px-6 py-3 text-center text-sm font-semibold text-[#ae2f34] transition hover:bg-[#fff5f0]">
+                <Link href="/donate" className="rounded-md border border-[#ae2f34] px-6 py-3 text-center text-sm font-semibold text-[#ae2f34] transition hover:bg-[#fff5f0]">
                   Donate separately
                 </Link>
               </div>
             </div>
 
             <div className="bb-hero-collage">
-              <div className="relative overflow-hidden border border-stone-300 bg-stone-100">
+              <div className="relative overflow-hidden rounded-md border border-stone-300 bg-stone-100">
                 <Image src="/products/candle.jpg" alt="BloomBox candle subscription add-on" fill sizes="(min-width: 1024px) 560px, 100vw" priority className="object-cover" />
               </div>
               <div className="grid gap-3 sm:gap-4">
-                <div className="relative overflow-hidden border border-stone-300 bg-stone-100">
+                <div className="relative overflow-hidden rounded-md border border-stone-300 bg-stone-100">
                   <Image src="/products/waterbottles.jpg" alt="Hot water bottle comfort item" fill sizes="240px" className="object-cover" />
                 </div>
-                <div className="border border-stone-300 bg-[#fff5f0] p-4 sm:p-5">
+                <div className="rounded-md border border-stone-300 bg-[#fff5f0] p-4 sm:p-5">
                   <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">From</p>
                   <p className="mt-2 font-serif text-3xl font-semibold text-[#191c1d] sm:text-4xl">KSh 300</p>
                   <p className="mt-3 text-sm leading-6 text-[#584140]">Starter care tier with flowers and a treat.</p>
@@ -634,7 +634,7 @@ export default function SubscriptionsPage() {
             </div>
             <div className="hidden gap-5 sm:grid sm:grid-cols-2 lg:grid-cols-4">
               {addOns.map((item) => (
-                <Link key={item.name} href={item.href} className="group border border-stone-300 bg-[#f8f9fa]">
+                <Link key={item.name} href={item.href} className="group overflow-hidden rounded-md border border-stone-300 bg-[#f8f9fa] shadow-sm">
                   <span className="relative block aspect-square overflow-hidden bg-stone-100">
                     <Image src={item.image} alt={item.name} fill sizes="(min-width: 1024px) 25vw, 50vw" className="object-cover transition duration-500 group-hover:scale-[1.04]" />
                   </span>
@@ -654,7 +654,7 @@ export default function SubscriptionsPage() {
           </div>
           <div className="space-y-2 sm:space-y-3">
             {faqs.map(([question, answer], index) => (
-              <div key={question} className="rounded-xl border border-stone-300 bg-white sm:rounded-none">
+              <div key={question} className="rounded-xl border border-stone-300 bg-white sm:rounded-md">
                 <button
                   type="button"
                   onClick={() => setOpenFaq(openFaq === index ? -1 : index)}

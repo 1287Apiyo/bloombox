@@ -91,6 +91,52 @@ textarea {
   letter-spacing: 0;
 }
 
+/* Soft corners on controls — matches card rounded-md (6px).
+   Tailwind utilities like rounded-full still win when applied. */
+button,
+input[type="submit"],
+input[type="button"],
+input[type="reset"] {
+  border-radius: 0.375rem;
+}
+
+input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+select,
+textarea {
+  border-radius: 0.375rem;
+}
+
+/* CTA-style links used as buttons across marketing pages */
+a.bg-\[\#ae2f34\],
+a.bg-\[\#006a65\],
+a.bg-\[\#191c1d\],
+a.bg-\[\#8c1520\],
+a.bg-\[\#004b48\],
+a.bg-\[\#fed4c8\],
+a.bg-bb-pink,
+a.bg-bb-red,
+a.bg-stone-950,
+a.bg-black {
+  border-radius: 0.375rem;
+}
+
+a.border.border-\[\#ae2f34\],
+a.border.border-\[\#006a65\],
+a.border.border-\[\#191c1d\],
+a.border.border-\[\#fed4c8\],
+a.border.border-stone-300,
+a.border.border-\[\#e0bfbd\] {
+  border-radius: 0.375rem;
+}
+
+/* Keep circular controls circular */
+button.rounded-full,
+a.rounded-full,
+button[class*="rounded-full"],
+a[class*="rounded-full"] {
+  border-radius: 9999px;
+}
+
 input,
 select,
 textarea {

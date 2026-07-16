@@ -145,7 +145,7 @@ export default function LoginPage() {
             <p className="text-sm font-semibold text-[#191c1d]">Your care details stay together.</p>
             <p className="mt-1 text-sm leading-6 text-[#584140]">Sign in before shopping to keep carts, gifts, and checkout details ready.</p>
           </div>
-          <span className="w-fit shrink-0 border border-[#e0bfbd] bg-white px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-[#ae2f34]">
+          <span className="rounded-md w-fit shrink-0 border border-[#e0bfbd] bg-white px-3 py-1 text-xs font-bold uppercase tracking-[0.12em] text-[#ae2f34]">
             Secure
           </span>
         </div>
@@ -169,7 +169,7 @@ export default function LoginPage() {
         type="button"
         onClick={handleGoogleSignIn}
         disabled={isGoogleSubmitting || !isConfigured}
-        className="inline-flex w-full items-center justify-center gap-3 border border-stone-300 bg-white px-4 py-3 text-sm font-semibold text-stone-800 transition hover:border-[#ae2f34] hover:bg-[#fff5f0] disabled:cursor-not-allowed disabled:opacity-60"
+        className="rounded-md inline-flex w-full items-center justify-center gap-3 border border-stone-300 bg-white px-4 py-3 text-sm font-semibold text-stone-800 transition hover:border-[#ae2f34] hover:bg-[#fff5f0] disabled:cursor-not-allowed disabled:opacity-60"
       >
         <GoogleMark />
         {isGoogleSubmitting ? 'Opening Google...' : 'Continue with Google'}
@@ -189,7 +189,7 @@ export default function LoginPage() {
             value={email}
             onChange={(event) => setEmail(event.target.value)}
             required
-            className="block w-full border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none transition focus:border-[#ae2f34] focus:ring-2 focus:ring-rose-100"
+            className="rounded-md block w-full border border-stone-300 bg-white px-4 py-3 text-stone-950 outline-none transition focus:border-[#ae2f34] focus:ring-2 focus:ring-rose-100"
             placeholder="you@example.com"
           />
         </div>
@@ -221,7 +221,7 @@ export default function LoginPage() {
         <button
           type="submit"
           disabled={isSubmitting || !isConfigured}
-          className="flex w-full justify-center bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8c1520] focus:outline-none focus:ring-2 focus:ring-[#fed4c8] disabled:cursor-not-allowed disabled:opacity-75"
+          className="rounded-md flex w-full justify-center bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#8c1520] focus:outline-none focus:ring-2 focus:ring-[#fed4c8] disabled:cursor-not-allowed disabled:opacity-75"
         >
           {isSubmitting ? 'Signing in...' : 'Sign in'}
         </button>

@@ -99,24 +99,24 @@ export default function GiftingPage() {
                 Build gifts around real moments: first period care, birthday flowers, self-care evenings, recovery, or a simple reminder that someone is held.
               </p>
               <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-                <Link href="/shop" className="bg-[#ae2f34] px-6 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520]">
+                <Link href="/shop" className="rounded-md bg-[#ae2f34] px-6 py-3 text-center text-sm font-semibold text-white transition hover:bg-[#8c1520]">
                   Build from catalog
                 </Link>
-                <Link href="/subscriptions" className="border border-[#ae2f34] px-6 py-3 text-center text-sm font-semibold text-[#ae2f34] transition hover:bg-[#fff5f0]">
+                <Link href="/subscriptions" className="rounded-md border border-[#ae2f34] px-6 py-3 text-center text-sm font-semibold text-[#ae2f34] transition hover:bg-[#fff5f0]">
                   View care tiers
                 </Link>
               </div>
             </div>
 
             <div className="bb-hero-collage">
-              <div className="relative overflow-hidden border border-stone-300 bg-stone-100">
+              <div className="relative overflow-hidden rounded-md border border-stone-300 bg-stone-100">
                 <Image src="/mockups/bloombox-gift-flowers.png" alt="BloomBox flowers and gift box" fill sizes="(min-width: 1024px) 560px, 100vw" priority className="object-cover" />
               </div>
               <div className="grid gap-3 sm:gap-4">
-                <div className="relative overflow-hidden border border-stone-300 bg-stone-100">
+                <div className="relative overflow-hidden rounded-md border border-stone-300 bg-stone-100">
                   <Image src="/products/candle.jpg" alt="Scented candle gift add-on" fill sizes="240px" className="object-cover" />
                 </div>
-                <div className="border border-stone-300 bg-[#fff5f0] p-4 sm:p-5">
+                <div className="rounded-md border border-stone-300 bg-[#fff5f0] p-4 sm:p-5">
                   <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">Gift flow</p>
                   <p className="mt-2 font-serif text-2xl font-semibold text-[#191c1d] sm:text-3xl">Pick, personalize, deliver.</p>
                   <p className="mt-3 text-sm leading-6 text-[#584140]">Each direction leads back to the catalog and checkout details.</p>
@@ -134,7 +134,7 @@ export default function GiftingPage() {
                 Filter by occasion, choose a starting point, then complete the actual products from the shop.
               </p>
             </div>
-            <Link href="/checkout" className="w-fit border border-[#ae2f34] px-5 py-2 text-sm font-semibold text-[#ae2f34] hover:bg-[#ae2f34] hover:text-white">
+            <Link href="/checkout" className="rounded-md w-fit border border-[#ae2f34] px-5 py-2 text-sm font-semibold text-[#ae2f34] hover:bg-[#ae2f34] hover:text-white">
               Go to checkout
             </Link>
           </div>
@@ -156,7 +156,7 @@ export default function GiftingPage() {
 
           <div className="mt-8 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
             {visibleGifts.map((gift) => (
-              <article key={gift.name} className="group overflow-hidden border border-stone-300 bg-white transition hover:border-[#ae2f34]">
+              <article key={gift.name} className="group overflow-hidden rounded-md border border-stone-300 bg-white shadow-sm transition hover:border-[#ae2f34]">
                 <div className="relative aspect-[4/3] bg-stone-100">
                   <Image src={gift.image} alt={gift.name} fill sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw" className="object-cover transition duration-500 group-hover:scale-[1.04]" />
                   <span className="absolute left-4 top-4 bg-white px-3 py-1 text-xs font-bold uppercase tracking-[0.14em] text-[#ae2f34]">
@@ -172,14 +172,14 @@ export default function GiftingPage() {
 
                   <div className="mt-5 flex flex-wrap gap-2">
                     {gift.includes.map((item) => (
-                      <span key={item} className="border border-[#e0bfbd] bg-[#fff5f0] px-3 py-1 text-xs font-semibold text-[#584140]">
+                      <span key={item} className="rounded-md border border-[#e0bfbd] bg-[#fff5f0] px-3 py-1 text-xs font-semibold text-[#584140]">
                         {item}
                       </span>
                     ))}
                   </div>
 
                   <div className="mt-7 flex items-center justify-between gap-4 border-t border-stone-200 pt-5">
-                    <Link href="/shop" className="bg-[#ae2f34] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1B1F3B]">
+                    <Link href="/shop" className="rounded-md bg-[#ae2f34] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#1B1F3B]">
                       Choose
                     </Link>
                     <Link href="/subscriptions" className="text-sm font-semibold text-[#ae2f34] hover:text-[#8c1520]">
@@ -203,7 +203,7 @@ export default function GiftingPage() {
 
             <div className="grid gap-5 md:grid-cols-3">
               {storyCards.map((card, index) => (
-                <article key={card.title} className="border border-stone-300 bg-[#f8f9fa]">
+                <article key={card.title} className="rounded-md border border-stone-300 bg-[#f8f9fa] shadow-sm">
                   <div className="relative aspect-[4/3] bg-stone-100">
                     <Image src={card.image} alt={card.title} fill sizes="(min-width: 768px) 33vw, 100vw" className="object-cover" />
                   </div>
@@ -219,14 +219,14 @@ export default function GiftingPage() {
         </section>
 
         <section className="mx-auto max-w-7xl px-5 py-14 sm:px-8">
-          <div className="grid overflow-hidden border border-stone-300 bg-[#fff5f0] lg:grid-cols-[1fr_0.8fr]">
+          <div className="grid overflow-hidden rounded-md border border-stone-300 bg-[#fff5f0] lg:grid-cols-[1fr_0.8fr]">
             <div className="p-8 lg:p-10">
               <p className="text-xs font-bold uppercase tracking-[0.16em] text-[#ae2f34]">Recipient details</p>
               <h2 className="mt-4 font-serif text-4xl font-semibold text-[#191c1d]">A gift is only finished once the delivery feels handled.</h2>
               <p className="mt-4 max-w-2xl text-sm leading-6 text-[#584140]">
                 After choosing products, checkout captures recipient name, phone number, county, town, address, landmark, delivery notes, and payment.
               </p>
-              <Link href="/shop" className="mt-7 inline-flex bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white hover:bg-[#8c1520]">
+              <Link href="/shop" className="rounded-md mt-7 inline-flex bg-[#ae2f34] px-5 py-3 text-sm font-semibold text-white hover:bg-[#8c1520]">
                 Start with products
               </Link>
             </div>
